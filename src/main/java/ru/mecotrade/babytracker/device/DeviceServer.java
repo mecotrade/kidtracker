@@ -44,14 +44,14 @@ public class DeviceServer implements Runnable {
     @Override
     public void run() {
 
-        logger.info("Device Server started");
+        logger.info("Device Server started on port: {}", port);
 
         try (ServerSocket server = new ServerSocket(port)) {
 
             while (!Thread.interrupted()) {
                 Socket client = server.accept();
                 String guid = UUID.randomUUID().toString();
-                socketExecutor.execute(factory.getDeviceListener(guid, client));
+                socketExecutor.execute(factory.getMessageListener(guid, client));
             }
 
         } catch (IOException ex) {

@@ -12,37 +12,37 @@ import java.util.stream.Collectors;
 @Component
 public class MessageParser {
 
-    public List<Message> parse(String raw) throws BabyTrackerParseException {
+    public List<Message> parse(String data) throws BabyTrackerParseException {
 
-        if (!raw.startsWith("[") || !raw.endsWith("]")) {
-            throw new BabyTrackerParseException("Unable to parse message '" + raw + "'");
+        if (!data.startsWith("[") || !data.endsWith("]")) {
+            throw new BabyTrackerParseException("Unable to parse message '" + data + "'");
         }
 
-        raw = raw.substring(1, raw.length() - 1);
+        data = data.substring(1, data.length() - 1);
 
         // one string might contain many messages
         List<Message> messages = new ArrayList<>();
-        for (String rawMessage : raw.split("]\\[")) {
+        for (String rawMessage : data.split("]\\[")) {
             messages.add(parseInternal(rawMessage));
         }
         return messages;
     }
 
-    private Message parseInternal(String raw)  throws BabyTrackerParseException {
+    private Message parseInternal(String data)  throws BabyTrackerParseException {
 
-        String [] rawParts = raw.split("\\*");
-        if (rawParts.length < 4) {
-            throw new BabyTrackerParseException("Missing payload in message '" + raw + "'");
+        String [] parts = data.split("\\*");
+        if (parts.length < 4) {
+            throw new BabyTrackerParseException("Missing payload in message '" + data + "'");
         }
 
-        String manufacturer = rawParts[0];
-        String deviceId = rawParts[1];
-        long dataLength = Long.parseLong(rawParts[2], 16);;
-        String payload = String.join("*", new ArrayList<>(Arrays.asList(rawParts).subList(3, rawParts.length)));
+        String manufacturer = parts[0];
+        String deviceId = parts[1];
+        long dataLength = Long.parseLong(parts[2], 16);;
+        String payload = String.join("*", new ArrayList<>(Arrays.asList(parts).subList(3, parts.length)));
 
         if (payload.getBytes().length != dataLength) {
             throw new BabyTrackerParseException("Data length mismatch declared length: " + payload.getBytes().length
-                    + " vs " + dataLength + " in message '" + raw + "'");
+                    + " vs " + dataLength + " in message '" + data + "'");
         }
 
         return new Message(manufacturer, deviceId, payload);

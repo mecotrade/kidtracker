@@ -3,11 +3,9 @@ package ru.mecotrade.babytracker.device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import ru.mecotrade.babytracker.exception.BabyTrackerConnectionException;
 
-import java.io.IOException;
-import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 @Component
@@ -15,28 +13,29 @@ public class DeviceManager {
 
     private final Logger logger = LoggerFactory.getLogger(DeviceManager.class);
 
-    private final Map<String, Deque<DeviceSender>> devices = new HashMap<>();
+    private final Map<String, DeviceSender> deviceSenders = new HashMap<>();
 
     /**
      * @param deviceId
      * @param command
      * @return true if command is posted, false otherwise
-     * @throws IOException
      */
-    public boolean post(String deviceId, String command) {
-        Deque<DeviceSender> deviceListeners = devices.get(deviceId);
-        if (deviceListeners != null && !deviceListeners.isEmpty()) {
-            deviceListeners.peek().send(command);
-            return true;
+    public void send(String deviceId, String command) throws BabyTrackerConnectionException {
+        DeviceSender deviceSender = deviceSenders.get(deviceId);
+        if (deviceSender != null) {
+            deviceSender.send(command);
         }
-
-        return false;
     }
 
     public void register(String deviceId, DeviceSender deviceSender) {
-        Deque<DeviceSender> deviceSenders = devices.computeIfAbsent(deviceId, d -> new LinkedList<>());
-        if (!deviceSenders.contains(deviceSender)) {
-            deviceSenders.addFirst(deviceSender);
+        DeviceSender oldDeviceSender = deviceSenders.get(deviceId);
+        if (oldDeviceSender != null) {
+            try {
+                oldDeviceSender.close();
+            } catch (BabyTrackerConnectionException ex) {
+                logger.error("[{}] Unable to close connection", ex.getMessage(), ex.getCause());
+            }
         }
+        deviceSenders.put(deviceId, deviceSender);
     }
 }

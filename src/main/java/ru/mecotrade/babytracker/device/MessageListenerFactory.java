@@ -11,7 +11,7 @@ import java.net.Socket;
 public class MessageListenerFactory {
 
     @Autowired
-    private MessageParser parser;
+    private MessageParser messageParser;
 
     @Autowired
     private DeviceManager deviceManager;
@@ -19,7 +19,7 @@ public class MessageListenerFactory {
     @Autowired
     private MessageProcessor messageProcessor;
 
-    public MessageListener getDeviceListener(String guid, Socket socket) {
-        return new MessageListener(guid, socket, parser, deviceManager, messageProcessor);
+    public MessageListener getMessageListener(String guid, Socket socket) {
+        return new MessageListener(guid, socket, messageParser, messageProcessor, deviceManager);
     }
 }

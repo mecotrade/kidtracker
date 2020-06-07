@@ -2,12 +2,13 @@ package ru.mecotrade.babytracker.protocol;
 
 import org.springframework.stereotype.Component;
 import ru.mecotrade.babytracker.device.DeviceSender;
+import ru.mecotrade.babytracker.exception.BabyTrackerConnectionException;
 import ru.mecotrade.babytracker.model.Message;
 
 @Component
 public class MessageProcessor {
 
-    public void process(Message message, DeviceSender sender) {
+    public void process(Message message, DeviceSender sender) throws BabyTrackerConnectionException {
 
         String [] payloadParts = message.getPayload().split(",");
         String type = payloadParts[0];
