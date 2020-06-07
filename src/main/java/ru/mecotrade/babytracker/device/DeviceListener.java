@@ -19,7 +19,11 @@ public abstract class DeviceListener implements Runnable, Closeable {
 
     private static final int BUFFER_LENGTH = 1024;
 
+    private static final int ID_LENGTH = 8;
+
     private static final String ID_CHARS = "01234567890abcdef";
+
+    private static final long SOCKET_QUERY_INTERVAL_MILLIS = 500;
 
     private final byte [] buffer = new byte[BUFFER_LENGTH];
 
@@ -29,7 +33,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
 
     public DeviceListener(Socket socket) {
         this.socket = socket;
-        id = RandomStringUtils.random(8, ID_CHARS);
+        id = RandomStringUtils.random(ID_LENGTH, ID_CHARS);
     }
 
     @Override
@@ -45,8 +49,11 @@ public abstract class DeviceListener implements Runnable, Closeable {
                 if (data != null) {
                     process(data, out);
                 }
+                Thread.sleep(SOCKET_QUERY_INTERVAL_MILLIS);
             }
 
+        } catch (InterruptedException ex) {
+            logger.warn("[{}] Communication interrupted, closing connection", id);
         } catch (EOFException ex) {
             logger.info("[{}] EOF reached, closing connection", id);
         } catch (IOException ex) {
