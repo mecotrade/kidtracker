@@ -8,7 +8,7 @@ import ru.mecotrade.babytracker.protocol.MessageProcessor;
 import java.net.Socket;
 
 @Component
-public class MessageListenerFactory {
+public class MessageListenerFactory implements DeviceListenerFactory {
 
     @Autowired
     private MessageParser messageParser;
@@ -19,7 +19,8 @@ public class MessageListenerFactory {
     @Autowired
     private MessageProcessor messageProcessor;
 
-    public MessageListener getMessageListener(String guid, Socket socket) {
-        return new MessageListener(guid, socket, messageParser, messageProcessor, deviceManager);
+    @Override
+    public MessageListener getListener(Socket socket) {
+        return new MessageListener(socket, messageParser, messageProcessor, deviceManager);
     }
 }

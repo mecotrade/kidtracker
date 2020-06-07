@@ -1,5 +1,6 @@
 package ru.mecotrade.babytracker.device;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.mecotrade.babytracker.exception.BabyTrackerConnectionException;
@@ -18,21 +19,23 @@ public abstract class DeviceListener implements Runnable, Closeable {
 
     private static final int BUFFER_LENGTH = 1024;
 
+    private static final String ID_CHARS = "01234567890abcdef";
+
     private final byte [] buffer = new byte[BUFFER_LENGTH];
 
-    private final String guid;
+    private final String id;
 
     private final Socket socket;
 
-    public DeviceListener(String guid, Socket socket) {
-        this.guid = guid;
+    public DeviceListener(Socket socket) {
         this.socket = socket;
+        id = RandomStringUtils.random(8, ID_CHARS);
     }
 
     @Override
     public void run() {
 
-        logger.debug("[{}] Connection accepted", guid);
+        logger.debug("[{}] Connection accepted", id);
 
         try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
              DataInputStream in = new DataInputStream(socket.getInputStream())) {
@@ -45,17 +48,17 @@ public abstract class DeviceListener implements Runnable, Closeable {
             }
 
         } catch (EOFException ex) {
-            logger.info("[{}] EOF reached, closing connection", guid);
+            logger.info("[{}] EOF reached, closing connection", id);
         } catch (IOException ex) {
-            logger.error("[{}] Communication error, closing connection", guid, ex);
+            logger.error("[{}] Communication error, closing connection", id, ex);
         } catch (BabyTrackerException ex) {
-            logger.error("[{}] Unable to proceed, closing", guid, ex);
+            logger.error("[{}] Unable to proceed, closing", id, ex);
         }
 
         try {
             close();
         } catch (BabyTrackerConnectionException ex) {
-            logger.error("[{}] Unable to close connection", guid, ex);
+            logger.error("[{}] Unable to close connection", id, ex);
         }
     }
 
@@ -66,15 +69,15 @@ public abstract class DeviceListener implements Runnable, Closeable {
         if (!isClosed()) {
             try {
                 socket.close();
-                logger.debug("[{}] Connection closed", guid);
+                logger.debug("[{}] Connection closed", id);
             } catch (IOException ex) {
-                throw new BabyTrackerConnectionException(guid,ex);
+                throw new BabyTrackerConnectionException(id, ex);
             }
         }
     }
 
-    public String getGuid() {
-        return guid;
+    public String getId() {
+        return id;
     }
 
     public boolean isClosed() {

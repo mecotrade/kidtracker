@@ -23,10 +23,10 @@ public class CommandController {
     public String setUploadInterval(@PathVariable String deviceId, @PathVariable String command) {
         try {
             deviceManager.send(deviceId, command);
-            return "OK";
+            return "Command '" + command + "' to device " + deviceId + " successfully sent";
         } catch (BabyTrackerConnectionException ex) {
             logger.error("[{}] Unable to send payload '{}'", ex.getMessage(), command, ex.getCause());
-            return "Command is not posted";
+            return "Fail sending command '" + command + "' to device " + deviceId;
         }
     }
 }

@@ -34,8 +34,8 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
     private DataOutputStream out = null;
 
-    public MessageListener(String guid, Socket socket, MessageParser messsageParser, MessageProcessor messageProcessor, DeviceManager deviceManager) {
-        super(guid, socket);
+    public MessageListener(Socket socket, MessageParser messsageParser, MessageProcessor messageProcessor, DeviceManager deviceManager) {
+        super(socket);
         this.messageParser = messsageParser;
         this.messageProcessor = messageProcessor;
         this.deviceManager = deviceManager;
@@ -47,14 +47,14 @@ public class MessageListener extends DeviceListener implements DeviceSender {
         this.out = out;
         deviceManager.register(deviceId, this);
         initialized = true;
-        logger.debug("[{}] Message listener initialized for manufacturer={}, deviceId={}", getGuid(), manufacturer, deviceId);
+        logger.debug("[{}] Message listener initialized for manufacturer={}, deviceId={}", getId(), manufacturer, deviceId);
     }
 
     @Override
     protected void process(String data, DataOutputStream out) throws BabyTrackerException {
         List<Message> messages = messageParser.parse(data);
         if (messages != null) {
-            logger.debug("[{}] >>> {}", getGuid(), messages);
+            logger.debug("[{}] >>> {}", getId(), messages);
             for (Message message : messages) {
                 if (!initialized) {
                     synchronized (this) {
@@ -75,12 +75,12 @@ public class MessageListener extends DeviceListener implements DeviceSender {
             try {
                 out.writeBytes(messageParser.format(message));
                 out.flush();
-                logger.debug("[{}] <<< {}", getGuid(), message);
+                logger.debug("[{}] <<< {}", getId(), message);
             } catch (IOException ex) {
-                throw new BabyTrackerConnectionException(getGuid(), ex);
+                throw new BabyTrackerConnectionException(getId(), ex);
             }
         } else {
-            logger.warn("[{}] Unable to send payload '{}' since {}", getGuid(), payload,
+            logger.warn("[{}] Unable to send payload '{}' since {}", getId(), payload,
                     Stream.of(initialized ? null : "listener is not initialized", isClosed() ? "socket is closed" : null)
                             .filter(Objects::nonNull).collect(Collectors.joining(" and ")));
         }
