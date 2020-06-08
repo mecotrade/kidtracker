@@ -35,7 +35,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
     @Override
     public void run() {
 
-        log.debug("[{}] Connection accepted", id);
+        log.info("[{}] Connection accepted", id);
 
         try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
              DataInputStream in = new DataInputStream(socket.getInputStream())) {
@@ -45,7 +45,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
             }
 
         } catch (EOFException ex) {
-            log.info("[{}] EOF reached, closing connection", id);
+            log.warn("[{}] EOF reached, closing connection", id);
         } catch (IOException ex) {
             log.error("[{}] Communication error, closing connection", id, ex);
         } catch (BabyTrackerException ex) {
@@ -66,7 +66,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
         if (!isClosed()) {
             try {
                 socket.close();
-                log.debug("[{}] Connection closed", id);
+                log.info("[{}] Connection closed", id);
             } catch (IOException ex) {
                 throw new BabyTrackerConnectionException(id, ex);
             }

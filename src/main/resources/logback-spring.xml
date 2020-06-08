@@ -7,6 +7,9 @@
     <property name="log.max.filesize" value="10MB"/>
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>${log.pattern.layout}</Pattern>
         </layout>
@@ -31,8 +34,6 @@
         <appender-ref ref="Console" />
     </root>
 
-    <logger name="ru.mecotrade.babytracker" level="debug" additivity="false">
-        <appender-ref ref="RollingFile" />
-    </logger>
+    <logger name="ru.mecotrade.babytracker" level="debug"/>
 
 </configuration>
