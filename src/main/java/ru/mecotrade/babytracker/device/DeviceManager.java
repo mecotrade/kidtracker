@@ -1,5 +1,6 @@
 package ru.mecotrade.babytracker.device;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -9,9 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class DeviceManager {
-
-    private final Logger logger = LoggerFactory.getLogger(DeviceManager.class);
 
     private final Map<String, DeviceSender> deviceSenders = new HashMap<>();
 
@@ -33,7 +33,7 @@ public class DeviceManager {
             try {
                 oldDeviceSender.close();
             } catch (BabyTrackerConnectionException ex) {
-                logger.error("[{}] Unable to close connection", ex.getMessage(), ex.getCause());
+                log.error("[{}] Unable to close connection", ex.getMessage(), ex.getCause());
             }
         }
         deviceSenders.put(deviceId, deviceSender);

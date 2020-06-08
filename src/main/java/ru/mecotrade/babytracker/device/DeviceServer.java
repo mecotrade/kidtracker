@@ -1,7 +1,6 @@
 package ru.mecotrade.babytracker.device;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -11,9 +10,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executor;
 
+@Slf4j
 public class DeviceServer implements Runnable {
-
-    private final Logger logger = LoggerFactory.getLogger(DeviceServer.class);
 
     @Autowired
     private Executor deviceListenerExecutor;
@@ -43,7 +41,7 @@ public class DeviceServer implements Runnable {
     @Override
     public void run() {
 
-        logger.info("Device Server started on port: {} for {}", port, deviceListenerFactory.getClass());
+        log.info("Device Server started on port: {} for {}", port, deviceListenerFactory.getClass());
 
         try (ServerSocket server = new ServerSocket(port)) {
 
@@ -53,9 +51,9 @@ public class DeviceServer implements Runnable {
             }
 
         } catch (IOException ex) {
-            logger.error("Device Server error", ex);
+            log.error("Device Server error", ex);
         }
 
-        logger.info("Device Server shut down");
+        log.info("Device Server shut down");
     }
 }

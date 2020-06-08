@@ -7,7 +7,6 @@ import ru.mecotrade.babytracker.model.Message;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class MessageParser {

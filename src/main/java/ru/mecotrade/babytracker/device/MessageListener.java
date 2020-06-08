@@ -1,7 +1,6 @@
 package ru.mecotrade.babytracker.device;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import ru.mecotrade.babytracker.exception.BabyTrackerConnectionException;
 import ru.mecotrade.babytracker.exception.BabyTrackerException;
 import ru.mecotrade.babytracker.model.Message;
@@ -16,9 +15,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class MessageListener extends DeviceListener implements DeviceSender {
-
-    private final Logger logger = LoggerFactory.getLogger(MessageListener.class);
 
     private final MessageParser messageParser;
 
@@ -47,14 +45,14 @@ public class MessageListener extends DeviceListener implements DeviceSender {
         this.out = out;
         deviceManager.register(deviceId, this);
         initialized = true;
-        logger.debug("[{}] Message listener initialized for manufacturer={}, deviceId={}", getId(), manufacturer, deviceId);
+        log.debug("[{}] Message listener initialized for manufacturer={}, deviceId={}", getId(), manufacturer, deviceId);
     }
 
     @Override
     protected void process(String data, DataOutputStream out) throws BabyTrackerException {
         List<Message> messages = messageParser.parse(data);
         if (messages != null) {
-            logger.debug("[{}] >>> {}", getId(), messages);
+            log.debug("[{}] >>> {}", getId(), messages);
             for (Message message : messages) {
                 if (!initialized) {
                     synchronized (this) {
@@ -69,18 +67,18 @@ public class MessageListener extends DeviceListener implements DeviceSender {
     }
 
     @Override
-    public void send(String payload) throws BabyTrackerConnectionException {
+    public synchronized void send(String payload) throws BabyTrackerConnectionException {
         if (initialized && !isClosed()) {
             Message message = new Message(manufacturer, deviceId, payload);
             try {
                 out.writeBytes(messageParser.format(message));
                 out.flush();
-                logger.debug("[{}] <<< {}", getId(), message);
+                log.debug("[{}] <<< {}", getId(), message);
             } catch (IOException ex) {
                 throw new BabyTrackerConnectionException(getId(), ex);
             }
         } else {
-            logger.warn("[{}] Unable to send payload '{}' since {}", getId(), payload,
+            log.warn("[{}] Unable to send payload '{}' since {}", getId(), payload,
                     Stream.of(initialized ? null : "listener is not initialized", isClosed() ? "socket is closed" : null)
                             .filter(Objects::nonNull).collect(Collectors.joining(" and ")));
         }

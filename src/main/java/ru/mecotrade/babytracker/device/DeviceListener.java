@@ -1,8 +1,7 @@
 package ru.mecotrade.babytracker.device;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.mecotrade.babytracker.exception.BabyTrackerConnectionException;
 import ru.mecotrade.babytracker.exception.BabyTrackerException;
 
@@ -13,17 +12,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 
+@Slf4j
 public abstract class DeviceListener implements Runnable, Closeable {
-
-    private final Logger logger = LoggerFactory.getLogger(DeviceListener.class);
 
     private static final int BUFFER_LENGTH = 1024;
 
     private static final int ID_LENGTH = 8;
 
     private static final String ID_CHARS = "01234567890abcdef";
-
-    private static final long SOCKET_QUERY_INTERVAL_MILLIS = 500;
 
     private final byte [] buffer = new byte[BUFFER_LENGTH];
 
@@ -39,33 +35,27 @@ public abstract class DeviceListener implements Runnable, Closeable {
     @Override
     public void run() {
 
-        logger.debug("[{}] Connection accepted", id);
+        log.debug("[{}] Connection accepted", id);
 
         try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
              DataInputStream in = new DataInputStream(socket.getInputStream())) {
 
             while (!isClosed()) {
-                String data = read(in);
-                if (data != null) {
-                    process(data, out);
-                }
-                Thread.sleep(SOCKET_QUERY_INTERVAL_MILLIS);
+                process(read(in), out);
             }
 
-        } catch (InterruptedException ex) {
-            logger.warn("[{}] Communication interrupted, closing connection", id);
         } catch (EOFException ex) {
-            logger.info("[{}] EOF reached, closing connection", id);
+            log.info("[{}] EOF reached, closing connection", id);
         } catch (IOException ex) {
-            logger.error("[{}] Communication error, closing connection", id, ex);
+            log.error("[{}] Communication error, closing connection", id, ex);
         } catch (BabyTrackerException ex) {
-            logger.error("[{}] Unable to proceed, closing", id, ex);
+            log.error("[{}] Unable to proceed, closing", id, ex);
         }
 
         try {
             close();
         } catch (BabyTrackerConnectionException ex) {
-            logger.error("[{}] Unable to close connection", id, ex);
+            log.error("[{}] Unable to close connection", id, ex);
         }
     }
 
@@ -76,7 +66,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
         if (!isClosed()) {
             try {
                 socket.close();
-                logger.debug("[{}] Connection closed", id);
+                log.debug("[{}] Connection closed", id);
             } catch (IOException ex) {
                 throw new BabyTrackerConnectionException(id, ex);
             }
@@ -93,28 +83,20 @@ public abstract class DeviceListener implements Runnable, Closeable {
 
     private String read(InputStream in) throws IOException {
 
-        if (in.available() > 0) {
+        int count;
+        byte[] message = new byte[0];
 
-            synchronized (this) {
-
-                int count;
-                byte[] message = new byte[0];
-
-                do {
-                    count = in.read(buffer);
-                    if (count == -1) {
-                        throw new EOFException();
-                    }
-                    byte[] newMessage = new byte[message.length + count];
-                    System.arraycopy(message, 0, newMessage, 0, message.length);
-                    System.arraycopy(buffer, 0, newMessage, message.length, count);
-                    message = newMessage;
-                } while (count == buffer.length);
-
-                return new String(message);
+        do {
+            count = in.read(buffer);
+            if (count == -1) {
+                throw new EOFException();
             }
-        }
+            byte[] newMessage = new byte[message.length + count];
+            System.arraycopy(message, 0, newMessage, 0, message.length);
+            System.arraycopy(buffer, 0, newMessage, message.length, count);
+            message = newMessage;
+        } while (count == buffer.length);
 
-        return null;
+        return new String(message);
     }
 }

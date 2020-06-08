@@ -1,7 +1,6 @@
 package ru.mecotrade.babytracker.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,9 +10,8 @@ import ru.mecotrade.babytracker.device.DeviceManager;
 import ru.mecotrade.babytracker.exception.BabyTrackerConnectionException;
 
 @Controller
+@Slf4j
 public class CommandController {
-
-    private final Logger logger = LoggerFactory.getLogger(CommandController.class);
 
     @Autowired
     private DeviceManager deviceManager;
@@ -25,7 +23,7 @@ public class CommandController {
             deviceManager.send(deviceId, command);
             return "Command '" + command + "' to device " + deviceId + " successfully sent";
         } catch (BabyTrackerConnectionException ex) {
-            logger.error("[{}] Unable to send payload '{}'", ex.getMessage(), command, ex.getCause());
+            log.error("[{}] Unable to send payload '{}'", ex.getMessage(), command, ex.getCause());
             return "Fail sending command '" + command + "' to device " + deviceId;
         }
     }
