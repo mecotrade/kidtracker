@@ -30,7 +30,7 @@ public class ParserTest {
 
     @Test
     public void testFormat() {
-        Message message = new Message("3G", "1234567890", "LK");
+        Message message = new Message(Message.Source.PLATFORM, "3G", "1234567890", "LK");
         assertEquals("[3G*1234567890*0002*LK]", parser.format(message));
     }
 }

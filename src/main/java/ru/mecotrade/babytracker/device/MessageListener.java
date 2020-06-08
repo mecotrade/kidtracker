@@ -1,6 +1,7 @@
 package ru.mecotrade.babytracker.device;
 
 import lombok.extern.slf4j.Slf4j;
+import ru.mecotrade.babytracker.dao.MessageService;
 import ru.mecotrade.babytracker.exception.BabyTrackerConnectionException;
 import ru.mecotrade.babytracker.exception.BabyTrackerException;
 import ru.mecotrade.babytracker.model.Message;
@@ -24,6 +25,8 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
     private final DeviceManager deviceManager;
 
+    private final MessageService messageService;
+
     private boolean initialized = false;
 
     private String manufacturer = null;
@@ -32,11 +35,12 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
     private DataOutputStream out = null;
 
-    public MessageListener(Socket socket, MessageParser messsageParser, MessageProcessor messageProcessor, DeviceManager deviceManager) {
+    public MessageListener(Socket socket, MessageParser messsageParser, MessageProcessor messageProcessor, DeviceManager deviceManager, MessageService messageService) {
         super(socket);
         this.messageParser = messsageParser;
         this.messageProcessor = messageProcessor;
         this.deviceManager = deviceManager;
+        this.messageService = messageService;
     }
 
     private void init(String manufacturer, String deviceId, DataOutputStream out) {
@@ -52,6 +56,7 @@ public class MessageListener extends DeviceListener implements DeviceSender {
     protected void process(String data, DataOutputStream out) throws BabyTrackerException {
         List<Message> messages = messageParser.parse(data);
         if (messages != null) {
+            messageService.save(messages);
             log.debug("[{}] >>> {}", getId(), messages);
             for (Message message : messages) {
                 if (!initialized) {
@@ -69,10 +74,11 @@ public class MessageListener extends DeviceListener implements DeviceSender {
     @Override
     public synchronized void send(String payload) throws BabyTrackerConnectionException {
         if (initialized && !isClosed()) {
-            Message message = new Message(manufacturer, deviceId, payload);
+            Message message = new Message(Message.Source.PLATFORM, manufacturer, deviceId, payload);
             try {
                 out.writeBytes(messageParser.format(message));
                 out.flush();
+                messageService.save(message);
                 log.debug("[{}] <<< {}", getId(), message);
             } catch (IOException ex) {
                 throw new BabyTrackerConnectionException(getId(), ex);

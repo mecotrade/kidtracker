@@ -44,7 +44,7 @@ public class MessageParser {
                     + " vs " + dataLength + " in message '" + data + "'");
         }
 
-        return new Message(manufacturer, deviceId, payload);
+        return new Message(Message.Source.DEVICE, manufacturer, deviceId, payload);
     }
 
     public String format(Message message) {
