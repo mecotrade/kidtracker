@@ -25,7 +25,7 @@ public class Message {
     private Long id;
 
     @CreationTimestamp
-    private Date createDateTime;
+    private Date timestamp;
 
     private Source source;
 
