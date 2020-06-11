@@ -13,6 +13,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <commons-lang3.version>3.10</commons-lang3.version>
+        <guava.version>29.0-jre</guava.version>
         <lombok.version>1.18.8</lombok.version>
     </properties>
     <parent>
@@ -39,6 +40,11 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -27,6 +27,8 @@ public abstract class DeviceListener implements Runnable, Closeable {
 
     private final Socket socket;
 
+    protected DataOutputStream out;
+
     public DeviceListener(Socket socket) {
         this.socket = socket;
         id = RandomStringUtils.random(ID_LENGTH, ID_CHARS);
@@ -40,8 +42,10 @@ public abstract class DeviceListener implements Runnable, Closeable {
         try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
              DataInputStream in = new DataInputStream(socket.getInputStream())) {
 
+            this.out = out;
+
             while (!isClosed()) {
-                process(read(in), out);
+                process(read(in));
             }
 
         } catch (EOFException ex) {
@@ -59,7 +63,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
         }
     }
 
-    protected abstract void process(String data, DataOutputStream out) throws BabyTrackerException;
+    abstract void process(byte[] data) throws BabyTrackerException;
 
     @Override
     public synchronized void close() throws BabyTrackerConnectionException {
@@ -81,7 +85,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
         return socket.isClosed();
     }
 
-    private String read(InputStream in) throws IOException {
+    private byte[] read(InputStream in) throws IOException {
 
         int count;
         byte[] message = new byte[0];
@@ -97,6 +101,6 @@ public abstract class DeviceListener implements Runnable, Closeable {
             message = newMessage;
         } while (count == buffer.length);
 
-        return new String(message);
+        return message;
     }
 }

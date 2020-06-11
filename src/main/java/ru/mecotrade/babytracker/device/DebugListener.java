@@ -14,7 +14,7 @@ public class DebugListener extends DeviceListener {
     }
 
     @Override
-    protected void process(String data, DataOutputStream out) throws BabyTrackerException {
-        log.debug("[{}] ### {}", getId(), data);
+    void process(byte[] data) throws BabyTrackerException {
+        log.debug("[{}] ### {}", getId(), new String(data));
     }
 }

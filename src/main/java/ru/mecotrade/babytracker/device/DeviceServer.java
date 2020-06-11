@@ -28,7 +28,7 @@ public class DeviceServer implements Runnable {
     }
 
     @PostConstruct
-    public void init() {
+    public void start() {
         thread = new Thread(this);
         thread.start();
     }
