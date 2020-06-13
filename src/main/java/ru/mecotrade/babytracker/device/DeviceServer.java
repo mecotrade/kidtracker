@@ -3,7 +3,6 @@ package ru.mecotrade.babytracker.device;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -27,7 +26,6 @@ public class DeviceServer implements Runnable {
         this.deviceListenerFactory = deviceListenerFactory;
     }
 
-    @PostConstruct
     public void start() {
         thread = new Thread(this);
         thread.start();

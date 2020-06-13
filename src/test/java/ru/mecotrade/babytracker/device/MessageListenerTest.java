@@ -92,8 +92,8 @@ public class MessageListenerTest {
     public void testFormat() {
 
         assertEquals("[3G*1234567890*0002*LK]",
-                MessageListener.format(Message.platform("3G", "1234567890", "LK")));
+                new String(MessageListener.toBytes(Message.platform("3G", "1234567890", "LK"))));
         assertEquals("[3G*1234567890*000E*LK,865649,0,61]",
-                MessageListener.format(Message.platform("3G", "1234567890", "LK", "865649,0,61")));
+                new String(MessageListener.toBytes(Message.platform("3G", "1234567890", "LK", "865649,0,61"))));
     }
 }

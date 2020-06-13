@@ -27,13 +27,13 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
     private static final Set<String> base64types = new HashSet<>(Collections.singletonList("TK"));
 
-    private static final byte MESSAGE_LEADING_CHAR = Chars.toByteArray('[')[Chars.BYTES - 1];
+    private static final byte[] MESSAGE_LEADING_CHAR = Arrays.copyOfRange(Chars.toByteArray('['), Chars.BYTES - 1, Chars.BYTES);
 
-    private static final byte MESSAGE_SEPARATOR_CHAR = Chars.toByteArray('*')[Chars.BYTES - 1];
+    private static final byte[] MESSAGE_SEPARATOR_CHAR = Arrays.copyOfRange(Chars.toByteArray('*'), Chars.BYTES - 1, Chars.BYTES);
 
-    private static final byte PAYLOAD_SEPARATOR_CHAR = Chars.toByteArray(',')[Chars.BYTES - 1];
+    private static final byte[] PAYLOAD_SEPARATOR_CHAR = Arrays.copyOfRange(Chars.toByteArray(','), Chars.BYTES - 1, Chars.BYTES);
 
-    private static final byte MESSAGE_TRAILING_CHAR = Chars.toByteArray(']')[Chars.BYTES - 1];
+    private static final byte[] MESSAGE_TRAILING_CHAR = Arrays.copyOfRange(Chars.toByteArray(']'), Chars.BYTES - 1, Chars.BYTES);
 
     private final DeviceManager deviceManager;
 
@@ -49,7 +49,7 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
     private static int indexOfPayloadSeparator(byte[] data, int offset) {
         for (int i = offset; i < data.length; i++) {
-            if (data[i] == PAYLOAD_SEPARATOR_CHAR) {
+            if (data[i] == PAYLOAD_SEPARATOR_CHAR[0]) {
                 return i;
             }
         }
@@ -58,7 +58,7 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
     private static int indexOfMessageSeparator(byte[] data, int offset) throws BabyTrackerParseException {
         for (int i = offset; i < data.length; i++) {
-            if (data[i] == MESSAGE_SEPARATOR_CHAR) {
+            if (data[i] == MESSAGE_SEPARATOR_CHAR[0]) {
                 return i;
             }
         }
@@ -71,12 +71,21 @@ public class MessageListener extends DeviceListener implements DeviceSender {
         this.messageService = messageService;
     }
 
-    public static String format(Message message) {
-        String content = Stream.of(message.getType(), message.getPayload()).filter(Objects::nonNull).collect(Collectors.joining(","));
-        return "[" + message.getManufacturer() +
-                "*" + message.getDeviceId() +
-                "*" + String.format("%4s", Long.toHexString(content.getBytes().length)).replace(' ', '0').toUpperCase() +
-                "*" + content + "]";
+    public static byte[] toBytes(Message message) {
+
+        byte[] content = message.getType().getBytes();
+        if (message.getPayload() != null) {
+            byte[] payload = message.getPayload().getBytes();
+            if (base64types.contains(message.getType())) {
+                payload = Base64.getDecoder().decode(payload);
+            }
+            content = Bytes.concat(content, PAYLOAD_SEPARATOR_CHAR, payload);
+        }
+
+        return Bytes.concat(MESSAGE_LEADING_CHAR, message.getManufacturer().getBytes(),
+                MESSAGE_SEPARATOR_CHAR, message.getDeviceId().getBytes(), MESSAGE_SEPARATOR_CHAR,
+                String.format("%4s", Long.toHexString(content.length)).replace(' ', '0').toUpperCase().getBytes(),
+                MESSAGE_SEPARATOR_CHAR, content, MESSAGE_TRAILING_CHAR);
     }
 
     private void init(String manufacturer, String deviceId, DataOutputStream out) {
@@ -97,7 +106,7 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
             int offset = 0;
 
-            if (messageBuffer[offset] != MESSAGE_LEADING_CHAR) {
+            if (messageBuffer[offset] != MESSAGE_LEADING_CHAR[0]) {
                 throw new BabyTrackerParseException("Leading symbol '[' not found in message \"" + new String(messageBuffer) + "\"");
             }
             offset++;
@@ -135,7 +144,7 @@ public class MessageListener extends DeviceListener implements DeviceSender {
                     payload = base64types.contains(type) ? Base64.getEncoder().encodeToString(payloadBytes) : new String(payloadBytes);
                 }
 
-                if (messageBuffer[offset] != MESSAGE_TRAILING_CHAR) {
+                if (messageBuffer[offset] != MESSAGE_TRAILING_CHAR[0]) {
                     throw new BabyTrackerParseException("Trailing symbol ']' not found in message \"" + new String(messageBuffer) + "\"");
                 }
                 offset++;
@@ -189,7 +198,7 @@ public class MessageListener extends DeviceListener implements DeviceSender {
         if (initialized && !isClosed()) {
             Message message = Message.platform(manufacturer, deviceId, type, payload);
             try {
-                out.writeBytes(format(message));
+                out.write(toBytes(message));
                 out.flush();
                 messageService.save(message);
                 log.debug("[{}] <<< {}", getId(), message);
