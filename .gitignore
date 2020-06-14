@@ -4,3 +4,6 @@ target/
 docs/
 logs/
 data/
+src/main/resources/static/*.js
+package-lock.json
+node_modules/
