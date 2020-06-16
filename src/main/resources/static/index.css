@@ -6,3 +6,7 @@ html, body, #map {
     height: 98%;
     width: 100vw;
 }
+
+.right-padded {
+    margin: 0 8px 0 0;
+}
