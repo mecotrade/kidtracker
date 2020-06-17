@@ -1,4 +1,4 @@
-babytracker
+Kid Tracker
 ===============
 
-Server for tracking smartwatch position and state
+Server for tracking kid smartwatch position and state
