@@ -10,3 +10,15 @@ html, body, #map {
 .right-padded {
     margin: 0 8px 0 0;
 }
+
+.battery-full {
+    color: green;
+}
+
+.battery-half {
+    color: orange;
+}
+
+.battery-low {
+    color: red;
+}

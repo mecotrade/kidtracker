@@ -33,12 +33,14 @@ public class UserController {
     @GetMapping("/info")
     @ResponseBody
     public User info(@PathVariable Long userId) {
+        // TODO: user not found
         return userService.get(userId).map(u -> new User(u.getName())).get();
     }
 
     @GetMapping("/kids/info")
     @ResponseBody
     public List<Kid> listKidsInfo(@PathVariable Long userId) {
+        // TODO: user not found
         return userService.get(userId).get().getKids().stream().map(k -> new Kid(k.getDeviceId(), k.getName(), k.getThumb())).collect(Collectors.toList());
     }
 
@@ -60,7 +62,13 @@ public class UserController {
     private Position toPosition(Message message) {
         try {
             Location location = MessageUtils.toLocation(message);
-            return new Position(message.getDeviceId(), message.getTimestamp(), location.getLatitude(), location.getLongitude(), location.getAccuracy());
+            return new Position(message.getDeviceId(),
+                    message.getTimestamp(),
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    location.getAccuracy(),
+                    location.getBattery(),
+                    location.getState().isTakeOff());
         } catch (BabyTrackerParseException ex) {
             log.error("Unable to parse location from message {}", message, ex);
             return null;

@@ -3,6 +3,12 @@
 const DEFAULT_ZOOM = 16;
 const KID_POSITION_QUERY_INTERVAL = 10000;
 
+const BATTERY_LOW_THRESHOLD = 20;
+const BATTERY_FULL_THRESHOLD = 70;
+
+const WATCH_ON_ICON = '<svg class="bi bi-watch" width="1.5em" height="1em" style="padding-right: 0.5em" viewBox="0 0 16 16" fill="green" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 14.333v-1.86A5.985 5.985 0 0 1 2 8c0-1.777.772-3.374 2-4.472V1.667C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v1.86A5.985 5.985 0 0 1 14 8a5.985 5.985 0 0 1-2 4.472v1.861c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333zM13 8A5 5 0 1 0 3 8a5 5 0 0 0 10 0z"/><rect width="1" height="2" x="13.5" y="7" rx=".5"/><path fill-rule="evenodd" d="M8 4.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h1.5V5a.5.5 0 0 1 .5-.5z"/></svg>';
+const WATCH_OFF_ICON = '<svg class="bi bi-watch" width="1.5em" height="1em"  style="padding-right: 0.5em" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 14.333v-1.86A5.985 5.985 0 0 1 2 8c0-1.777.772-3.374 2-4.472V1.667C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v1.86A5.985 5.985 0 0 1 14 8a5.985 5.985 0 0 1-2 4.472v1.861c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333zM13 8A5 5 0 1 0 3 8a5 5 0 0 0 10 0z"/><rect width="1" height="2" x="13.5" y="7" rx=".5"/><path fill-rule="evenodd" d="M8 4.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h1.5V5a.5.5 0 0 1 .5-.5z"/></svg>';
+
 const userId = 1;
 
 var map = L.map('map');
@@ -82,7 +88,9 @@ async function locateKids() {
         // TODO if not found
         const kid = kids[p.deviceId];
         const datetime = new Date(Date.parse(p.timestamp)).toLocaleString().split(',');
-        const content = `<center><img src="${kid.thumb}" width="60"/><br/><b>${kid.name}</b><br/>${datetime[0].trim()}<br/>${datetime[1].trim()}</center>`;
+        const watchIcon = p.takeOff ? WATCH_OFF_ICON : WATCH_ON_ICON;
+        const batteryClass = p.battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (p.battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
+        const content = `<center><img src="${kid.thumb}" width="60"/><div><b>${kid.name}</b></div><div>${datetime[0].trim()}</div><div>${datetime[1].trim()}</div><div>${watchIcon}<span class="${batteryClass}">${p.battery}%</span></div></center>`;
         kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
         kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
     });
@@ -109,7 +117,7 @@ window.addEventListener('load', async function onload() {
     kids = await kidsResponse.json();
     $('#kid-select').html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
     kids.forEach(k => {
-        k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false}).setLatLng([0, 0]).addTo(map);
+        k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng([0, 0]).addTo(map);
         k.circle = L.circle([0,0], 0, {weight: 0, color: 'green'}).addTo(map);
     });
     kids = kids.reduce((m, k) => { m[k.deviceId] = k; return m;}, {});
@@ -120,7 +128,7 @@ window.addEventListener('load', async function onload() {
     // user definition and location
     const userResponse = await fetch(`/api/user/${userId}/info`);
     user = await userResponse.json();
-    $('#user-name').val(user.name);
+    $('#user-name').text(user.name);
     user.marker = L.marker([0,0]).addTo(map);
     user.circle = L.circle([0, 0], 0, {weight: 0}).addTo(map);
 

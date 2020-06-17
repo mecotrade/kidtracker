@@ -20,4 +20,8 @@ public class Position {
     private double longitude;
 
     private double accuracy;
+
+    private double battery;
+
+    private boolean takeOff;
 }
