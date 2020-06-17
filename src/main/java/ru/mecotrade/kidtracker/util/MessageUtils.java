@@ -3,6 +3,7 @@ package ru.mecotrade.kidtracker.util;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
 import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
+import ru.mecotrade.kidtracker.model.AccessPoint;
 import ru.mecotrade.kidtracker.model.BaseStation;
 import ru.mecotrade.kidtracker.model.DeviceState;
 import ru.mecotrade.kidtracker.model.Location;
@@ -71,7 +72,7 @@ public class MessageUtils {
             throw new BabyTrackerParseException("Unable to parse location from message of type " + message.getType());
         }
 
-        final Queue<String> parts = new LinkedList<String>(Arrays.asList(message.getPayload().split(",")));
+        final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(",")));
 
         try {
             Location.LocationBuilder locationBuilder = Location.builder()
@@ -99,7 +100,15 @@ public class MessageUtils {
                             .mapToObj(i -> new BaseStation(Integer.parseInt(parts.remove()), Integer.parseInt(parts.remove()), Integer.parseInt(parts.remove())))
                             .collect(Collectors.toList()));
 
-            return locationBuilder.build();
+            int accessPointNumber = Integer.parseInt(parts.remove());
+            locationBuilder.accessPoints(IntStream.range(0, accessPointNumber)
+                    .mapToObj(i -> new AccessPoint(parts.remove(), parts.remove(), Integer.parseInt(parts.remove())))
+                    .collect(Collectors.toList()));
+
+            return locationBuilder
+                    .accuracy(Double.parseDouble(parts.remove()))
+                    .build();
+
         } catch (NoSuchElementException ex) {
             throw new BabyTrackerParseException("Unable to parse location from message \"" + message + "\", not enough data", ex);
         }

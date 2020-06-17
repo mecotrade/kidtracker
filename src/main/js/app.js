@@ -84,6 +84,7 @@ async function locateKids() {
         const datetime = new Date(Date.parse(p.timestamp)).toLocaleString().split(',');
         const content = `<center><img src="${kid.thumb}" width="60"/><br/><b>${kid.name}</b><br/>${datetime[0].trim()}<br/>${datetime[1].trim()}</center>`;
         kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
+        kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
     });
 
     if (view == 'kid' || view == 'kid-once') {
@@ -107,9 +108,11 @@ window.addEventListener('load', async function onload() {
 	const kidsResponse = await fetch(`/api/user/${userId}/kids/info`);
     kids = await kidsResponse.json();
     $('#kid-select').html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
-    // TODO: add kid circle
-    kids.forEach(k => k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false}).setLatLng([0, 0]).addTo(map));
-    kids = kids.reduce(function(m, k) { m[k.deviceId] = k; return m;}, {});
+    kids.forEach(k => {
+        k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false}).setLatLng([0, 0]).addTo(map);
+        k.circle = L.circle([0,0], 0, {weight: 0, color: 'green'}).addTo(map);
+    });
+    kids = kids.reduce((m, k) => { m[k.deviceId] = k; return m;}, {});
 
     locateKids();
     setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);

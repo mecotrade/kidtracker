@@ -60,9 +60,12 @@ public class Location {
     /** MNC network number https://mcc-mnc-list.com/list */
     private int mnc;
 
+    /** GSM base stations available */
     private List<BaseStation> baseStations;
 
-    // TODO wifiCount https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/WatchProtocolDecoder.java
+    /** wifi access points available https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/protocol/WatchProtocolDecoder.java */
+    private List<AccessPoint> accessPoints;
 
-    // TODO last value ???
+    /** coordinate accuracy, meters */
+    private double accuracy;
 }

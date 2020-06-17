@@ -41,7 +41,7 @@ public class PositionController {
     private Position toPosition(Message message) {
         try {
             Location location = MessageUtils.toLocation(message);
-            return new Position(message.getDeviceId(), message.getTimestamp(), location.getLatitude(), location.getLongitude());
+            return new Position(message.getDeviceId(), message.getTimestamp(), location.getLatitude(), location.getLongitude(), location.getAccuracy());
         } catch (BabyTrackerParseException ex) {
             log.error("Unable to parse location from message {}", message, ex);
             return null;

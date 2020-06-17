@@ -18,4 +18,6 @@ public class Position {
     private double latitude;
 
     private double longitude;
+
+    private double accuracy;
 }

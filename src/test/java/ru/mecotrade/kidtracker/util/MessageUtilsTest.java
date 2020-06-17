@@ -57,5 +57,7 @@ public class MessageUtilsTest {
         assertEquals(234, location.getBaseStations().get(0).getArea());
         assertEquals(15482, location.getBaseStations().get(0).getSerial());
         assertEquals(170, location.getBaseStations().get(0).getRssi());
+        assertEquals(0, location.getAccessPoints().size());
+        assertEquals(25.9, location.getAccuracy(), DELTA);
     }
 }
