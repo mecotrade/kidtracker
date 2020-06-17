@@ -35,5 +35,6 @@
     </root>
 
     <logger name="ru.mecotrade.kidtracker" level="debug"/>
+    <logger name="org.hibernate.SQL" level="debug"/>
 
 </configuration>

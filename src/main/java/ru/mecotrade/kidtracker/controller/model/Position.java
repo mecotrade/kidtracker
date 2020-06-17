@@ -11,6 +11,8 @@ import java.util.Date;
 @AllArgsConstructor
 public class Position {
 
+    private String deviceId;
+
     private Date timestamp;
 
     private double latitude;

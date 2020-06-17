@@ -9,12 +9,17 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.util.Date;
 
 @NoArgsConstructor
 @Data
 @ToString
 @Entity
+@Table(indexes = {
+        @Index(columnList = "deviceId"),
+        @Index(columnList = "type")})
 public class Message {
 
     public enum Source {
