@@ -1,7 +1,7 @@
 {
-  "name": "baby-tracker",
+  "name": "kid-tracker",
   "version": "0.0.1",
-  "description": "Baby Smart Watch Tracker Application",
+  "description": "Kid Smart Watch Tracker Application",
   "scripts": {
     "build": "npm-run-all build:*",
     "build:index": "browserify src/main/js/app.js > src/main/resources/static/index.js",
@@ -9,7 +9,9 @@
     "clean:index": "rimraf src/main/resources/static/index.js",
     "start": "npm run clean && npm run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "moment": "^2.26.0"
+  },
   "devDependencies": {
     "browserify": "^14.3.0",
     "copyfiles": "^1.2.0",

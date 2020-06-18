@@ -47,7 +47,8 @@ public class PositionController {
                     location.getLongitude(),
                     location.getAccuracy(),
                     location.getBattery(),
-                    location.getState().isTakeOff());
+                    location.getState().isTakeOff(),
+                    location.getPedometer());
         } catch (BabyTrackerParseException ex) {
             log.error("Unable to parse location from message {}", message, ex);
             return null;

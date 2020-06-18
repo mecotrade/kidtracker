@@ -6,6 +6,7 @@ import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
 import ru.mecotrade.kidtracker.model.AccessPoint;
 import ru.mecotrade.kidtracker.model.BaseStation;
 import ru.mecotrade.kidtracker.model.DeviceState;
+import ru.mecotrade.kidtracker.model.LinkData;
 import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.dao.model.Message;
 
@@ -111,6 +112,24 @@ public class MessageUtils {
 
         } catch (NoSuchElementException ex) {
             throw new BabyTrackerParseException("Unable to parse location from message \"" + message + "\", not enough data", ex);
+        }
+    }
+
+    public static LinkData toLinkData(Message message) throws BabyTrackerParseException {
+        if (!"LK".equals(message.getType())) {
+            throw new BabyTrackerParseException("Unable to parse link data from message of type " + message.getType());
+        }
+
+        final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(",")));
+
+        try {
+            return LinkData.builder()
+                    .pedometer(Integer.parseInt(parts.remove()))
+                    .rolls(Integer.parseInt(parts.remove()))
+                    .battery(Integer.parseInt(parts.remove()))
+                    .build();
+        } catch (NoSuchElementException ex) {
+            throw new BabyTrackerParseException("Unable to parse link data from message \"" + message + "\", not enough data", ex);
         }
     }
 }

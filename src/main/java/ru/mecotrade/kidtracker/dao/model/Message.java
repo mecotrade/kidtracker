@@ -19,7 +19,8 @@ import java.util.Date;
 @Entity
 @Table(indexes = {
         @Index(columnList = "deviceId"),
-        @Index(columnList = "type")})
+        @Index(columnList = "type"),
+        @Index(columnList = "timestamp")})
 public class Message {
 
     public enum Source {

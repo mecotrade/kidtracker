@@ -22,3 +22,23 @@ html, body, #map {
 .battery-low {
     color: red;
 }
+
+.leaflet-popup-content-wrapper .leaflet-popup-content {
+    margin: 10px 10px;
+    line-height: 1.4;
+}
+
+.kid-popup-name {
+    font-weight: bold;
+}
+
+.kid-popup-steps {
+    padding-right: 0.5em;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.kid-popup-time {
+    width: 80px;
+    overflow: auto;
+}

@@ -1,5 +1,7 @@
 'use strict';
 
+var moment = require('moment/min/moment-with-locales.min.js');
+
 const DEFAULT_ZOOM = 16;
 const KID_POSITION_QUERY_INTERVAL = 10000;
 
@@ -87,12 +89,23 @@ async function locateKids() {
     kidsPosition.forEach(p => {
         // TODO if not found
         const kid = kids[p.deviceId];
-        const datetime = new Date(Date.parse(p.timestamp)).toLocaleString().split(',');
+        const date = new Date(Date.parse(p.timestamp));
+        const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format('D MMMM YYYY, HH:mm, dddd');
         const watchIcon = p.takeOff ? WATCH_OFF_ICON : WATCH_ON_ICON;
         const batteryClass = p.battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (p.battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
-        const content = `<center><img src="${kid.thumb}" width="60"/><div><b>${kid.name}</b></div><div>${datetime[0].trim()}</div><div>${datetime[1].trim()}</div><div>${watchIcon}<span class="${batteryClass}">${p.battery}%</span></div></center>`;
+        const content = `<center><img src="${kid.thumb}" width="80"/><div class="kid-popup-name">${watchIcon}<b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-steps">${p.pedometer}</span><span class="${batteryClass}">${p.battery}%</span></div></center>`;
         kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
         kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
+
+        $(`#kid-popup-${kid.deviceId}`).on('click', function() {
+            if (kid.popupTimeFromNow) {
+                $(`#kid-popup-${kid.deviceId}`).text(moment(date).format('D MMMM YYYY, HH:mm, dddd'));
+                kid.popupTimeFromNow = false;
+            } else {
+                $(`#kid-popup-${kid.deviceId}`).text(moment(date).fromNow());
+                kid.popupTimeFromNow = true;
+            }
+        });
     });
 
     if (view == 'kid' || view == 'kid-once') {
@@ -118,6 +131,7 @@ window.addEventListener('load', async function onload() {
     $('#kid-select').html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
     kids.forEach(k => {
         k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng([0, 0]).addTo(map);
+        k.popupTimeFromNow = true;
         k.circle = L.circle([0,0], 0, {weight: 0, color: 'green'}).addTo(map);
     });
     kids = kids.reduce((m, k) => { m[k.deviceId] = k; return m;}, {});
@@ -131,6 +145,11 @@ window.addEventListener('load', async function onload() {
     $('#user-name').text(user.name);
     user.marker = L.marker([0,0]).addTo(map);
     user.circle = L.circle([0, 0], 0, {weight: 0}).addTo(map);
+
+    const locale = navigator.language ? navigator.language.split('-')[0] : null;
+    if (locale) {
+        moment.locale(locale);
+    }
 
     view = 'self-once';
     map.locate({
