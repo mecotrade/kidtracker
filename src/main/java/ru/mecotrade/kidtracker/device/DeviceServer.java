@@ -19,7 +19,7 @@ public class DeviceServer implements Runnable {
 
     private final int port;
 
-    private Thread thread;
+    private Thread thread = null;
 
     public DeviceServer(int port, DeviceListenerFactory deviceListenerFactory) {
         this.port = port;
@@ -33,7 +33,9 @@ public class DeviceServer implements Runnable {
 
     @PreDestroy
     public void shutdown() {
-        thread.interrupt();
+        if (thread != null) {
+            thread.interrupt();
+        }
     }
 
     @Override
