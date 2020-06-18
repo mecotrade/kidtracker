@@ -23,7 +23,12 @@ public class Position {
 
     private double battery;
 
+    private int pedometer;
+
     private boolean takeOff;
 
-    private int pedometer;
+    private boolean lowBattery;
+
+    private boolean sos;
+
 }

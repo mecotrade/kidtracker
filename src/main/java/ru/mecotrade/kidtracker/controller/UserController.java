@@ -47,7 +47,9 @@ public class UserController {
     @GetMapping("/kids/position")
     @ResponseBody
     public List<Position> listKidsPosition(@PathVariable Long userId) {
-        return userService.lastMessages(userId, Arrays.asList("UD", "UD2", "AL")).stream().map(this::toPosition).collect(Collectors.toList());
+        return userService.lastMessages(userId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE).stream()
+                .map(this::toPosition)
+                .collect(Collectors.toList());
     }
 
 //    @GetMapping("/kids/path/{first}/{last}")
@@ -68,8 +70,10 @@ public class UserController {
                     location.getLongitude(),
                     location.getAccuracy(),
                     location.getBattery(),
+                    location.getPedometer(),
                     location.getState().isTakeOff(),
-                    location.getPedometer());
+                    location.getState().isLowBattery(),
+                    "AL".equals(message.getType()));
         } catch (BabyTrackerParseException ex) {
             log.error("Unable to parse location from message {}", message, ex);
             return null;

@@ -22,7 +22,7 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public List<Message> lastMessages(Long userId, List<String> types) {
-        return userRepository.findUserKidsLastMessages(userId, types);
+    public List<Message> lastMessages(Long userId, List<String> types, Message.Source source) {
+        return userRepository.findUserKidsLastMessages(userId, types, source);
     }
 }
