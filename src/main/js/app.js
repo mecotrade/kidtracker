@@ -11,6 +11,8 @@ const BATTERY_FULL_THRESHOLD = 70;
 const WATCH_ON_ICON = '<svg class="bi bi-watch" width="1.5em" height="1em" style="padding-right: 0.5em" viewBox="0 0 16 16" fill="green" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 14.333v-1.86A5.985 5.985 0 0 1 2 8c0-1.777.772-3.374 2-4.472V1.667C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v1.86A5.985 5.985 0 0 1 14 8a5.985 5.985 0 0 1-2 4.472v1.861c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333zM13 8A5 5 0 1 0 3 8a5 5 0 0 0 10 0z"/><rect width="1" height="2" x="13.5" y="7" rx=".5"/><path fill-rule="evenodd" d="M8 4.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h1.5V5a.5.5 0 0 1 .5-.5z"/></svg>';
 const WATCH_OFF_ICON = '<svg class="bi bi-watch" width="1.5em" height="1em"  style="padding-right: 0.5em" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 14.333v-1.86A5.985 5.985 0 0 1 2 8c0-1.777.772-3.374 2-4.472V1.667C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v1.86A5.985 5.985 0 0 1 14 8a5.985 5.985 0 0 1-2 4.472v1.861c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333zM13 8A5 5 0 1 0 3 8a5 5 0 0 0 10 0z"/><rect width="1" height="2" x="13.5" y="7" rx=".5"/><path fill-rule="evenodd" d="M8 4.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h1.5V5a.5.5 0 0 1 .5-.5z"/></svg>';
 
+const KID_POPUP_TIME_FORMAT = 'D MMMM YYYY, HH:mm, dddd';
+
 const userId = 1;
 
 var map = L.map('map');
@@ -90,7 +92,7 @@ async function locateKids() {
         // TODO if not found
         const kid = kids[p.deviceId];
         const date = new Date(Date.parse(p.timestamp));
-        const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format('D MMMM YYYY, HH:mm, dddd');
+        const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
         const watchIcon = p.takeOff ? WATCH_OFF_ICON : WATCH_ON_ICON;
         const batteryClass = p.battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (p.battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
         const content = `<center><img src="${kid.thumb}" width="80"/><div class="kid-popup-name">${watchIcon}<b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-steps">${p.pedometer}</span><span class="${batteryClass}">${p.battery}%</span></div></center>`;
@@ -99,7 +101,7 @@ async function locateKids() {
 
         $(`#kid-popup-${kid.deviceId}`).on('click', function() {
             if (kid.popupTimeFromNow) {
-                $(`#kid-popup-${kid.deviceId}`).text(moment(date).format('D MMMM YYYY, HH:mm, dddd'));
+                $(`#kid-popup-${kid.deviceId}`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
                 kid.popupTimeFromNow = false;
             } else {
                 $(`#kid-popup-${kid.deviceId}`).text(moment(date).fromNow());
@@ -118,6 +120,11 @@ async function locateKids() {
 }
 
 window.addEventListener('load', async function onload() {
+
+    const locale = navigator.language ? navigator.language.split('-')[0] : null;
+    if (locale) {
+        moment.locale(locale);
+    }
 
 	L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -145,11 +152,6 @@ window.addEventListener('load', async function onload() {
     $('#user-name').text(user.name);
     user.marker = L.marker([0,0]).addTo(map);
     user.circle = L.circle([0, 0], 0, {weight: 0}).addTo(map);
-
-    const locale = navigator.language ? navigator.language.split('-')[0] : null;
-    if (locale) {
-        moment.locale(locale);
-    }
 
     view = 'self-once';
     map.locate({
