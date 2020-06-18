@@ -95,7 +95,7 @@ async function locateKids() {
         const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
         const watchIcon = p.takeOff ? WATCH_OFF_ICON : WATCH_ON_ICON;
         const batteryClass = p.battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (p.battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
-        const content = `<center><img src="${kid.thumb}" width="80"/><div class="kid-popup-name">${watchIcon}<b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-steps">${p.pedometer}</span><span class="${batteryClass}">${p.battery}%</span></div></center>`;
+        const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name">${watchIcon}<b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${p.pedometer}</span><span class="${batteryClass}">${p.battery}%</span></div></center>`;
         kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
         kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
 
