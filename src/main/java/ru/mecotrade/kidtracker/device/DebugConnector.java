@@ -1,7 +1,7 @@
 package ru.mecotrade.kidtracker.device;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.mecotrade.kidtracker.exception.BabyTrackerException;
+import ru.mecotrade.kidtracker.exception.KidTrackerException;
 
 import java.net.Socket;
 
@@ -13,7 +13,7 @@ public class DebugConnector extends DeviceConnector {
     }
 
     @Override
-    void process(byte[] data) throws BabyTrackerException {
+    void process(byte[] data) throws KidTrackerException {
         log.debug("[{}] ### {}", getId(), new String(data));
     }
 }

@@ -7,7 +7,7 @@ import ru.mecotrade.kidtracker.controller.model.Position;
 import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.dao.model.Message;
-import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
+import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
@@ -56,7 +56,7 @@ public class PositionProcessor {
                     location.getState().isTakeOff(),
                     location.getState().isLowBattery(),
                     location.getState().isSosAlarm());
-        } catch (BabyTrackerParseException ex) {
+        } catch (KidTrackerParseException ex) {
             log.error("Unable to parse location from message {}", message, ex);
             return null;
         }

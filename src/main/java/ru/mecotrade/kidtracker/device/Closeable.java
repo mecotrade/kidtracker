@@ -1,8 +1,8 @@
 package ru.mecotrade.kidtracker.device;
 
-import ru.mecotrade.kidtracker.exception.BabyTrackerConnectionException;
+import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 
 public interface Closeable {
 
-    void close() throws BabyTrackerConnectionException;
+    void close() throws KidTrackerConnectionException;
 }

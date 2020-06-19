@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
+import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.dao.model.Message;
 
@@ -28,7 +28,7 @@ public class MessageUtilsTest {
     }
 
     @Test
-    public void testParseLocation() throws BabyTrackerParseException {
+    public void testParseLocation() throws KidTrackerParseException {
 
         Message message = Message.device("3G", "1234567890", "UD",
                 "060620,125420,A,60.062543,N,30.4606333,E,0.00,95.3,0.0,9,100,100,865649,0,00000008,7,255,250,1,234,15482,170,234,15481,151,234,15485,146,234,20082,144,290,25623,142,234,63301,141,234,63332,138,0,25.9");

@@ -2,7 +2,7 @@ package ru.mecotrade.kidtracker.util;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
-import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
+import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.model.AccessPoint;
 import ru.mecotrade.kidtracker.model.BaseStation;
 import ru.mecotrade.kidtracker.model.DeviceState;
@@ -41,13 +41,13 @@ public class MessageUtils {
         return -1;
     }
 
-    public static int indexOfMessageSeparator(byte[] data, int offset) throws BabyTrackerParseException {
+    public static int indexOfMessageSeparator(byte[] data, int offset) throws KidTrackerParseException {
         for (int i = offset; i < data.length; i++) {
             if (data[i] == MESSAGE_SEPARATOR_CHAR[0]) {
                 return i;
             }
         }
-        throw new BabyTrackerParseException("Message separator char '*' not found after offset " + offset + " in message \"" + new String(data) + "\"");
+        throw new KidTrackerParseException("Message separator char '*' not found after offset " + offset + " in message \"" + new String(data) + "\"");
     }
 
     public static byte[] toBytes(Message message) {
@@ -67,10 +67,10 @@ public class MessageUtils {
                 MESSAGE_SEPARATOR_CHAR, content, MESSAGE_TRAILING_CHAR);
     }
 
-    public static Location toLocation(Message message) throws BabyTrackerParseException {
+    public static Location toLocation(Message message) throws KidTrackerParseException {
 
         if (!LOCATION_TYPES.contains(message.getType())) {
-            throw new BabyTrackerParseException("Unable to parse location from message of type " + message.getType());
+            throw new KidTrackerParseException("Unable to parse location from message of type " + message.getType());
         }
 
         final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(",")));
@@ -111,13 +111,13 @@ public class MessageUtils {
                     .build();
 
         } catch (NoSuchElementException ex) {
-            throw new BabyTrackerParseException("Unable to parse location from message \"" + message + "\", not enough data", ex);
+            throw new KidTrackerParseException("Unable to parse location from message \"" + message + "\", not enough data", ex);
         }
     }
 
-    public static LinkData toLinkData(Message message) throws BabyTrackerParseException {
+    public static LinkData toLinkData(Message message) throws KidTrackerParseException {
         if (!"LK".equals(message.getType())) {
-            throw new BabyTrackerParseException("Unable to parse link data from message of type " + message.getType());
+            throw new KidTrackerParseException("Unable to parse link data from message of type " + message.getType());
         }
 
         final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(",")));
@@ -129,7 +129,7 @@ public class MessageUtils {
                     .battery(Integer.parseInt(parts.remove()))
                     .build();
         } catch (NoSuchElementException ex) {
-            throw new BabyTrackerParseException("Unable to parse link data from message \"" + message + "\", not enough data", ex);
+            throw new KidTrackerParseException("Unable to parse link data from message \"" + message + "\", not enough data", ex);
         }
     }
 }

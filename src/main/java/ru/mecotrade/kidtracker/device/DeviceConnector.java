@@ -2,8 +2,8 @@ package ru.mecotrade.kidtracker.device;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import ru.mecotrade.kidtracker.exception.BabyTrackerConnectionException;
-import ru.mecotrade.kidtracker.exception.BabyTrackerException;
+import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
+import ru.mecotrade.kidtracker.exception.KidTrackerException;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -27,7 +27,7 @@ public abstract class DeviceConnector implements Runnable, Closeable {
 
     private final Socket socket;
 
-    protected DataOutputStream out;
+    private DataOutputStream out;
 
     public DeviceConnector(Socket socket) {
         this.socket = socket;
@@ -52,27 +52,27 @@ public abstract class DeviceConnector implements Runnable, Closeable {
             log.warn("[{}] EOF reached, closing connection", id);
         } catch (IOException ex) {
             log.error("[{}] Communication error, closing connection", id, ex);
-        } catch (BabyTrackerException ex) {
+        } catch (KidTrackerException ex) {
             log.error("[{}] Unable to proceed, closing", id, ex);
         }
 
         try {
             close();
-        } catch (BabyTrackerConnectionException ex) {
+        } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to close connection", id, ex);
         }
     }
 
-    abstract void process(byte[] data) throws BabyTrackerException;
+    abstract void process(byte[] data) throws KidTrackerException;
 
     @Override
-    public synchronized void close() throws BabyTrackerConnectionException {
+    public synchronized void close() throws KidTrackerConnectionException {
         if (!isClosed()) {
             try {
                 socket.close();
                 log.info("[{}] Connection closed", id);
             } catch (IOException ex) {
-                throw new BabyTrackerConnectionException(id, ex);
+                throw new KidTrackerConnectionException(id, ex);
             }
         }
     }
@@ -102,5 +102,14 @@ public abstract class DeviceConnector implements Runnable, Closeable {
         } while (count == buffer.length);
 
         return message;
+    }
+
+    protected void send(byte[] bytes) throws IOException {
+        if (out != null) {
+            out.write(bytes);
+            out.flush();
+        } else {
+            log.error("[{}] Connection is not established yet", id);
+        }
     }
 }

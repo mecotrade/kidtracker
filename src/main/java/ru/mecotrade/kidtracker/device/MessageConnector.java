@@ -3,24 +3,19 @@ package ru.mecotrade.kidtracker.device;
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
 import ru.mecotrade.kidtracker.dao.MessageService;
-import ru.mecotrade.kidtracker.exception.BabyTrackerConnectionException;
-import ru.mecotrade.kidtracker.exception.BabyTrackerException;
-import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
+import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
+import ru.mecotrade.kidtracker.exception.KidTrackerException;
+import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
-public class MessageConnector extends DeviceConnector implements DeviceSender {
+public class MessageConnector extends DeviceConnector {
 
     private final DeviceManager deviceManager;
 
@@ -28,29 +23,14 @@ public class MessageConnector extends DeviceConnector implements DeviceSender {
 
     private byte[] messageBuffer = new byte[0];
 
-    private boolean initialized = false;
-
-    private String manufacturer = null;
-
-    private String deviceId = null;
-
     public MessageConnector(Socket socket, DeviceManager deviceManager, MessageService messageService) {
         super(socket);
         this.deviceManager = deviceManager;
         this.messageService = messageService;
     }
 
-    private void init(String manufacturer, String deviceId, DataOutputStream out) {
-        this.manufacturer = manufacturer;
-        this.deviceId = deviceId;
-        this.out = out;
-        deviceManager.register(deviceId, this);
-        initialized = true;
-        log.debug("[{}] Message listener initialized for manufacturer={}, deviceId={}", getId(), manufacturer, deviceId);
-    }
-
     @Override
-    void process(byte[] data) throws BabyTrackerException {
+    void process(byte[] data) throws KidTrackerException {
 
         messageBuffer = Bytes.concat(messageBuffer, data);
 
@@ -59,7 +39,7 @@ public class MessageConnector extends DeviceConnector implements DeviceSender {
             int offset = 0;
 
             if (messageBuffer[offset] != MessageUtils.MESSAGE_LEADING_CHAR[0]) {
-                throw new BabyTrackerParseException("Leading symbol '[' not found in message \"" + new String(messageBuffer) + "\"");
+                throw new KidTrackerParseException("Leading symbol '" + MessageUtils.MESSAGE_LEADING_CHAR[0] + "' not found in message \"" + new String(messageBuffer) + "\"");
             }
             offset++;
 
@@ -97,70 +77,27 @@ public class MessageConnector extends DeviceConnector implements DeviceSender {
                 }
 
                 if (messageBuffer[offset] != MessageUtils.MESSAGE_TRAILING_CHAR[0]) {
-                    throw new BabyTrackerParseException("Trailing symbol ']' not found in message \"" + new String(messageBuffer) + "\"");
+                    throw new KidTrackerParseException("Trailing symbol '" + MessageUtils.MESSAGE_TRAILING_CHAR[0] + "' not found in message \"" + new String(messageBuffer) + "\"");
                 }
                 offset++;
                 messageBuffer = Arrays.copyOfRange(messageBuffer, offset, messageBuffer.length);
 
-                onMessage(Message.device(manufacturer, deviceId, type, payload));
+                deviceManager.onMessage(Message.device(manufacturer, deviceId, type, payload), this);
             }
-        }
-
-    }
-
-    public void onMessage(Message message) throws BabyTrackerConnectionException  {
-
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
-                    init(message.getManufacturer(), message.getDeviceId(), out);
-                }
-            }
-        }
-
-        messageService.save(message);
-        log.debug("[{}] >>> {}", getId(), message);
-
-        switch (message.getType()) {
-            case "LK":
-                send("LK");
-                break;
-            case "AL":
-                send("AL");
-                break;
-            case "TKQ":
-                send("TKQ");
-                break;
-            case "TKQ2":
-                send("TKQ2");
-                break;
-            case "TK":
-                byte[] data = Base64.getDecoder().decode(message.getPayload().getBytes());
-                try (FileOutputStream fos = new FileOutputStream(message.getId() + ".amr")) {
-                    fos.write(data);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-                send("TK");
         }
     }
 
-    @Override
-    public synchronized void send(String type, String payload) throws BabyTrackerConnectionException {
-        if (initialized && !isClosed()) {
-            Message message = Message.platform(manufacturer, deviceId, type, payload);
+    public synchronized void send(Message message) throws KidTrackerConnectionException {
+        if (!isClosed()) {
             try {
-                out.write(MessageUtils.toBytes(message));
-                out.flush();
+                send(MessageUtils.toBytes(message));
                 messageService.save(message);
                 log.debug("[{}] <<< {}", getId(), message);
             } catch (IOException ex) {
-                throw new BabyTrackerConnectionException(getId(), ex);
+                throw new KidTrackerConnectionException(getId(), ex);
             }
         } else {
-            log.warn("[{}] Unable to send payload '{}' since {}", getId(), payload,
-                    Stream.of(initialized ? null : "listener is not initialized", isClosed() ? "socket is closed" : null)
-                            .filter(Objects::nonNull).collect(Collectors.joining(" and ")));
+            log.warn("[{}] Unable to send message {} since socket is closed", getId(), message);
         }
     }
 }

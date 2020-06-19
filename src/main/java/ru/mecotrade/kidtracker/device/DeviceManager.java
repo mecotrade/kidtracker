@@ -1,39 +1,49 @@
 package ru.mecotrade.kidtracker.device;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.mecotrade.kidtracker.exception.BabyTrackerConnectionException;
+import ru.mecotrade.kidtracker.dao.MessageService;
+import ru.mecotrade.kidtracker.dao.model.Message;
+import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
+import ru.mecotrade.kidtracker.exception.KidTrackerException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
 @Slf4j
-public class DeviceManager {
+public class DeviceManager implements MessageListener {
 
-    private final Map<String, MessageConnector> messageConnectors = new HashMap<>();
+    @Autowired
+    private MessageService messageService;
 
-    /**
-     * @param deviceId
-     * @param command
-     * @return true if command is posted, false otherwise
-     */
-    public void send(String deviceId, String command) throws BabyTrackerConnectionException {
-        DeviceSender deviceSender = messageConnectors.get(deviceId);
-        if (deviceSender != null) {
-            deviceSender.send(command);
+    private final Map<String, Device> devices = new HashMap<>();
+
+    public void send(String id, String type, String payload) throws KidTrackerConnectionException {
+        Device device = devices.get(id);
+        if (device != null) {
+            device.send(type, payload);
+        } else {
+            throw new KidTrackerConnectionException("Device " + id + " is not connected");
         }
     }
 
-    public void register(String deviceId, MessageConnector messageListener) {
-        MessageConnector oldMessageListener = messageConnectors.get(deviceId);
-        if (oldMessageListener != null) {
-            try {
-                oldMessageListener.close();
-            } catch (BabyTrackerConnectionException ex) {
-                log.error("[{}] Unable to close connection", ex.getMessage(), ex.getCause());
-            }
+    @Override
+    public void onMessage(Message message, MessageConnector messageConnector) throws KidTrackerException {
+
+        Device device = devices.get(message.getDeviceId());
+        if (device == null) {
+            device = new Device(message.getDeviceId(), message.getManufacturer(), messageConnector);
+            devices.put(message.getDeviceId(), device);
+            log.debug("[{}] New device by {} connected to [{}]", device.getId(), message.getManufacturer(), messageConnector.getId());
+        } else {
+            device.check(messageConnector);
         }
-        messageConnectors.put(deviceId, messageListener);
+
+        messageService.save(message);
+        log.debug("[{}] >>> {}", messageConnector.getId(), message);
+
+        device.process(message);
     }
 }

@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.mecotrade.kidtracker.controller.model.Position;
 import ru.mecotrade.kidtracker.device.DeviceManager;
-import ru.mecotrade.kidtracker.exception.BabyTrackerConnectionException;
+import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.processor.PositionProcessor;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 @Slf4j
@@ -35,9 +37,10 @@ public class DeviceController {
     @ResponseBody
     public String command(@PathVariable String deviceId, @PathVariable String command) {
         try {
-            deviceManager.send(deviceId, command);
+            String[] parts = command.split(",");
+            deviceManager.send(deviceId, parts[0], Stream.of(parts).skip(1).collect(Collectors.joining(",")));
             return "Command '" + command + "' to device " + deviceId + " successfully sent";
-        } catch (BabyTrackerConnectionException ex) {
+        } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to send payload '{}'", ex.getMessage(), command, ex.getCause());
             return "Fail sending command '" + command + "' to device " + deviceId;
         }
