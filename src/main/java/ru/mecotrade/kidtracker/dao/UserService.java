@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.User;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +23,7 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public List<Message> lastMessages(Long userId, List<String> types, Message.Source source) {
+    public Collection<Message> lastMessages(Long userId, Collection<String> types, Message.Source source) {
         return userRepository.findUserKidsLastMessages(userId, types, source);
     }
 }

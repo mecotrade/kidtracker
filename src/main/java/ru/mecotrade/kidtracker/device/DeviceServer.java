@@ -15,15 +15,15 @@ public class DeviceServer implements Runnable {
     @Autowired
     private Executor deviceListenerExecutor;
 
-    private final DeviceListenerFactory deviceListenerFactory;
+    private final DeviceConnectorFactory deviceConnectorFactory;
 
     private final int port;
 
     private Thread thread = null;
 
-    public DeviceServer(int port, DeviceListenerFactory deviceListenerFactory) {
+    public DeviceServer(int port, DeviceConnectorFactory deviceListenerFactory) {
         this.port = port;
-        this.deviceListenerFactory = deviceListenerFactory;
+        this.deviceConnectorFactory = deviceListenerFactory;
     }
 
     public void start() {
@@ -41,13 +41,13 @@ public class DeviceServer implements Runnable {
     @Override
     public void run() {
 
-        log.info("Device Server started on port: {} for {}", port, deviceListenerFactory.getClass());
+        log.info("Device Server started on port: {} for {}", port, deviceConnectorFactory.getClass());
 
         try (ServerSocket server = new ServerSocket(port)) {
 
             while (!Thread.interrupted()) {
                 Socket client = server.accept();
-                deviceListenerExecutor.execute(deviceListenerFactory.getListener(client));
+                deviceListenerExecutor.execute(deviceConnectorFactory.getConnector(client));
             }
 
         } catch (IOException ex) {

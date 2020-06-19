@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -18,19 +19,19 @@ public class MessageService {
         return messageRepository.save(message);
     }
 
-    public List<Message> save(List<Message> messages) {
+    public Collection<Message> save(Collection<Message> messages) {
         return messageRepository.saveAll(messages);
     }
 
-    public List<Message> list() {
+    public Collection<Message> list() {
         return messageRepository.findAll();
     }
 
-    public List<Message> listPositions(String deviceId, Date since, Date till) {
+    public Collection<Message> listPositions(String deviceId, Date since, Date till) {
         return messageRepository.findByDeviceIdAndTypeInAndTimestampBetweenOrderById(deviceId, MessageUtils.LOCATION_TYPES, since, till);
     }
 
-    public Message lastPosition(String deviceId) {
-        return messageRepository.findFirstByDeviceIdAndTypeInOrderByIdDesc(deviceId, MessageUtils.LOCATION_TYPES);
+    public Message lastMessage(String deviceId, Collection<String> types, Message.Source source) {
+        return messageRepository.findFirstByDeviceIdAndTypeInAndSourceOrderByIdDesc(deviceId, types, source);
     }
 }

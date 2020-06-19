@@ -7,7 +7,7 @@ import ru.mecotrade.kidtracker.dao.MessageService;
 import java.net.Socket;
 
 @Component
-public class MessageListenerFactory implements DeviceListenerFactory {
+public class MessageConnectorFactory implements DeviceConnectorFactory {
 
     @Autowired
     private DeviceManager deviceManager;
@@ -16,7 +16,7 @@ public class MessageListenerFactory implements DeviceListenerFactory {
     private MessageService messageService;
 
     @Override
-    public MessageListener getListener(Socket socket) {
-        return new MessageListener(socket, deviceManager, messageService);
+    public MessageConnector getConnector(Socket socket) {
+        return new MessageConnector(socket, deviceManager, messageService);
     }
 }

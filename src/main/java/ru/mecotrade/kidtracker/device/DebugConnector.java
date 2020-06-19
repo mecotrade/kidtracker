@@ -6,9 +6,9 @@ import ru.mecotrade.kidtracker.exception.BabyTrackerException;
 import java.net.Socket;
 
 @Slf4j
-public class DebugListener extends DeviceListener {
+public class DebugConnector extends DeviceConnector {
 
-    public DebugListener(Socket socket) {
+    public DebugConnector(Socket socket) {
         super(socket);
     }
 

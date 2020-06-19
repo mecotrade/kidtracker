@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class MessageListener extends DeviceListener implements DeviceSender {
+public class MessageConnector extends DeviceConnector implements DeviceSender {
 
     private final DeviceManager deviceManager;
 
@@ -34,7 +34,7 @@ public class MessageListener extends DeviceListener implements DeviceSender {
 
     private String deviceId = null;
 
-    public MessageListener(Socket socket, DeviceManager deviceManager, MessageService messageService) {
+    public MessageConnector(Socket socket, DeviceManager deviceManager, MessageService messageService) {
         super(socket);
         this.deviceManager = deviceManager;
         this.messageService = messageService;

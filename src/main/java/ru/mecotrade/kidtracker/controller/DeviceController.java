@@ -7,20 +7,33 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import ru.mecotrade.kidtracker.controller.model.Position;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.BabyTrackerConnectionException;
+import ru.mecotrade.kidtracker.processor.PositionProcessor;
+
+import java.util.Collection;
 
 @Controller
 @Slf4j
-@RequestMapping("/api/device/{deviceId}/command")
-public class CommandController {
+@RequestMapping("/api/device/{deviceId}")
+public class DeviceController {
+
+    @Autowired
+    private PositionProcessor positionProcessor;
 
     @Autowired
     private DeviceManager deviceManager;
 
-    @GetMapping(path = "{command}")
+    @GetMapping("/path/{since}/{till}")
     @ResponseBody
-    public String setUploadInterval(@PathVariable String deviceId, @PathVariable String command) {
+    public Collection<Position> path(@PathVariable String deviceId, @PathVariable Long since, @PathVariable Long till) {
+        return positionProcessor.path(deviceId, since, till);
+    }
+
+    @GetMapping("/command/{command}")
+    @ResponseBody
+    public String command(@PathVariable String deviceId, @PathVariable String command) {
         try {
             deviceManager.send(deviceId, command);
             return "Command '" + command + "' to device " + deviceId + " successfully sent";

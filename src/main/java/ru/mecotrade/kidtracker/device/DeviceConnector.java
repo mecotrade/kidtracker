@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.net.Socket;
 
 @Slf4j
-public abstract class DeviceListener implements Runnable, Closeable {
+public abstract class DeviceConnector implements Runnable, Closeable {
 
     private static final int BUFFER_LENGTH = 1024;
 
@@ -29,7 +29,7 @@ public abstract class DeviceListener implements Runnable, Closeable {
 
     protected DataOutputStream out;
 
-    public DeviceListener(Socket socket) {
+    public DeviceConnector(Socket socket) {
         this.socket = socket;
         id = RandomStringUtils.random(ID_LENGTH, ID_CHARS);
     }

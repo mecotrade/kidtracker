@@ -18,9 +18,9 @@ import java.util.stream.IntStream;
 
 public class MessageUtils {
 
-    public static final List<String> BASE_64_TYPES = Collections.singletonList("TK");
+    public static final Set<String> BASE_64_TYPES = new HashSet<>(Collections.singletonList("TK"));
 
-    public static final List<String> LOCATION_TYPES = Arrays.asList("UD", "UD2", "AL");
+    public static final Set<String> LOCATION_TYPES = new HashSet<>(Arrays.asList("UD", "UD2", "AL"));
 
     public static final byte[] MESSAGE_LEADING_CHAR = Arrays.copyOfRange(Chars.toByteArray('['), Chars.BYTES - 1, Chars.BYTES);
 

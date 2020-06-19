@@ -2,7 +2,7 @@ package ru.mecotrade.kidtracker.device;
 
 import ru.mecotrade.kidtracker.exception.BabyTrackerConnectionException;
 
-public interface DeviceSender extends Closeable {
+public interface DeviceSender {
 
     void send(String type, String payload) throws BabyTrackerConnectionException;
 

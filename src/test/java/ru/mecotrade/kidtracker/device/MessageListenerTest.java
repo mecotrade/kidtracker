@@ -37,7 +37,7 @@ public class MessageListenerTest {
     @Test
     public void testInit() throws BabyTrackerException {
 
-        MessageListener messageListener = spy(new MessageListener(null, deviceManager, messageService));
+        MessageConnector messageListener = spy(new MessageConnector(null, deviceManager, messageService));
         doNothing().when(messageListener).send(any());
 
         messageListener.process("[3G*1234567890*000E*LK,865649,0,61]".getBytes());
@@ -51,7 +51,7 @@ public class MessageListenerTest {
     @Test
     public void testParser() throws BabyTrackerException {
 
-        MessageListener messageListener = spy(new MessageListener(null, deviceManager, messageService));
+        MessageConnector messageListener = spy(new MessageConnector(null, deviceManager, messageService));
         doNothing().when(messageListener).send(any());
 
         messageListener.process("[3G*1234567890*000E*LK,865649,0,61][3G*1234567890*0002*LK]".getBytes());
@@ -72,7 +72,7 @@ public class MessageListenerTest {
     @Test
     public void testParserMultipart() throws BabyTrackerException {
 
-        MessageListener messageListener = spy(new MessageListener(null, deviceManager, messageService));
+        MessageConnector messageListener = spy(new MessageConnector(null, deviceManager, messageService));
         doNothing().when(messageListener).send(any());
 
         messageListener.process("[3G*1234567890*000E*LK,8".getBytes());

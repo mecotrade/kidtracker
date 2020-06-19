@@ -11,7 +11,7 @@ import java.util.Map;
 @Slf4j
 public class DeviceManager {
 
-    private final Map<String, DeviceSender> deviceSenders = new HashMap<>();
+    private final Map<String, MessageConnector> messageConnectors = new HashMap<>();
 
     /**
      * @param deviceId
@@ -19,21 +19,21 @@ public class DeviceManager {
      * @return true if command is posted, false otherwise
      */
     public void send(String deviceId, String command) throws BabyTrackerConnectionException {
-        DeviceSender deviceSender = deviceSenders.get(deviceId);
+        DeviceSender deviceSender = messageConnectors.get(deviceId);
         if (deviceSender != null) {
             deviceSender.send(command);
         }
     }
 
-    public void register(String deviceId, DeviceSender deviceSender) {
-        DeviceSender oldDeviceSender = deviceSenders.get(deviceId);
-        if (oldDeviceSender != null) {
+    public void register(String deviceId, MessageConnector messageListener) {
+        MessageConnector oldMessageListener = messageConnectors.get(deviceId);
+        if (oldMessageListener != null) {
             try {
-                oldDeviceSender.close();
+                oldMessageListener.close();
             } catch (BabyTrackerConnectionException ex) {
                 log.error("[{}] Unable to close connection", ex.getMessage(), ex.getCause());
             }
         }
-        deviceSenders.put(deviceId, deviceSender);
+        messageConnectors.put(deviceId, messageListener);
     }
 }

@@ -1,44 +1,49 @@
-package ru.mecotrade.kidtracker.controller;
+package ru.mecotrade.kidtracker.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import ru.mecotrade.kidtracker.dao.MessageService;
+import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.controller.model.Position;
+import ru.mecotrade.kidtracker.dao.MessageService;
+import ru.mecotrade.kidtracker.dao.UserService;
+import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
 import ru.mecotrade.kidtracker.model.Location;
-import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
+import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Controller
 @Slf4j
-@RequestMapping("/api/device/{deviceId}/position")
-public class PositionController {
+@Component
+public class PositionProcessor {
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private MessageService messageService;
 
-    @GetMapping("/since/{since}/till/{till}")
-    @ResponseBody
-    public List<Position> getPath(@PathVariable String deviceId, @PathVariable Long since, @PathVariable Long till) {
+    private Map<String, Map<LocalDate, Integer>> initPedometers;
+
+    public Collection<Position> kidPositions(Long userId) {
+        return userService.lastMessages(userId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE).stream()
+                .map(PositionProcessor::toPosition)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<Position> path(String deviceId, Long since, Long till) {
         return messageService.listPositions(deviceId, new Date(since), new Date(till)).stream()
-                .map(this::toPosition)
+                .map(PositionProcessor::toPosition)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
-    @GetMapping("/last")
-    @ResponseBody
-    public Position getLastPosition(@PathVariable String deviceId) {
-        return toPosition(messageService.lastPosition(deviceId));
-    }
 
-    private Position toPosition(Message message) {
+    private static Position toPosition(Message message) {
         try {
             Location location = MessageUtils.toLocation(message);
             return new Position(message.getDeviceId(),
@@ -50,7 +55,7 @@ public class PositionController {
                     location.getPedometer(),
                     location.getState().isTakeOff(),
                     location.getState().isLowBattery(),
-                    "AL".equals(message.getType()));
+                    location.getState().isSosAlarm());
         } catch (BabyTrackerParseException ex) {
             log.error("Unable to parse location from message {}", message, ex);
             return null;

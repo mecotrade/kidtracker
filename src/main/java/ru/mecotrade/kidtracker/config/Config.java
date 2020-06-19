@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.mecotrade.kidtracker.device.DebugListenerFactory;
+import ru.mecotrade.kidtracker.device.DebugConnectorFactory;
 import ru.mecotrade.kidtracker.device.DeviceServer;
-import ru.mecotrade.kidtracker.device.MessageListenerFactory;
+import ru.mecotrade.kidtracker.device.MessageConnectorFactory;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -15,10 +15,10 @@ import java.util.concurrent.Executors;
 public class Config {
 
     @Autowired
-    private MessageListenerFactory messageListenerFactory;
+    private MessageConnectorFactory messageListenerFactory;
 
     @Autowired
-    private DebugListenerFactory debugListenerFactory;
+    private DebugConnectorFactory debugListenerFactory;
 
     @Value("${kidtracker.server.message.port}")
     private int messageServerPort;

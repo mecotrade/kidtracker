@@ -11,24 +11,21 @@ import ru.mecotrade.kidtracker.controller.model.Kid;
 import ru.mecotrade.kidtracker.controller.model.Position;
 import ru.mecotrade.kidtracker.controller.model.User;
 import ru.mecotrade.kidtracker.dao.UserService;
-import ru.mecotrade.kidtracker.dao.model.Message;
-import ru.mecotrade.kidtracker.exception.BabyTrackerParseException;
-import ru.mecotrade.kidtracker.model.Location;
-import ru.mecotrade.kidtracker.util.MessageUtils;
+import ru.mecotrade.kidtracker.processor.PositionProcessor;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/api/user/{userId}")
 @Slf4j
+@RequestMapping("/api/user/{userId}")
 public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PositionProcessor positionProcessor;
 
     @GetMapping("/info")
     @ResponseBody
@@ -39,44 +36,14 @@ public class UserController {
 
     @GetMapping("/kids/info")
     @ResponseBody
-    public List<Kid> listKidsInfo(@PathVariable Long userId) {
+    public Collection<Kid> kidInfo(@PathVariable Long userId) {
         // TODO: user not found
         return userService.get(userId).get().getKids().stream().map(k -> new Kid(k.getDeviceId(), k.getName(), k.getThumb())).collect(Collectors.toList());
     }
 
     @GetMapping("/kids/position")
     @ResponseBody
-    public List<Position> listKidsPosition(@PathVariable Long userId) {
-        return userService.lastMessages(userId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE).stream()
-                .map(this::toPosition)
-                .collect(Collectors.toList());
-    }
-
-//    @GetMapping("/kids/path/{first}/{last}")
-//    @ResponseBody
-//    public List<Position> getPath(@PathVariable String userId, @PathVariable Long first, @PathVariable Long last) {
-//        return messageService.listPositions(deviceId, new Date(since), new Date(till)).stream()
-//                .map(this::toPosition)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toList());
-//    }
-
-    private Position toPosition(Message message) {
-        try {
-            Location location = MessageUtils.toLocation(message);
-            return new Position(message.getDeviceId(),
-                    message.getTimestamp(),
-                    location.getLatitude(),
-                    location.getLongitude(),
-                    location.getAccuracy(),
-                    location.getBattery(),
-                    location.getPedometer(),
-                    location.getState().isTakeOff(),
-                    location.getState().isLowBattery(),
-                    "AL".equals(message.getType()));
-        } catch (BabyTrackerParseException ex) {
-            log.error("Unable to parse location from message {}", message, ex);
-            return null;
-        }
+    public Collection<Position> kidPositions(@PathVariable Long userId) {
+        return positionProcessor.kidPositions(userId);
     }
 }
