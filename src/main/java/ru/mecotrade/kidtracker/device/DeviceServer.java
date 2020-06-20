@@ -19,7 +19,7 @@ public class DeviceServer implements Runnable {
 
     private final int port;
 
-    private Thread thread = null;
+    private Thread thread;
 
     public DeviceServer(int port, DeviceConnectorFactory deviceListenerFactory) {
         this.port = port;

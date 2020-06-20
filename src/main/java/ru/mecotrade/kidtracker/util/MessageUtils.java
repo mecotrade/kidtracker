@@ -2,20 +2,33 @@ package ru.mecotrade.kidtracker.util;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
+import lombok.extern.slf4j.Slf4j;
+import ru.mecotrade.kidtracker.controller.model.Position;
+import ru.mecotrade.kidtracker.controller.model.Snapshot;
 import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.model.AccessPoint;
 import ru.mecotrade.kidtracker.model.BaseStation;
 import ru.mecotrade.kidtracker.model.DeviceState;
-import ru.mecotrade.kidtracker.model.LinkData;
+import ru.mecotrade.kidtracker.model.Link;
 import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.dao.model.Message;
+import ru.mecotrade.kidtracker.model.Temporal;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.NoSuchElementException;
+import java.util.Queue;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Slf4j
 public class MessageUtils {
 
     public static final Set<String> BASE_64_TYPES = new HashSet<>(Collections.singletonList("TK"));
@@ -67,7 +80,7 @@ public class MessageUtils {
                 MESSAGE_SEPARATOR_CHAR, content, MESSAGE_TRAILING_CHAR);
     }
 
-    public static Location toLocation(Message message) throws KidTrackerParseException {
+    public static Temporal<Location> toLocation(Message message) throws KidTrackerParseException {
 
         if (!LOCATION_TYPES.contains(message.getType())) {
             throw new KidTrackerParseException("Unable to parse location from message of type " + message.getType());
@@ -106,16 +119,16 @@ public class MessageUtils {
                     .mapToObj(i -> new AccessPoint(parts.remove(), parts.remove(), Integer.parseInt(parts.remove())))
                     .collect(Collectors.toList()));
 
-            return locationBuilder
+            return new Temporal<>(message.getTimestamp(), locationBuilder
                     .accuracy(Double.parseDouble(parts.remove()))
-                    .build();
+                    .build());
 
         } catch (NoSuchElementException ex) {
             throw new KidTrackerParseException("Unable to parse location from message \"" + message + "\", not enough data", ex);
         }
     }
 
-    public static LinkData toLinkData(Message message) throws KidTrackerParseException {
+    public static Temporal<Link> toLink(Message message) throws KidTrackerParseException {
         if (!"LK".equals(message.getType())) {
             throw new KidTrackerParseException("Unable to parse link data from message of type " + message.getType());
         }
@@ -123,13 +136,43 @@ public class MessageUtils {
         final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(",")));
 
         try {
-            return LinkData.builder()
+            return new Temporal<>(message.getTimestamp(), Link.builder()
                     .pedometer(Integer.parseInt(parts.remove()))
                     .rolls(Integer.parseInt(parts.remove()))
                     .battery(Integer.parseInt(parts.remove()))
-                    .build();
+                    .build());
         } catch (NoSuchElementException ex) {
             throw new KidTrackerParseException("Unable to parse link data from message \"" + message + "\", not enough data", ex);
+        }
+    }
+
+    public static Position toPosition(String deviceId, Date timestamp, Location location) {
+        return new Position(deviceId,
+                timestamp,
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getAccuracy(),
+                location.getBattery(),
+                location.getPedometer(),
+                location.getState().isTakeOff(),
+                location.getState().isLowBattery(),
+                location.getState().isSosAlarm());
+    }
+
+    public static Position toPosition(String deviceId, Temporal<Location> location) {
+        return toPosition(deviceId, location.getTimestamp(), location.getValue());
+    }
+
+    public static Snapshot toSnapshot(String deviceId, Temporal<Link> link) {
+        return new Snapshot(deviceId, link.getTimestamp(), link.getValue().getPedometer(), link.getValue().getRolls(), link.getValue().getBattery());
+    }
+
+    public static Position toPosition(Message message) {
+        try {
+            return toPosition(message.getDeviceId(), toLocation(message));
+        } catch (KidTrackerParseException ex) {
+            log.error("Unable to parse location from message {}", message, ex);
+            return null;
         }
     }
 }

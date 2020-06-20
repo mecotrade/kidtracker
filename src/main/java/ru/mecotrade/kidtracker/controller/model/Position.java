@@ -21,7 +21,7 @@ public class Position {
 
     private double accuracy;
 
-    private double battery;
+    private int battery;
 
     private int pedometer;
 
@@ -30,5 +30,4 @@ public class Position {
     private boolean lowBattery;
 
     private boolean sos;
-
 }

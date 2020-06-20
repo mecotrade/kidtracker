@@ -4,13 +4,15 @@ var moment = require('moment/min/moment-with-locales.min.js');
 
 const DEFAULT_ZOOM = 16;
 const KID_POSITION_QUERY_INTERVAL = 10000;
+const LOST_INTERVAL = 15 * 60 * 1000;
 
 const BATTERY_LOW_THRESHOLD = 20;
 const BATTERY_FULL_THRESHOLD = 70;
 
-const WATCH_OFF_ICON = '<svg class="bi bi-watch" width="24px" height="16px"  style="padding-right: 0.5em" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 14.333v-1.86A5.985 5.985 0 0 1 2 8c0-1.777.772-3.374 2-4.472V1.667C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v1.86A5.985 5.985 0 0 1 14 8a5.985 5.985 0 0 1-2 4.472v1.861c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333zM13 8A5 5 0 1 0 3 8a5 5 0 0 0 10 0z"/><rect width="1" height="2" x="13.5" y="7" rx=".5"/><path fill-rule="evenodd" d="M8 4.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h1.5V5a.5.5 0 0 1 .5-.5z"/></svg>';
-const LOW_BATTERY_ICON = '<svg class="bi bi-battery" width="24px" height="16px" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 5H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zM2 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H2z"/><path d="M14.5 9.5a1.5 1.5 0 0 0 0-3v3z"/></svg>';
-const SOS_ICON = '<svg class="bi bi-exclamation-octagon-fill" width="24px" height="16px" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>';
+const WATCH_OFF_ICON = '<svg class="bi bi-watch" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 14.333v-1.86A5.985 5.985 0 0 1 2 8c0-1.777.772-3.374 2-4.472V1.667C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v1.86A5.985 5.985 0 0 1 14 8a5.985 5.985 0 0 1-2 4.472v1.861c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333zM13 8A5 5 0 1 0 3 8a5 5 0 0 0 10 0z"/><rect width="1" height="2" x="13.5" y="7" rx=".5"/><path fill-rule="evenodd" d="M8 4.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h1.5V5a.5.5 0 0 1 .5-.5z"/></svg>';
+const LOW_BATTERY_ICON = '<svg class="bi bi-battery" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 5H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zM2 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H2z"/><path d="M14.5 9.5a1.5 1.5 0 0 0 0-3v3z"/></svg>';
+const SOS_ICON = '<svg class="bi bi-exclamation-octagon-fill" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>';
+const LOST_ICON = '<svg class="bi bi-x-circle" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"></path><path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"></path></svg>'
 
 const KID_POPUP_TIME_FORMAT = 'D MMMM YYYY HH:mm dddd';
 
@@ -87,18 +89,34 @@ map.on('drag', function onMouseDrag(e) {
 });
 
 async function locateKids() {
-    const kidsPositionResponse = await fetch(`/api/user/${userId}/kids/position`);
-    const kidsPosition = await kidsPositionResponse.json();
-    kidsPosition.forEach(p => {
+    const reportResponse = await fetch(`/api/user/${userId}/kids/report`);
+    const report = await reportResponse.json();
+    report.positions.forEach(p => {
         // TODO if not found
         const kid = kids[p.deviceId];
+
+        const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
+
+        let battery = p.battery;
+        let pedometer = p.pedometer;
+
         const date = new Date(Date.parse(p.timestamp));
+        const snapshotDate = snapshot ? new Date(Date.parse(snapshot.timestamp)) : null;
+
+        if (snapshot && snapshotDate > date) {
+            battery = snapshot.battery;
+            pedometer = snapshot.pedometer;
+        }
+
         const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
-        const batteryClass = p.battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (p.battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
-        const watchOffAlarm = p.takeOff ? WATCH_OFF_ICON : '';
-        const lowBatteryAlarm = p.lowBattery ? LOW_BATTERY_ICON : '';
-        const sosAlarm = p.sos ? SOS_ICON : '';
-        const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name"><b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${p.pedometer}</span><span class="${batteryClass}">${p.battery}%</span><div>${sosAlarm}${lowBatteryAlarm}${watchOffAlarm}</div></div></center>`;
+        const batteryClass = battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
+
+        let alert = (p.sos ? SOS_ICON : '')
+                + (!snapshot || (Date.now() - snapshotDate.getTime() > LOST_INTERVAL) ? LOST_ICON : '')
+                + (p.takeOff ? WATCH_OFF_ICON : '')
+                + (p.lowBattery ? LOW_BATTERY_ICON : '');
+
+        const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name"><b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${pedometer}</span><span class="${batteryClass}">${battery}%</span><div class="kid-popup-alert">${alert}</div></div></center>`;
         kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
         kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
 

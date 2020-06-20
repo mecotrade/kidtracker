@@ -8,9 +8,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.mecotrade.kidtracker.controller.model.Kid;
-import ru.mecotrade.kidtracker.controller.model.Position;
+import ru.mecotrade.kidtracker.controller.model.Report;
 import ru.mecotrade.kidtracker.controller.model.User;
 import ru.mecotrade.kidtracker.dao.UserService;
+import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.processor.PositionProcessor;
 
 import java.util.Collection;
@@ -41,9 +42,12 @@ public class UserController {
         return userService.get(userId).get().getKids().stream().map(k -> new Kid(k.getDeviceId(), k.getName(), k.getThumb())).collect(Collectors.toList());
     }
 
-    @GetMapping("/kids/position")
+    @GetMapping("/kids/report")
     @ResponseBody
-    public Collection<Position> kidPositions(@PathVariable Long userId) {
-        return positionProcessor.kidPositions(userId);
+    public Report kidPositions(@PathVariable Long userId) throws KidTrackerUnknownUserException {
+        // TODO: process unknown user exception
+        return positionProcessor.report(userId);
     }
+
+
 }

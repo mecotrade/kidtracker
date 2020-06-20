@@ -7,7 +7,7 @@ import lombok.ToString;
 @Data
 @Builder
 @ToString
-public class LinkData {
+public class Link {
 
     /** total number of steps */
     private int pedometer;

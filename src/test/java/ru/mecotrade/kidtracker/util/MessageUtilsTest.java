@@ -33,7 +33,7 @@ public class MessageUtilsTest {
         Message message = Message.device("3G", "1234567890", "UD",
                 "060620,125420,A,60.062543,N,30.4606333,E,0.00,95.3,0.0,9,100,100,865649,0,00000008,7,255,250,1,234,15482,170,234,15481,151,234,15485,146,234,20082,144,290,25623,142,234,63301,141,234,63332,138,0,25.9");
 
-        Location location = MessageUtils.toLocation(message);
+        Location location = MessageUtils.toLocation(message).getValue();
 
         assertNotNull(location);
         assertEquals(LocalDateTime.of(2020, 6, 6, 12, 54, 20), location.getTime());

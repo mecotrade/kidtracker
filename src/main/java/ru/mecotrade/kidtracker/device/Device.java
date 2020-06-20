@@ -1,10 +1,17 @@
 package ru.mecotrade.kidtracker.device;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.mecotrade.kidtracker.controller.model.Position;
+import ru.mecotrade.kidtracker.controller.model.Snapshot;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
+import ru.mecotrade.kidtracker.model.Link;
+import ru.mecotrade.kidtracker.model.Location;
+import ru.mecotrade.kidtracker.model.Temporal;
+import ru.mecotrade.kidtracker.util.MessageUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,6 +25,14 @@ public class Device implements DeviceSender {
 
     @Getter
     private final String manufacturer;
+
+    @Getter
+    @Setter
+    private Temporal<Location> location;
+
+    @Getter
+    @Setter
+    private Temporal<Link> link;
 
     private MessageConnector messageConnector;
 
@@ -44,20 +59,21 @@ public class Device implements DeviceSender {
         messageConnector.send(Message.platform(manufacturer, id, type, payload));
     }
 
-    public void process(Message message) throws KidTrackerException {
+    public synchronized void process(Message message) throws KidTrackerException {
 
         String type = message.getType();
 
         switch (type) {
             case "LK":
-                // TODO:
+                link = MessageUtils.toLink(message);
                 break;
             case "AL":
             case "UD":
             case "UD2":
-                // TODO
+                location = MessageUtils.toLocation(message);
                 break;
             case "TK":
+                // TODO: work with audio files, learn proper play rate
                 byte[] data = Base64.getDecoder().decode(message.getPayload().getBytes());
                 try (FileOutputStream fos = new FileOutputStream(message.getId() + ".amr")) {
                     fos.write(data);
@@ -75,5 +91,13 @@ public class Device implements DeviceSender {
             case "TK":
                 send(type);
         }
+    }
+
+    public Position position() {
+        return location != null ? MessageUtils.toPosition(id, location) : null;
+    }
+
+    public Snapshot snapshot() {
+        return link != null ? MessageUtils.toSnapshot(id, link) : null;
     }
 }

@@ -8,8 +8,11 @@ import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -45,5 +48,9 @@ public class DeviceManager implements MessageListener {
         log.debug("[{}] >>> {}", messageConnector.getId(), message);
 
         device.process(message);
+    }
+
+    public Collection<Device> select(Collection<String> deviceIds) {
+        return devices.entrySet().stream().filter(e -> deviceIds.contains(e.getKey())).map(Map.Entry::getValue).collect(Collectors.toList());
     }
 }
