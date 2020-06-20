@@ -63,8 +63,6 @@ $('#kid-watch').on('click', async function onLocateKid() {
 
 map.on('locationfound', function onLocationFound(e) {
 
-    console.debug('self location found');
-
     user.marker.setLatLng(e.latlng);
     user.circle.setLatLng(e.latlng).setRadius(e.accuracy);
 
@@ -77,6 +75,7 @@ map.on('locationfound', function onLocationFound(e) {
 });
 
 map.on('locationerror', function onLocationError(e) {
+    // TODO: nice error notification
     alert(e.message);
 });
 
@@ -92,48 +91,59 @@ async function locateKids() {
     const reportResponse = await fetch(`/api/user/${userId}/kids/report`);
     const report = await reportResponse.json();
     report.positions.forEach(p => {
-        // TODO if not found
-        const kid = kids[p.deviceId];
+        const kid = kids.find(k => k.deviceId == p.deviceId);
+        if (kid) {
+            const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
 
-        const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
+            let battery = p.battery;
+            let pedometer = p.pedometer;
 
-        let battery = p.battery;
-        let pedometer = p.pedometer;
+            const date = new Date(Date.parse(p.timestamp));
+            const snapshotDate = snapshot ? new Date(Date.parse(snapshot.timestamp)) : null;
 
-        const date = new Date(Date.parse(p.timestamp));
-        const snapshotDate = snapshot ? new Date(Date.parse(snapshot.timestamp)) : null;
-
-        if (snapshot && snapshotDate > date) {
-            battery = snapshot.battery;
-            pedometer = snapshot.pedometer;
-        }
-
-        const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
-        const batteryClass = battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
-
-        let alert = (p.sos ? SOS_ICON : '')
-                + (!snapshot || (Date.now() - snapshotDate.getTime() > LOST_INTERVAL) ? LOST_ICON : '')
-                + (p.takeOff ? WATCH_OFF_ICON : '')
-                + (p.lowBattery ? LOW_BATTERY_ICON : '');
-
-        const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name"><b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${pedometer}</span><span class="${batteryClass}">${battery}%</span><div class="kid-popup-alert">${alert}</div></div></center>`;
-        kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
-        kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
-
-        $(`#kid-popup-${kid.deviceId}`).on('click', function() {
-            if (kid.popupTimeFromNow) {
-                $(`#kid-popup-${kid.deviceId}`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
-                kid.popupTimeFromNow = false;
-            } else {
-                $(`#kid-popup-${kid.deviceId}`).text(moment(date).fromNow());
-                kid.popupTimeFromNow = true;
+            if (snapshot && snapshotDate > date) {
+                battery = snapshot.battery;
+                pedometer = snapshot.pedometer;
             }
-        });
+
+            if (kid.snapshot) {
+                pedometer -= kid.snapshot.pedometer;
+            }
+
+            const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
+            const batteryClass = battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
+
+            let alert = (p.sos ? SOS_ICON : '')
+                    + (!snapshot || (Date.now() - snapshotDate.getTime() > LOST_INTERVAL) ? LOST_ICON : '')
+                    + (p.takeOff ? WATCH_OFF_ICON : '')
+                    + (p.lowBattery ? LOW_BATTERY_ICON : '');
+
+            const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name"><b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${pedometer}</span><span class="${batteryClass}">${battery}%</span><div class="kid-popup-alert">${alert}</div></div></center>`;
+            kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
+            kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
+
+            $(`#kid-popup-${kid.deviceId}`).on('click', function() {
+                if (kid.popupTimeFromNow) {
+                    $(`#kid-popup-${kid.deviceId}`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
+                    kid.popupTimeFromNow = false;
+                } else {
+                    $(`#kid-popup-${kid.deviceId}`).text(moment(date).fromNow());
+                    kid.popupTimeFromNow = true;
+                }
+            });
+        } else {
+            // TODO if not found
+        }
     });
 
     if (view == 'kid' || view == 'kid-once') {
         const deviceId = $('#kid-select').children('option:selected').val();
-        map.setView(kids[deviceId].popup.getLatLng());
+        const kid = kids.find(k => k.deviceId == deviceId);
+        if (kid) {
+            map.setView(kid.popup.getLatLng());
+        } else {
+            // TODO if not found
+        }
         if (view == 'kid-once') {
             view = 'none';
         }
@@ -162,7 +172,18 @@ window.addEventListener('load', async function onload() {
         k.popupTimeFromNow = true;
         k.circle = L.circle([0,0], 0, {weight: 0, color: 'green'}).addTo(map);
     });
-    kids = kids.reduce((m, k) => { m[k.deviceId] = k; return m;}, {});
+
+    // init pedometer to closest midnight
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    const snapshotResponse = await fetch(`/api/user/${userId}/kids/snapshot/${midnight.getTime()}`);
+    const snapshot = await snapshotResponse.json();
+    kids.forEach(k => {
+        const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
+        if (kidSnapshot) {
+            k.snapshot = kidSnapshot;
+        }
+    });
 
     locateKids();
     setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);

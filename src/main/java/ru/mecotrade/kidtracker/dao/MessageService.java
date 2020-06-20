@@ -7,7 +7,6 @@ import ru.mecotrade.kidtracker.util.MessageUtils;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 @Service
 public class MessageService {
@@ -33,5 +32,9 @@ public class MessageService {
 
     public Message lastMessage(String deviceId, Collection<String> types, Message.Source source) {
         return messageRepository.findFirstByDeviceIdAndTypeInAndSourceOrderByIdDesc(deviceId, types, source);
+    }
+
+    public Collection<Message> lastMessages(Collection<String> deviceIds, Collection<String> types, Message.Source source, Date timestamp) {
+        return messageRepository.lastMessages(deviceIds, types, source, timestamp);
     }
 }

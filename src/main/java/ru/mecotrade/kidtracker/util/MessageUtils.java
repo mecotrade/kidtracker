@@ -35,6 +35,8 @@ public class MessageUtils {
 
     public static final Set<String> LOCATION_TYPES = new HashSet<>(Arrays.asList("UD", "UD2", "AL"));
 
+    public static final String LINK_TYPE = "LK";
+
     public static final byte[] MESSAGE_LEADING_CHAR = Arrays.copyOfRange(Chars.toByteArray('['), Chars.BYTES - 1, Chars.BYTES);
 
     public static final byte[] MESSAGE_SEPARATOR_CHAR = Arrays.copyOfRange(Chars.toByteArray('*'), Chars.BYTES - 1, Chars.BYTES);
@@ -129,7 +131,7 @@ public class MessageUtils {
     }
 
     public static Temporal<Link> toLink(Message message) throws KidTrackerParseException {
-        if (!"LK".equals(message.getType())) {
+        if (!LINK_TYPE.equals(message.getType())) {
             throw new KidTrackerParseException("Unable to parse link data from message of type " + message.getType());
         }
 
@@ -174,5 +176,21 @@ public class MessageUtils {
             log.error("Unable to parse location from message {}", message, ex);
             return null;
         }
+    }
+
+    public static Snapshot toSnapshot(Message message) {
+        try {
+            if (LOCATION_TYPES.contains(message.getType())) {
+                Temporal<Location> location = toLocation(message);
+                return new Snapshot(message.getDeviceId(), message.getTimestamp(), location.getValue().getPedometer(),
+                        location.getValue().getRolls(), location.getValue().getBattery());
+            } else if (LINK_TYPE.equals(message.getType())) {
+                return toSnapshot(message.getDeviceId(), toLink(message));
+            }
+            log.error("Unable to parse snapshot from message {}", message);
+        } catch (KidTrackerParseException ex) {
+            log.error("Unable to parse snapshot from message {}", message, ex);
+        }
+        return null;
     }
 }

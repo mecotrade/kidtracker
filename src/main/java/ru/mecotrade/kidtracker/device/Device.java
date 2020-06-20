@@ -63,33 +63,21 @@ public class Device implements DeviceSender {
 
         String type = message.getType();
 
-        switch (type) {
-            case "LK":
-                link = MessageUtils.toLink(message);
-                break;
-            case "AL":
-            case "UD":
-            case "UD2":
-                location = MessageUtils.toLocation(message);
-                break;
-            case "TK":
-                // TODO: work with audio files, learn proper play rate
-                byte[] data = Base64.getDecoder().decode(message.getPayload().getBytes());
-                try (FileOutputStream fos = new FileOutputStream(message.getId() + ".amr")) {
-                    fos.write(data);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-        }
-
-        // reponse
-        switch(type) {
-            case "LK":
-            case "AL":
-            case "TKQ":
-            case "TKQ2":
-            case "TK":
-                send(type);
+        if (MessageUtils.LINK_TYPE.equals(type)) {
+            link = MessageUtils.toLink(message);
+            send(type);
+        } else if (MessageUtils.LOCATION_TYPES.contains(type)) {
+            location = MessageUtils.toLocation(message);
+            send(type);
+        } else if (MessageUtils.BASE_64_TYPES.contains(type)) {
+            // TODO: work with audio files, learn proper play rate
+            byte[] data = Base64.getDecoder().decode(message.getPayload().getBytes());
+            try (FileOutputStream fos = new FileOutputStream(message.getId() + ".amr")) {
+                fos.write(data);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            send(type);
         }
     }
 

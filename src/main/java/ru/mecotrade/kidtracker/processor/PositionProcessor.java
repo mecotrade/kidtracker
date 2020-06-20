@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -45,9 +46,7 @@ public class PositionProcessor {
         // TODO use cache
         Optional<User> user = userService.get(userId);
         if (user.isPresent()) {
-            Collection<Kid> kids = user.get().getKids();
-            Collection<Device> devices = deviceManager.select(kids.stream().map(Kid::getDeviceId).collect(Collectors.toList()));
-
+            Collection<Device> devices = deviceManager.select(user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList()));
 
             Collection<Position> positions = devices.stream()
                     .map(Device::position)
@@ -99,6 +98,20 @@ public class PositionProcessor {
             }
 
             return Report.of(positions, snapshots);
+        } else {
+            throw new KidTrackerUnknownUserException(String.valueOf(userId));
+        }
+    }
+
+    public Collection<Snapshot> snapshot(Long userId, Date timestamp) throws KidTrackerUnknownUserException {
+        // TODO use cache
+        Optional<User> user = userService.get(userId);
+        if (user.isPresent()) {
+            Collection<String> deviceIds = user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList());
+            return messageService.lastMessages(deviceIds,
+                    Stream.concat(MessageUtils.LOCATION_TYPES.stream(), Stream.of(MessageUtils.LINK_TYPE)).collect(Collectors.toList()),
+                    Message.Source.DEVICE,
+                    timestamp).stream().map(MessageUtils::toSnapshot).collect(Collectors.toList());
         } else {
             throw new KidTrackerUnknownUserException(String.valueOf(userId));
         }

@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.mecotrade.kidtracker.controller.model.Kid;
 import ru.mecotrade.kidtracker.controller.model.Report;
+import ru.mecotrade.kidtracker.controller.model.Snapshot;
 import ru.mecotrade.kidtracker.controller.model.User;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.processor.PositionProcessor;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 @Controller
@@ -44,9 +46,16 @@ public class UserController {
 
     @GetMapping("/kids/report")
     @ResponseBody
-    public Report kidPositions(@PathVariable Long userId) throws KidTrackerUnknownUserException {
+    public Report report(@PathVariable Long userId) throws KidTrackerUnknownUserException {
         // TODO: process unknown user exception
         return positionProcessor.report(userId);
+    }
+
+    @GetMapping("/kids/snapshot/{timestamp:\\d+}")
+    @ResponseBody
+    public Collection<Snapshot> snapshot(@PathVariable Long userId, @PathVariable Long timestamp) throws KidTrackerUnknownUserException {
+        // TODO: process unknown user exception
+        return positionProcessor.snapshot(userId, new Date(timestamp));
     }
 
 
