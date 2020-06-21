@@ -91,7 +91,7 @@ map.on('drag', function onMouseDrag(e) {
 async function locateKids() {
 
     const now = new Date();
-    if (!now.toDateString().equals(midnight.toDateString())) {
+    if (!now.toDateString() == midnight.toDateString()) {
         await updateMidnightSnapshot();
     }
 
