@@ -27,7 +27,7 @@ public class DeviceController {
     @Autowired
     private DeviceManager deviceManager;
 
-    @GetMapping("/path/{since}/{till}")
+    @GetMapping("/path/{since:\\d+}/{till:\\d+}")
     @ResponseBody
     public Collection<Position> path(@PathVariable String deviceId, @PathVariable Long since, @PathVariable Long till) {
         return positionProcessor.path(deviceId, since, till);

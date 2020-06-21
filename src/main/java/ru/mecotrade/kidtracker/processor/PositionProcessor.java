@@ -59,7 +59,7 @@ public class PositionProcessor {
                     synchronized (device) {
 
                         if (device.getLocation() == null) {
-                            Message message = messageService.lastMessage(device.getId(), MessageUtils.LOCATION_TYPES, Message.Source.DEVICE);
+                            Message message = messageService.last(device.getId(), MessageUtils.LOCATION_TYPES, Message.Source.DEVICE);
                             log.debug("[{}] Location not found, use historical message {}", device.getId(), message);
                             if (message != null) {
                                 try {
@@ -84,7 +84,7 @@ public class PositionProcessor {
                 for (Device device : devices.stream().filter(d -> d.getLink() == null).collect(Collectors.toList())) {
                     synchronized (device) {
                         if (device.getLink() == null) {
-                            Message message = messageService.lastMessage(device.getId(), Collections.singleton("LK"), Message.Source.DEVICE);
+                            Message message = messageService.last(device.getId(), Collections.singleton("LK"), Message.Source.DEVICE);
                             log.debug("[{}] Link not found, use historical message {}", device.getId(), message);
                             try {
                                 device.setLink(MessageUtils.toLink(message));
@@ -108,7 +108,7 @@ public class PositionProcessor {
         Optional<User> user = userService.get(userId);
         if (user.isPresent()) {
             Collection<String> deviceIds = user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList());
-            return messageService.lastMessages(deviceIds,
+            return messageService.last(deviceIds,
                     Stream.concat(MessageUtils.LOCATION_TYPES.stream(), Stream.of(MessageUtils.LINK_TYPE)).collect(Collectors.toList()),
                     Message.Source.DEVICE,
                     timestamp).stream().map(MessageUtils::toSnapshot).collect(Collectors.toList());
@@ -118,10 +118,9 @@ public class PositionProcessor {
     }
 
     public Collection<Position> path(String deviceId, Long since, Long till) {
-        return messageService.listPositions(deviceId, new Date(since), new Date(till)).stream()
+        return messageService.slice(deviceId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE, new Date(since), new Date(till)).stream()
                 .map(MessageUtils::toPosition)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
-
 }

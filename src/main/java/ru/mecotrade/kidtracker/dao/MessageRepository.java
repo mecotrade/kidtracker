@@ -11,7 +11,7 @@ import java.util.Date;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    Collection<Message> findByDeviceIdAndTypeInAndTimestampBetweenOrderById(String deviceId, Collection<String> type, Date since, Date till);
+    Collection<Message> findByDeviceIdAndTypeInAndSourceAndTimestampBetweenOrderById(String deviceId, Collection<String> type, Message.Source source, Date since, Date till);
 
     Message findFirstByDeviceIdAndTypeInAndSourceOrderByIdDesc(String deviceId, Collection<String> type, Message.Source source);
 

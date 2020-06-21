@@ -22,6 +22,7 @@ var map = L.map('map');
 
 var user;
 var kids;
+var midnight;
 
 var view = 'none';
 
@@ -88,6 +89,12 @@ map.on('drag', function onMouseDrag(e) {
 });
 
 async function locateKids() {
+
+    const now = new Date();
+    if (!now.toDateString().equals(midnight.toDateString())) {
+        await updateMidnightSnapshot();
+    }
+
     const reportResponse = await fetch(`/api/user/${userId}/kids/report`);
     const report = await reportResponse.json();
     report.positions.forEach(p => {
@@ -114,7 +121,7 @@ async function locateKids() {
             const batteryClass = battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
 
             let alert = (p.sos ? SOS_ICON : '')
-                    + (!snapshot || (Date.now() - snapshotDate.getTime() > LOST_INTERVAL) ? LOST_ICON : '')
+                    + (!snapshot || (now.getTime() - snapshotDate.getTime() > LOST_INTERVAL) ? LOST_ICON : '')
                     + (p.takeOff ? WATCH_OFF_ICON : '')
                     + (p.lowBattery ? LOW_BATTERY_ICON : '');
 
@@ -150,6 +157,19 @@ async function locateKids() {
     }
 }
 
+async function updateMidnightSnapshot() {
+    midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    const snapshotResponse = await fetch(`/api/user/${userId}/kids/snapshot/${midnight.getTime()}`);
+    const snapshot = await snapshotResponse.json();
+    kids.forEach(k => {
+        const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
+        if (kidSnapshot) {
+            k.snapshot = kidSnapshot;
+        }
+    });
+}
+
 window.addEventListener('load', async function onload() {
 
     const locale = navigator.language ? navigator.language.split('-')[0] : null;
@@ -174,16 +194,7 @@ window.addEventListener('load', async function onload() {
     });
 
     // init pedometer to closest midnight
-    const midnight = new Date();
-    midnight.setHours(0, 0, 0, 0);
-    const snapshotResponse = await fetch(`/api/user/${userId}/kids/snapshot/${midnight.getTime()}`);
-    const snapshot = await snapshotResponse.json();
-    kids.forEach(k => {
-        const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
-        if (kidSnapshot) {
-            k.snapshot = kidSnapshot;
-        }
-    });
+    await updateMidnightSnapshot();
 
     locateKids();
     setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);
