@@ -39,7 +39,7 @@ public class MessageConnector extends DeviceConnector {
             int offset = 0;
 
             if (messageBuffer[offset] != MessageUtils.MESSAGE_LEADING_CHAR[0]) {
-                throw new KidTrackerParseException("Leading symbol '" + MessageUtils.MESSAGE_LEADING_CHAR[0] + "' not found in message \"" + new String(messageBuffer) + "\"");
+                throw new KidTrackerParseException("Leading symbol '" + ((char)MessageUtils.MESSAGE_LEADING_CHAR[0]) + "' not found in message \"" + new String(messageBuffer) + "\"");
             }
             offset++;
 
@@ -77,7 +77,7 @@ public class MessageConnector extends DeviceConnector {
                 }
 
                 if (messageBuffer[offset] != MessageUtils.MESSAGE_TRAILING_CHAR[0]) {
-                    throw new KidTrackerParseException("Trailing symbol '" + MessageUtils.MESSAGE_TRAILING_CHAR[0] + "' not found in message \"" + new String(messageBuffer) + "\"");
+                    throw new KidTrackerParseException("Trailing symbol '" + ((char)MessageUtils.MESSAGE_TRAILING_CHAR[0]) + "' not found in message \"" + new String(messageBuffer) + "\"");
                 }
                 offset++;
                 messageBuffer = Arrays.copyOfRange(messageBuffer, offset, messageBuffer.length);

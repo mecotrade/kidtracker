@@ -1,10 +1,10 @@
 'use strict';
 
-var moment = require('moment/min/moment-with-locales.min.js');
+const moment = require('moment/min/moment-with-locales.min.js');
+const createSliderControl = require('./slidercontrol.js');
 
 const DEFAULT_ZOOM = 16;
 const KID_POSITION_QUERY_INTERVAL = 10000;
-const LOST_INTERVAL = 15 * 60 * 1000;
 
 const BATTERY_LOW_THRESHOLD = 20;
 const BATTERY_FULL_THRESHOLD = 70;
@@ -14,7 +14,9 @@ const LOW_BATTERY_ICON = '<svg class="bi bi-battery" width="20px" height="16px" 
 const SOS_ICON = '<svg class="bi bi-exclamation-octagon-fill" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>';
 const LOST_ICON = '<svg class="bi bi-x-circle" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"></path><path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"></path></svg>'
 
-const KID_POPUP_TIME_FORMAT = 'D MMMM YYYY HH:mm dddd';
+const KID_POPUP_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
+
+const LOST_INTERVAL = 15 * 60 * 1000;
 
 const userId = 1;
 
@@ -25,6 +27,7 @@ var kids;
 var midnight;
 
 var view = 'none';
+var path = null;
 
 $('#self-watch').on('click', function onLocateMe() {
     if (view == 'self') {
@@ -58,6 +61,65 @@ $('#kid-watch').on('click', async function onLocateKid() {
         $('#kid-watch-icon').show();
         view = 'kid';
 
+        if (path) {
+            path.move(path.slider.value());
+        } else {
+            locateKids();
+        }
+    }
+});
+
+$('#kid-path').on('click', async function onKidPath() {
+
+    if (!path) {
+
+        $('#kid-path-switch-icon').hide();
+        $('#kid-geo-switch-icon').show();
+
+        const deviceId = $('#kid-select').children('option:selected').val();
+
+        const kid = kids.find(k => k.deviceId == deviceId);
+
+        // TODO if not found
+
+        const from = new Date(2020, 5, 19);
+        const till = new Date(2020, 5, 20);
+
+        const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${from.getTime()}/${till.getTime()}`);
+        const kidPath = await kidPathResponse.json();
+
+        // TODO: if path is empty
+
+        kidPath.map(p => [p.latitude, p.longitude])
+        const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
+
+        const snapshotResponse = await fetch(`/api/user/${userId}/kids/snapshot/${from.getTime()}`);
+        const snapshot = await snapshotResponse.json();
+        const pathMidnightSnapshot = snapshot.find(s => s.deviceId == deviceId);
+
+        function move(i) {
+            updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
+            return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
+        }
+
+        const slider = createSliderControl({
+            position: "topright",
+            alwaysShowDate: true,
+            length: kidPath.length,
+            slide: move
+        });
+        map.addControl(slider);
+        slider.startSlider();
+
+        path = {track: track, slider: slider, move: move};
+    } else {
+        map.removeControl(path.slider);
+        map.removeLayer(path.track);
+        path = null;
+
+        $('#kid-path-switch-icon').show();
+        $('#kid-geo-switch-icon').hide();
+
         locateKids();
     }
 });
@@ -73,11 +135,13 @@ map.on('locationfound', function onLocationFound(e) {
             view = 'none';
         }
     }
+
+    $('#self-watch').attr('disabled', false);
 });
 
 map.on('locationerror', function onLocationError(e) {
-    // TODO: nice error notification
-    alert(e.message);
+    $('#self-watch').attr('disabled', true);
+    console.error(e.message);
 });
 
 map.on('drag', function onMouseDrag(e) {
@@ -88,73 +152,76 @@ map.on('drag', function onMouseDrag(e) {
     view = 'none';
 });
 
-async function locateKids() {
+function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView) {
 
     const now = new Date();
-    if (!now.toDateString() == midnight.toDateString()) {
-        await updateMidnightSnapshot();
+
+    let battery = position.battery;
+    let pedometer = position.pedometer;
+
+    const date = new Date(position.timestamp);
+    const snapshotDate = snapshot ? new Date(snapshot.timestamp) : null;
+
+    if (snapshot && snapshotDate > date) {
+        battery = snapshot.battery;
+        pedometer = snapshot.pedometer;
     }
 
-    const reportResponse = await fetch(`/api/user/${userId}/kids/report`);
-    const report = await reportResponse.json();
-    report.positions.forEach(p => {
-        const kid = kids.find(k => k.deviceId == p.deviceId);
-        if (kid) {
-            const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
+    if (kid.snapshot) {
+        pedometer -= midnightSnapshot.pedometer;
+    }
 
-            let battery = p.battery;
-            let pedometer = p.pedometer;
+    const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
+    const batteryClass = battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
 
-            const date = new Date(Date.parse(p.timestamp));
-            const snapshotDate = snapshot ? new Date(Date.parse(snapshot.timestamp)) : null;
+    let alert = (position.sos ? SOS_ICON : '')
+            + (online && (!snapshot || (now.getTime() - snapshotDate.getTime() > LOST_INTERVAL)) ? LOST_ICON : '')
+            + (position.takeOff ? WATCH_OFF_ICON : '')
+            + (position.lowBattery ? LOW_BATTERY_ICON : '');
 
-            if (snapshot && snapshotDate > date) {
-                battery = snapshot.battery;
-                pedometer = snapshot.pedometer;
-            }
+    const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name"><b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${pedometer}</span><span class="${batteryClass}">${battery}%</span><div class="kid-popup-alert">${alert}</div></div></center>`;
+    kid.popup.setContent(content).setLatLng([position.latitude, position.longitude]);
+    kid.circle.setLatLng([position.latitude, position.longitude]).setRadius(position.accuracy);
 
-            if (kid.snapshot) {
-                pedometer -= kid.snapshot.pedometer;
-            }
-
-            const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
-            const batteryClass = battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
-
-            let alert = (p.sos ? SOS_ICON : '')
-                    + (!snapshot || (now.getTime() - snapshotDate.getTime() > LOST_INTERVAL) ? LOST_ICON : '')
-                    + (p.takeOff ? WATCH_OFF_ICON : '')
-                    + (p.lowBattery ? LOW_BATTERY_ICON : '');
-
-            const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name"><b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${pedometer}</span><span class="${batteryClass}">${battery}%</span><div class="kid-popup-alert">${alert}</div></div></center>`;
-            kid.popup.setContent(content).setLatLng([p.latitude, p.longitude]);
-            kid.circle.setLatLng([p.latitude, p.longitude]).setRadius(p.accuracy);
-
-            $(`#kid-popup-${kid.deviceId}`).on('click', function() {
-                if (kid.popupTimeFromNow) {
-                    $(`#kid-popup-${kid.deviceId}`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
-                    kid.popupTimeFromNow = false;
-                } else {
-                    $(`#kid-popup-${kid.deviceId}`).text(moment(date).fromNow());
-                    kid.popupTimeFromNow = true;
-                }
-            });
+    $(`#kid-popup-${kid.deviceId}`).on('click', function() {
+        if (kid.popupTimeFromNow) {
+            $(`#kid-popup-${kid.deviceId}`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
+            kid.popupTimeFromNow = false;
         } else {
-            // TODO if not found
+            $(`#kid-popup-${kid.deviceId}`).text(moment(date).fromNow());
+            kid.popupTimeFromNow = true;
         }
     });
 
-    if (view == 'kid' || view == 'kid-once') {
-        const deviceId = $('#kid-select').children('option:selected').val();
-        const kid = kids.find(k => k.deviceId == deviceId);
-        if (kid) {
-            map.setView(kid.popup.getLatLng());
-        } else {
-            // TODO if not found
-        }
+    if (setView && (view == 'kid' || view == 'kid-once')) {
+        map.setView(kid.popup.getLatLng());
         if (view == 'kid-once') {
             view = 'none';
         }
     }
+}
+
+async function locateKids() {
+
+    if (new Date().toDateString() != midnight.toDateString()) {
+        await updateMidnightSnapshot();
+    }
+
+    const deviceId = $('#kid-select').children('option:selected').val();
+
+    const reportResponse = await fetch(`/api/user/${userId}/kids/report`);
+    const report = await reportResponse.json();
+    report.positions.forEach(p => {
+        if (!path || p.deviceId != deviceId) {
+            const kid = kids.find(k => k.deviceId == p.deviceId);
+            if (kid) {
+                const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
+                updateKidPopup(kid, p, snapshot, kid.snapshot, true, !path && kid.deviceId == deviceId);
+            } else {
+                // TODO if not found
+            }
+        }
+    });
 }
 
 async function updateMidnightSnapshot() {
@@ -190,7 +257,7 @@ window.addEventListener('load', async function onload() {
     kids.forEach(k => {
         k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng([0, 0]).addTo(map);
         k.popupTimeFromNow = true;
-        k.circle = L.circle([0,0], 0, {weight: 0, color: 'green'}).addTo(map);
+        k.circle = L.circle([0,0], 0, {weight: 0}).addTo(map);
     });
 
     // init pedometer to closest midnight
@@ -204,7 +271,7 @@ window.addEventListener('load', async function onload() {
     user = await userResponse.json();
     $('#user-name').text(user.name);
     user.marker = L.marker([0,0]).addTo(map);
-    user.circle = L.circle([0, 0], 0, {weight: 0}).addTo(map);
+    user.circle = L.circle([0, 0], 0, {weight: 0, color: 'green'}).addTo(map);
 
     view = 'self-once';
     map.locate({

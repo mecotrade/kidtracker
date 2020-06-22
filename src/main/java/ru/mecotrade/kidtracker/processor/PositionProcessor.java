@@ -84,7 +84,7 @@ public class PositionProcessor {
                 for (Device device : devices.stream().filter(d -> d.getLink() == null).collect(Collectors.toList())) {
                     synchronized (device) {
                         if (device.getLink() == null) {
-                            Message message = messageService.last(device.getId(), Collections.singleton("LK"), Message.Source.DEVICE);
+                            Message message = messageService.last(device.getId(), Collections.singleton(MessageUtils.LINK_TYPE), Message.Source.DEVICE);
                             log.debug("[{}] Link not found, use historical message {}", device.getId(), message);
                             try {
                                 device.setLink(MessageUtils.toLink(message));
