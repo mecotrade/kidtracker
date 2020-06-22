@@ -29,19 +29,19 @@ var midnight;
 var view = 'none';
 var path = null;
 
-$('#self-watch').on('click', function onLocateMe() {
-    if (view == 'self') {
-        $('#stop-self-watch-icon').show();
-        $('#self-watch-icon').hide();
+$('#user-watch').on('click', function onLocateMe() {
+    if (view == 'user') {
+        $('#stop-user-watch-icon').show();
+        $('#user-watch-icon').hide();
         view = 'none';
     } else {
         if (view == 'kid') {
             $('#stop-kid-watch-icon').show();
             $('#kid-watch-icon').hide();
         }
-        $('#stop-self-watch-icon').hide();
-        $('#self-watch-icon').show();
-        view = 'self';
+        $('#stop-user-watch-icon').hide();
+        $('#user-watch-icon').show();
+        view = 'user';
 
         map.setView(user.marker.getLatLng(), map.getZoom());
     }
@@ -53,9 +53,9 @@ $('#kid-watch').on('click', async function onLocateKid() {
         $('#kid-watch-icon').hide();
         view = 'none';
     } else {
-        if (view == 'self') {
-            $('#stop-self-watch-icon').show();
-            $('#self-watch-icon').hide();
+        if (view == 'user') {
+            $('#stop-user-watch-icon').show();
+            $('#user-watch-icon').hide();
         }
         $('#stop-kid-watch-icon').hide();
         $('#kid-watch-icon').show();
@@ -139,24 +139,24 @@ map.on('locationfound', function onLocationFound(e) {
     user.marker.setLatLng(e.latlng);
     user.circle.setLatLng(e.latlng).setRadius(e.accuracy);
 
-    if (view == 'self' || view == 'self-once') {
+    if (view == 'user' || view == 'user-once') {
         map.setView(e.latlng, map.getZoom());
-        if (view == 'self-once') {
+        if (view == 'user-once') {
             view = 'none';
         }
     }
 
-    $('#self-watch').attr('disabled', false);
+    $('#user-watch').attr('disabled', false);
 });
 
 map.on('locationerror', function onLocationError(e) {
-    $('#self-watch').attr('disabled', true);
+    $('#user-watch').attr('disabled', true);
     console.error(e.message);
 });
 
 map.on('drag', function onMouseDrag(e) {
-    $('#stop-self-watch-icon').show();
-    $('#self-watch-icon').hide();
+    $('#stop-user-watch-icon').show();
+    $('#user-watch-icon').hide();
     $('#stop-kid-watch-icon').show();
     $('#kid-watch-icon').hide();
     view = 'none';
@@ -283,7 +283,7 @@ window.addEventListener('load', async function onload() {
     user.marker = L.marker([0,0]).addTo(map);
     user.circle = L.circle([0, 0], 0, {weight: 0, color: 'green'}).addTo(map);
 
-    view = 'self-once';
+    view = 'user-once';
     map.locate({
         watch: true,
         setView: false,
