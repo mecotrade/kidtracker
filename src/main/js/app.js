@@ -124,6 +124,16 @@ $('#kid-path').on('click', async function onKidPath() {
     }
 });
 
+$('#kid-force-geo').on('click', async function onForceGeo() {
+    const deviceId = $('#kid-select').children('option:selected').val();
+    await fetch(`/api/device/${deviceId}/command/CR`);
+});
+
+$('#kid-find').on('click', async function onForceGeo() {
+    const deviceId = $('#kid-select').children('option:selected').val();
+    await fetch(`/api/device/${deviceId}/command/FIND`);
+});
+
 map.on('locationfound', function onLocationFound(e) {
 
     user.marker.setLatLng(e.latlng);
