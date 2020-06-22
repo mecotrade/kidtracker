@@ -8,7 +8,7 @@ html, body, #map {
 }
 
 .right-padded {
-    margin: 0 8px 0 0;
+    margin: 0 12px 0 0;
 }
 
 .leaflet-popup-content-wrapper .leaflet-popup-content {

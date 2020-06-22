@@ -73,45 +73,59 @@ $('#kid-path').on('click', async function onKidPath() {
 
     if (!path) {
 
-        $('#kid-path-switch-icon').hide();
-        $('#kid-geo-switch-icon').show();
+        const pathRange = await pickPathRange();
+        if (pathRange != null) {
 
-        const deviceId = $('#kid-select').children('option:selected').val();
+            const start = moment(pathRange.start, 'DD.MM.YYYY HH:mm').toDate().getTime();
+            const end = moment(pathRange.end, 'DD.MM.YYYY HH:mm').toDate().getTime();
 
-        const kid = kids.find(k => k.deviceId == deviceId);
+            if (!isNaN(start) && !isNaN(end) && start < end) {
 
-        // TODO if not found
+                const deviceId = $('#kid-select').children('option:selected').val();
 
-        const from = new Date(2020, 5, 19);
-        const till = new Date(2020, 5, 20);
+                const kid = kids.find(k => k.deviceId == deviceId);
 
-        const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${from.getTime()}/${till.getTime()}`);
-        const kidPath = await kidPathResponse.json();
+                // TODO if not found
 
-        // TODO: if path is empty
+                const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${start}/${end}`);
+                const kidPath = await kidPathResponse.json();
 
-        kidPath.map(p => [p.latitude, p.longitude])
-        const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
+                if (kidPath.length > 0) {
 
-        const snapshotResponse = await fetch(`/api/user/${userId}/kids/snapshot/${from.getTime()}`);
-        const snapshot = await snapshotResponse.json();
-        const pathMidnightSnapshot = snapshot.find(s => s.deviceId == deviceId);
+                    kidPath.map(p => [p.latitude, p.longitude])
+                    const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
 
-        function move(i) {
-            updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
-            return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
+                    let snapshotDate = new Date(start);
+                    snapshotDate.setHours(0, 0, 0, 0);
+                    const snapshotResponse = await fetch(`/api/user/${userId}/kids/snapshot/${snapshotDate.getTime()}`);
+                    const snapshot = await snapshotResponse.json();
+                    const pathMidnightSnapshot = snapshot.find(s => s.deviceId == deviceId);
+
+                    function move(i) {
+                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
+                        return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
+                    }
+
+                    const slider = createSliderControl({
+                        position: "topright",
+                        alwaysShowDate: true,
+                        length: kidPath.length,
+                        slide: move
+                    });
+                    map.addControl(slider);
+                    slider.startSlider();
+
+                    path = {track: track, slider: slider, move: move};
+
+                    $('#kid-path-switch-icon').hide();
+                    $('#kid-geo-switch-icon').show();
+
+                } else {
+                    // TODO: error message not data found
+                    console.error('No location found between ' + new Date(start) + ' and ' + new Date(end));
+                }
+            }
         }
-
-        const slider = createSliderControl({
-            position: "topright",
-            alwaysShowDate: true,
-            length: kidPath.length,
-            slide: move
-        });
-        map.addControl(slider);
-        slider.startSlider();
-
-        path = {track: track, slider: slider, move: move};
     } else {
         map.removeControl(path.slider);
         map.removeLayer(path.track);
@@ -126,12 +140,12 @@ $('#kid-path').on('click', async function onKidPath() {
 
 $('#kid-force-geo').on('click', async function onForceGeo() {
     const deviceId = $('#kid-select').children('option:selected').val();
-    await fetch(`/api/device/${deviceId}/command/CR`);
+    await fetch(`/api/device/${deviceId}/locate`);
 });
 
 $('#kid-find').on('click', async function onForceGeo() {
     const deviceId = $('#kid-select').children('option:selected').val();
-    await fetch(`/api/device/${deviceId}/command/FIND`);
+    await fetch(`/api/device/${deviceId}/find`);
 });
 
 map.on('locationfound', function onLocationFound(e) {
@@ -177,7 +191,7 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
         pedometer = snapshot.pedometer;
     }
 
-    if (kid.snapshot) {
+    if (midnightSnapshot) {
         pedometer -= midnightSnapshot.pedometer;
     }
 
@@ -247,11 +261,42 @@ async function updateMidnightSnapshot() {
     });
 }
 
+async function pickPathRange() {
+
+    const $modal = $('#kid-path-range-picker');
+    const $show = $('button.btn-primary', $modal);
+    const $cancel = $('button.btn-secondary', $modal);
+
+    return new Promise(resolve => {
+        $modal.on('shown.bs.modal', function onShow() {
+            $modal.off('shown.bs.modal', onShow);
+            $show.click(function onJoin() {
+                $show.off('click', onJoin);
+                $modal.modal('hide');
+                resolve({start: $('#kid-path-start').val(), end: $('#kid-path-end').val()});
+            });
+            $cancel.click(function onJoin() {
+                $cancel.off('click', onJoin);
+                $modal.modal('hide');
+                resolve(null);
+            });
+        });
+
+        $modal.modal({
+	        backdrop: 'static',
+	        focus: true,
+	        keyboard: false,
+	        show: true
+        });
+    });
+}
+
 window.addEventListener('load', async function onload() {
 
     const locale = navigator.language ? navigator.language.split('-')[0] : null;
     if (locale) {
         moment.locale(locale);
+        $.datetimepicker.setLocale(locale);
     }
 
 	L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -288,5 +333,14 @@ window.addEventListener('load', async function onload() {
         watch: true,
         setView: false,
         enableHighAccuracy: true
+    });
+
+    $('#kid-path-start').datetimepicker({
+        format: 'd.m.Y H:i',
+        timepicker: true
+    });
+    $('#kid-path-end').datetimepicker({
+        format: 'd.m.Y H:i',
+        timepicker:true
     });
 });

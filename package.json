@@ -4,7 +4,7 @@
   "description": "Kid Smart Watch Tracker Application",
   "scripts": {
     "build": "npm-run-all build:*",
-    "build:index": "browserify src/main/js/app.js > src/main/resources/static/index.js",
+    "build:index": "browserify src/main/js/app.js > src/main/resources/static/js/index.js",
     "clean": "npm-run-all clean:*",
     "clean:index": "rimraf src/main/resources/static/index.js",
     "start": "npm run clean && npm run build"

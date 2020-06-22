@@ -29,7 +29,7 @@ public class MessageService {
         return messageRepository.lastMessages(deviceIds, types, source, timestamp);
     }
 
-    public Collection<Message> slice(String deviceId, Collection<String> types, Message.Source source, Date since, Date till) {
-        return messageRepository.findByDeviceIdAndTypeInAndSourceAndTimestampBetweenOrderById(deviceId, types, source, since, till);
+    public Collection<Message> slice(String deviceId, Collection<String> types, Message.Source source, Date start, Date end) {
+        return messageRepository.findByDeviceIdAndTypeInAndSourceAndTimestampBetweenOrderById(deviceId, types, source, start, end);
     }
 }

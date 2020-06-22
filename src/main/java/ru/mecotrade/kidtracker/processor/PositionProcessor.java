@@ -117,8 +117,8 @@ public class PositionProcessor {
         }
     }
 
-    public Collection<Position> path(String deviceId, Long since, Long till) {
-        return messageService.slice(deviceId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE, new Date(since), new Date(till)).stream()
+    public Collection<Position> path(String deviceId, Long start, Long end) {
+        return messageService.slice(deviceId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
                 .map(MessageUtils::toPosition)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
