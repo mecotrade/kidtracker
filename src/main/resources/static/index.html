@@ -98,21 +98,16 @@
     </div>
 </nav>
 <div id="map"></div>
-<div class="modal fade" id="kid-path-range-picker" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="join-room-label" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="range-picker" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="join-room-label">Path range</h5>
+                <h5 class="modal-title" id="range-picker-title">Pick a date</h5>
             </div>
             <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="kid-path-start">Start</label>
-                        <input id="kid-path-start" class="form-control" />
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="kid-path-end">End</label>
-                        <input id="kid-path-end" class="form-control" />
+                <div class="form-row text-center">
+                    <div class="form-group">
+                        <div id="range-start" class="form-control"></div>
                     </div>
                 </div>
             </div>
@@ -123,14 +118,17 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="show-error" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="show-error-label" aria-hidden="true">
+<div class="modal fade" id="show-error" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="show-error-label">Error</h5>
+                <h5 class="modal-title" id="error-title">Error</h5>
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary">Close</button>
             </div>
         </div>
     </div>

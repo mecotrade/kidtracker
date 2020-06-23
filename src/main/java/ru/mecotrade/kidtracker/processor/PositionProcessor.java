@@ -117,6 +117,13 @@ public class PositionProcessor {
         }
     }
 
+    public Optional<Snapshot> snapshot(String deviceId, Date timestamp) {
+        return messageService.last(Collections.singletonList(deviceId),
+                Stream.concat(MessageUtils.LOCATION_TYPES.stream(), Stream.of(MessageUtils.LINK_TYPE)).collect(Collectors.toList()),
+                Message.Source.DEVICE,
+                timestamp).stream().map(MessageUtils::toSnapshot).findFirst();
+    }
+
     public Collection<Position> path(String deviceId, Long start, Long end) {
         return messageService.slice(deviceId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
                 .map(MessageUtils::toPosition)

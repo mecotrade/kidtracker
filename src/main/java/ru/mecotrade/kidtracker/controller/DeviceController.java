@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.mecotrade.kidtracker.controller.model.Position;
+import ru.mecotrade.kidtracker.controller.model.Snapshot;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.processor.PositionProcessor;
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +61,13 @@ public class DeviceController {
             log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
+    }
+
+    @GetMapping("/snapshot/{timestamp:\\d+}")
+    @ResponseBody
+    public ResponseEntity<Snapshot> snapshot(@PathVariable String deviceId, @PathVariable Long timestamp) {
+        Optional<Snapshot> snapshot = positionProcessor.snapshot(deviceId, new Date(timestamp));
+        return snapshot.map(s -> new ResponseEntity<>(s, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
     @GetMapping("/command/{command}")
