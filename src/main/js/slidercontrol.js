@@ -70,7 +70,7 @@ L.Control.SliderControl = L.Control.extend({
 
     startSlider: function () {
         let opt = this.options;
-        function slide(i) {
+        function doSlide(i) {
             let timestamp = opt.slide(i);
             if (timestamp) {
                 $('#slider-timestamp').html(timestamp);
@@ -81,10 +81,10 @@ L.Control.SliderControl = L.Control.extend({
             max: opt.length - 1,
             step: 1,
             slide: function (e, ui) {
-                slide(ui.value);
+                doSlide(ui.value);
             }
         });
-        slide(0);
+        doSlide(0);
     }
 });
 

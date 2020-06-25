@@ -97,7 +97,6 @@ $('#kid-path').on('click', async function onKidPath() {
 
             if (kidPath.length > 0) {
 
-                kidPath.map(p => [p.latitude, p.longitude])
                 const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
 
                 let snapshotDate = moment(start).startOf('day').toDate();
@@ -275,7 +274,7 @@ window.addEventListener('load', async function onload() {
     const locale = navigator.language ? navigator.language.split('-')[0] : null;
     if (locale) {
         moment.locale(locale);
-        $.datetimepicker.setLocale(locale);
+//        $.datetimepicker.setLocale(locale);
         i18n.setLocale(locale);
     }
 
