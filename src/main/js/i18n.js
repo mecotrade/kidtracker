@@ -6,17 +6,14 @@ const i18n = {
 
     tokens: {
         ru: {
-            'Time interval': 'Промежуток времени',
-            'Pick a date': 'Выбор даты',
+            'History': 'История',
+            'Date': 'Дата',
             'Start': 'Начало',
             'End': 'Конец',
-            'Show': 'Показать',
-            'Cancel': 'Отмена',
-            'Today': 'Сегодня',
-            'Yesterday': 'Вчера',
             'Close': 'Закрыть',
             'Error': 'Ошибка',
-            'No data': 'Данных нет'
+            'No data': 'Данных нет',
+            'Time interval end {} is selected before time interval start {}': 'Конец интервала {} выбран раньше начала интервала {}'
         }
     },
 
@@ -40,8 +37,8 @@ const i18n = {
     format: function(template, params) {
         if (params) {
             params = Array.isArray(params) ? params : [params];
-            return this.translate(template).split('_')
-                    .reduce((message, part, idx) => message + (idx == 0 ? '': ' ') + part + (idx < params.length ? ' ' + params[idx] : ''), '');
+            return this.translate(template).split('{}')
+                    .reduce((message, part, idx) => message + part + (idx < params.length ? params[idx] : ''), '');
         } else {
             return this.translate(template);
         }

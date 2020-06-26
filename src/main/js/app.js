@@ -19,6 +19,7 @@ const SOS_ICON = '<svg class="bi bi-exclamation-octagon-fill" width="20px" heigh
 const LOST_ICON = '<svg class="bi bi-x-circle" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"></path><path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"></path></svg>'
 
 const KID_POPUP_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
+const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
 
 const LOST_INTERVAL = 15 * 60 * 1000;
 
@@ -73,7 +74,7 @@ $('#kid-watch').on('click', async function onLocateKid() {
     }
 });
 
-$('#kid-path').on('click', async function onKidPath() {
+$('#history').on('click', async function onKidPath() {
 
     if (!path) {
 
@@ -83,54 +84,63 @@ $('#kid-path').on('click', async function onKidPath() {
             let start = pathRange.start.getTime();
             let end = pathRange.end.getTime();
 
-            $('#kid-path-switch-icon').hide();
-            $('#kid-geo-switch-icon').show();
+            if (start > end) {
 
-            const deviceId = $('#kid-select').children('option:selected').val();
-
-            const kid = kids.find(k => k.deviceId == deviceId);
-
-            // TODO if not found
-
-            const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${start}/${end}`);
-            const kidPath = await kidPathResponse.json();
-
-            if (kidPath.length > 0) {
-
-                const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
-
-                let snapshotDate = moment(start).startOf('day').toDate();
-                const snapshotResponse = await fetch(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`);
-                const pathMidnightSnapshot = snapshotResponse.status == 200 ? await snapshotResponse.json() : {
-                    deviceId: kidPath[0].deviceId,
-                    timestamp: kidPath[0].timestamp,
-                    pedometer: kidPath[0].pedometer,
-                    rolls: kidPath[0].rolls,
-                    battery: kidPath[0].battery
-                };
-
-                function move(i) {
-                    updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
-                    return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
-                }
-
-                const slider = createSliderControl({
-                    position: "topright",
-                    alwaysShowDate: true,
-                    length: kidPath.length,
-                    slide: move
-                });
-                map.addControl(slider);
-                slider.startSlider();
-
-                path = {track: track, slider: slider, move: move};
+                await showError(i18n.format('Time interval end {} is selected before time interval start {}', [
+                    moment(pathRange.end).format(ERROR_MESSAGE_TIME_FORMAT),
+                    moment(pathRange.start).format(ERROR_MESSAGE_TIME_FORMAT)]));
 
             } else {
 
-                await showError(i18n.format('No data'));
+                $('#kid-path-switch-icon').hide();
+                $('#kid-geo-switch-icon').show();
 
-                $('#kid-path-switch-icon').show();
-                $('#kid-geo-switch-icon').hide();
+                const deviceId = $('#kid-select').children('option:selected').val();
+
+                const kid = kids.find(k => k.deviceId == deviceId);
+
+                // TODO if not found
+
+                const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${start}/${end}`);
+                const kidPath = await kidPathResponse.json();
+
+                if (kidPath.length > 0) {
+
+                    const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
+
+                    let snapshotDate = moment(start).startOf('day').toDate();
+                    const snapshotResponse = await fetch(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`);
+                    const pathMidnightSnapshot = snapshotResponse.status == 200 ? await snapshotResponse.json() : {
+                        deviceId: kidPath[0].deviceId,
+                        timestamp: kidPath[0].timestamp,
+                        pedometer: kidPath[0].pedometer,
+                        rolls: kidPath[0].rolls,
+                        battery: kidPath[0].battery
+                    };
+
+                    function move(i) {
+                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
+                        return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
+                    }
+
+                    const slider = createSliderControl({
+                        position: "topright",
+                        alwaysShowDate: true,
+                        length: kidPath.length,
+                        slide: move
+                    });
+                    map.addControl(slider);
+                    slider.startSlider();
+
+                    path = {track: track, slider: slider, move: move};
+
+                } else {
+
+                    await showError(i18n.format('No data'));
+
+                    $('#kid-path-switch-icon').show();
+                    $('#kid-geo-switch-icon').hide();
+                }
             }
         }
     } else {
@@ -145,7 +155,7 @@ $('#kid-path').on('click', async function onKidPath() {
     }
 });
 
-$('#kid-force-geo').on('click', async function onForceGeo() {
+$('#kid-refresh').on('click', async function onForceGeo() {
     const deviceId = $('#kid-select').children('option:selected').val();
     await fetch(`/api/device/${deviceId}/locate`);
 });
