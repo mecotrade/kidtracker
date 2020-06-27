@@ -1,5 +1,7 @@
 package ru.mecotrade.kidtracker.processor;
 
+import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,7 +31,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Component
-public class PositionProcessor {
+public class DeviceProcessor {
 
     @Autowired
     private UserService userService;
@@ -117,16 +119,23 @@ public class PositionProcessor {
         }
     }
 
-    public Optional<Snapshot> snapshot(String deviceId, Date timestamp) {
+    public Optional<Snapshot> snapshot(String deviceId, Long timestamp) {
         return messageService.last(Collections.singletonList(deviceId),
                 Stream.concat(MessageUtils.LOCATION_TYPES.stream(), Stream.of(MessageUtils.LINK_TYPE)).collect(Collectors.toList()),
                 Message.Source.DEVICE,
-                timestamp).stream().map(MessageUtils::toSnapshot).findFirst();
+                new Date(timestamp)).stream().map(MessageUtils::toSnapshot).findFirst();
     }
 
     public Collection<Position> path(String deviceId, Long start, Long end) {
         return messageService.slice(deviceId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
                 .map(MessageUtils::toPosition)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<Snapshot> snapshots(String deviceId, Long start, Long end) {
+        return messageService.slice(deviceId, MessageUtils.SNAPSHOT_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
+                .map(MessageUtils::toSnapshot)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

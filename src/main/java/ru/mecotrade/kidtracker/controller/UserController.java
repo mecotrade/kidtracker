@@ -13,7 +13,7 @@ import ru.mecotrade.kidtracker.controller.model.Snapshot;
 import ru.mecotrade.kidtracker.controller.model.User;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
-import ru.mecotrade.kidtracker.processor.PositionProcessor;
+import ru.mecotrade.kidtracker.processor.DeviceProcessor;
 
 import java.util.Collection;
 import java.util.Date;
@@ -28,7 +28,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private PositionProcessor positionProcessor;
+    private DeviceProcessor deviceProcessor;
 
     @GetMapping("/info")
     @ResponseBody
@@ -48,14 +48,14 @@ public class UserController {
     @ResponseBody
     public Report report(@PathVariable Long userId) throws KidTrackerUnknownUserException {
         // TODO: process unknown user exception
-        return positionProcessor.report(userId);
+        return deviceProcessor.report(userId);
     }
 
     @GetMapping("/kids/snapshot/{timestamp:\\d+}")
     @ResponseBody
     public Collection<Snapshot> snapshot(@PathVariable Long userId, @PathVariable Long timestamp) throws KidTrackerUnknownUserException {
         // TODO: process unknown user exception
-        return positionProcessor.snapshot(userId, new Date(timestamp));
+        return deviceProcessor.snapshot(userId, new Date(timestamp));
     }
 
 

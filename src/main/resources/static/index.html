@@ -32,7 +32,7 @@
                         <path fill-rule="evenodd" d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>
                     </svg>
                 </button>
-                <button class="btn btn-outline-secondary" type="button" id="history">
+                <button class="btn btn-outline-secondary" type="button" id="kid-history">
                     <svg id="kid-path-switch-icon" class="bi bi-calendar-check" width="24px" height="24px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
                         <path fill-rule="evenodd" d="M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1zm1-3a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z"/>
@@ -92,7 +92,7 @@
     </div>
 </nav>
 <div id="map"></div>
-<div class="modal fade" id="range-picker" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="history" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -104,24 +104,32 @@
                 <h5 class="modal-title" id="history-title">History</h5>
             </div>
             <div class="modal-body">
+                <canvas id="history-chart" style="display: none"></canvas>
                 <div class="form-row" id="range-picker-input" style="justify-content: center; display: none">
                     <div class="form-group col-md-5">
-                        <label for="range-start" id="range-start-label">Start</label>
-                        <input id="range-start" type="text" disabled/>
+                        <label for="history-start" id="history-start-label">Start</label>
+                        <input id="history-start" type="text" disabled/>
                     </div>
                     <div class="form-group col-md-5">
-                        <label for="range-end" id="range-end-label">End</label>
-                        <input id="range-end" type="text" disabled/>
+                        <label for="history-end" id="history-end-label">End</label>
+                        <input id="history-end" type="text" disabled/>
                     </div>
                 </div>
                 <div class="form-row" id="date-picker-input" style="justify-content: center">
                     <div class="form-group">
-                        <label for="range-date" id="range-date-label">Date</label>
-                        <input id="range-date" type="text" disabled/>
+                        <label for="history-date" id="history-date-label">Date</label>
+                        <input id="history-date" type="text" disabled/>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="history-draw">
+                    <svg width="24px" height="24px" viewBox="0 0 16 16" class="bi bi-graph-up" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h1v16H0V0zm1 15h15v1H1v-1z"/>
+                        <path fill-rule="evenodd" d="M14.39 4.312L10.041 9.75 7 6.707l-3.646 3.647-.708-.708L7 5.293 9.959 8.25l3.65-4.563.781.624z"/>
+                        <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4h-3.5a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                </button>
                 <button type="button" class="btn btn-outline-secondary" id="history-path">
                     <svg class="bi bi-map" width="24px" height="24px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M15.817.613A.5.5 0 0 1 16 1v13a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 14.51l-4.902.98A.5.5 0 0 1 0 15V2a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0l4.902.98 4.902-.98a.5.5 0 0 1 .415.103zM10 2.41l-4-.8v11.98l4 .8V2.41zm1 11.98l4-.8V1.61l-4 .8v11.98zm-6-.8V1.61l-4 .8v11.98l4-.8z"/>
@@ -147,7 +155,12 @@
                 <div class="alert alert-warning" role="alert"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary">Close</button>
+                <button type="button" class="btn btn-outline-secondary" id="error-close">
+                    <svg class="bi bi-house" width="24px" height="24px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/>
+                        <path fill-rule="evenodd" d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
@@ -158,7 +171,6 @@
 <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
 <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js"></script>
 <script src="https://unpkg.com/gijgo@1.9.13/js/messages/messages.ru-ru.js"></script>
-<!--<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>-->
 <script src="js/index.js"></script>
 </body>
 </html>

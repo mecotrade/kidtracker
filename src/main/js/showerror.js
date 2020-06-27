@@ -4,15 +4,14 @@ const i18n = require('./i18n.js');
 
 function initError() {
     i18n.applyAll([
-        $('#error-title'),
-        $('button.btn-secondary', $('#show-error'))
+        $('#error-title')
     ]);
 }
 
 async function showError(error) {
 
     const $modal = $('#show-error');
-    const $close = $('button.btn-secondary', $modal);
+    const $close = $('#error-close', $modal);
 
     return new Promise(resolve => {
         $modal.on('shown.bs.modal', function onShow() {

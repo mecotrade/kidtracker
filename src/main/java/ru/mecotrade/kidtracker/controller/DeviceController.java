@@ -12,10 +12,9 @@ import ru.mecotrade.kidtracker.controller.model.Position;
 import ru.mecotrade.kidtracker.controller.model.Snapshot;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
-import ru.mecotrade.kidtracker.processor.PositionProcessor;
+import ru.mecotrade.kidtracker.processor.DeviceProcessor;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,7 +27,7 @@ import org.springframework.http.ResponseEntity;
 public class DeviceController {
 
     @Autowired
-    private PositionProcessor positionProcessor;
+    private DeviceProcessor deviceProcessor;
 
     @Autowired
     private DeviceManager deviceManager;
@@ -36,7 +35,20 @@ public class DeviceController {
     @GetMapping("/path/{start:\\d+}/{end:\\d+}")
     @ResponseBody
     public Collection<Position> path(@PathVariable String deviceId, @PathVariable Long start, @PathVariable Long end) {
-        return positionProcessor.path(deviceId, start, end);
+        return deviceProcessor.path(deviceId, start, end);
+    }
+
+    @GetMapping("/history/{start:\\d+}/{end:\\d+}")
+    @ResponseBody
+    public Collection<Snapshot> snapshots(@PathVariable String deviceId, @PathVariable Long start, @PathVariable Long end) {
+        return deviceProcessor.snapshots(deviceId, start, end);
+    }
+
+    @GetMapping("/snapshot/{timestamp:\\d+}")
+    @ResponseBody
+    public ResponseEntity<Snapshot> snapshot(@PathVariable String deviceId, @PathVariable Long timestamp) {
+        Optional<Snapshot> snapshot = deviceProcessor.snapshot(deviceId, timestamp);
+        return snapshot.map(s -> new ResponseEntity<>(s, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
     @GetMapping("/locate")
@@ -61,13 +73,6 @@ public class DeviceController {
             log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
-    }
-
-    @GetMapping("/snapshot/{timestamp:\\d+}")
-    @ResponseBody
-    public ResponseEntity<Snapshot> snapshot(@PathVariable String deviceId, @PathVariable Long timestamp) {
-        Optional<Snapshot> snapshot = positionProcessor.snapshot(deviceId, new Date(timestamp));
-        return snapshot.map(s -> new ResponseEntity<>(s, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
     @GetMapping("/command/{command}")

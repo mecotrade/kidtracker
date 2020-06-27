@@ -3,7 +3,7 @@
 const moment = require('moment/min/moment-with-locales.min.js');
 const createSliderControl = require('./slidercontrol.js');
 const i18n = require('./i18n.js');
-const {initRangePicker, pickRange} = require('./rangepicker.js');
+const {initHistory, pickRange} = require('./history.js');
 const {initError, showError} = require('./showerror.js');
 
 
@@ -74,73 +74,64 @@ $('#kid-watch').on('click', async function onLocateKid() {
     }
 });
 
-$('#history').on('click', async function onKidPath() {
+$('#kid-history').on('click', async function onKidPath() {
 
     if (!path) {
 
         const pathRange = await pickRange();
-        if (pathRange != null) {
+        if (pathRange) {
 
             let start = pathRange.start.getTime();
             let end = pathRange.end.getTime();
 
-            if (start > end) {
+            $('#kid-path-switch-icon').hide();
+            $('#kid-geo-switch-icon').show();
 
-                await showError(i18n.format('Time interval end {} is selected before time interval start {}', [
-                    moment(pathRange.end).format(ERROR_MESSAGE_TIME_FORMAT),
-                    moment(pathRange.start).format(ERROR_MESSAGE_TIME_FORMAT)]));
+            const deviceId = $('#kid-select').children('option:selected').val();
+
+            const kid = kids.find(k => k.deviceId == deviceId);
+
+            // TODO if not found
+
+            const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${start}/${end}`);
+            const kidPath = await kidPathResponse.json();
+
+            if (kidPath.length > 0) {
+
+                const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
+
+                let snapshotDate = moment(start).startOf('day').toDate();
+                const snapshotResponse = await fetch(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`);
+                const pathMidnightSnapshot = snapshotResponse.status == 200 ? await snapshotResponse.json() : {
+                    deviceId: kidPath[0].deviceId,
+                    timestamp: kidPath[0].timestamp,
+                    pedometer: kidPath[0].pedometer,
+                    rolls: kidPath[0].rolls,
+                    battery: kidPath[0].battery
+                };
+
+                function move(i) {
+                    updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
+                    return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
+                }
+
+                const slider = createSliderControl({
+                    position: "topright",
+                    alwaysShowDate: true,
+                    length: kidPath.length,
+                    slide: move
+                });
+                map.addControl(slider);
+                slider.startSlider();
+
+                path = {track: track, slider: slider, move: move};
 
             } else {
 
-                $('#kid-path-switch-icon').hide();
-                $('#kid-geo-switch-icon').show();
+                await showError(i18n.format('No data'));
 
-                const deviceId = $('#kid-select').children('option:selected').val();
-
-                const kid = kids.find(k => k.deviceId == deviceId);
-
-                // TODO if not found
-
-                const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${start}/${end}`);
-                const kidPath = await kidPathResponse.json();
-
-                if (kidPath.length > 0) {
-
-                    const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
-
-                    let snapshotDate = moment(start).startOf('day').toDate();
-                    const snapshotResponse = await fetch(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`);
-                    const pathMidnightSnapshot = snapshotResponse.status == 200 ? await snapshotResponse.json() : {
-                        deviceId: kidPath[0].deviceId,
-                        timestamp: kidPath[0].timestamp,
-                        pedometer: kidPath[0].pedometer,
-                        rolls: kidPath[0].rolls,
-                        battery: kidPath[0].battery
-                    };
-
-                    function move(i) {
-                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
-                        return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
-                    }
-
-                    const slider = createSliderControl({
-                        position: "topright",
-                        alwaysShowDate: true,
-                        length: kidPath.length,
-                        slide: move
-                    });
-                    map.addControl(slider);
-                    slider.startSlider();
-
-                    path = {track: track, slider: slider, move: move};
-
-                } else {
-
-                    await showError(i18n.format('No data'));
-
-                    $('#kid-path-switch-icon').show();
-                    $('#kid-geo-switch-icon').hide();
-                }
+                $('#kid-path-switch-icon').show();
+                $('#kid-geo-switch-icon').hide();
             }
         }
     } else {
@@ -284,9 +275,11 @@ window.addEventListener('load', async function onload() {
     const locale = navigator.language ? navigator.language.split('-')[0] : null;
     if (locale) {
         moment.locale(locale);
-//        $.datetimepicker.setLocale(locale);
         i18n.setLocale(locale);
     }
+
+    initHistory();
+    initError();
 
 	L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -323,7 +316,4 @@ window.addEventListener('load', async function onload() {
         setView: false,
         enableHighAccuracy: true
     });
-
-    initRangePicker();
-    initError();
 });

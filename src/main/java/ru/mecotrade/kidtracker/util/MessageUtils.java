@@ -1,5 +1,7 @@
 package ru.mecotrade.kidtracker.util;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,14 @@ public class MessageUtils {
     public static final Set<String> LOCATION_TYPES = new HashSet<>(Arrays.asList("UD", "UD2", "AL"));
 
     public static final String LINK_TYPE = "LK";
+
+    public static final Set<String> SNAPSHOT_TYPES;
+
+    static {
+        SNAPSHOT_TYPES = new HashSet<>(Lists
+                .newArrayList(Iterables
+                        .unmodifiableIterable(Iterables.concat(LOCATION_TYPES, Collections.singleton(LINK_TYPE)))));
+    }
 
     public static final byte[] MESSAGE_LEADING_CHAR = Arrays.copyOfRange(Chars.toByteArray('['), Chars.BYTES - 1, Chars.BYTES);
 

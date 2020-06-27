@@ -13,7 +13,11 @@ const i18n = {
             'Close': 'Закрыть',
             'Error': 'Ошибка',
             'No data': 'Данных нет',
-            'Time interval end {} is selected before time interval start {}': 'Конец интервала {} выбран раньше начала интервала {}'
+            'Time interval end {} is selected before time interval start {}': 'Конец интервала {} выбран раньше начала интервала {}',
+            'Battery': 'Заряд',
+            'Battery {}%': 'Заряд {}%',
+            'Pedometer': 'Шагомер',
+            '{} steps': '{} шагов'
         }
     },
 
