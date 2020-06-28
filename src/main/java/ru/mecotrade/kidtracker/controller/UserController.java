@@ -34,7 +34,7 @@ public class UserController {
     @ResponseBody
     public User info(@PathVariable Long userId) {
         // TODO: user not found
-        return userService.get(userId).map(u -> new User(u.getName())).get();
+        return userService.get(userId).map(u -> new User(u.getName(), u.getPhone())).get();
     }
 
     @GetMapping("/kids/info")

@@ -5,7 +5,7 @@ require('./jquery-ui-custom.js')
 const moment = require('moment/min/moment-with-locales.min.js');
 const i18n = require('./i18n.js');
 require('chart.js/dist/Chart.min.js');
-const {initError, showError} = require('./showerror.js');
+const {initNotification, showWarning, showError} = require('./notification.js');
 
 const RANGE_PICKER_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
 const RANGE_PICKER_DATE_FORMAT = 'DD/MM/YYYY';
@@ -16,8 +16,6 @@ const TIME_AXIS_DISPLAY_FORMAT = {
     hour: 'HH:mm'
 };
 const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
-
-var chart = null;
 
 function initHistory() {
 
@@ -83,10 +81,6 @@ function initHistory() {
         $('#date-picker-title').hide();
     });
 
-    $('#history-draw').on('click', function () {
-        drawHistoryData();
-    });
-
     i18n.applyAll([
         $('#history-title'),
         $('#history-start-label'),
@@ -95,121 +89,126 @@ function initHistory() {
     ]);
 }
 
-function destroyChart() {
-    if (chart != null) {
-        chart.destroy();
-    }
-}
-
-async function drawHistoryData() {
-
-    const range = await getRange();
-
-    if (range) {
-
-        const deviceId = $('#kid-select').children('option:selected').val();
-
-        const historyResponse = await fetch(`/api/device/${deviceId}/history/${range.start.getTime()}/${range.end.getTime()}`);
-        const history = await historyResponse.json();
-
-        if (history.length > 0) {
-            destroyChart();
-
-            const $chart = $('#history-chart');
-            const ctx = $chart[0].getContext('2d');
-
-
-            const batteryDataset = {
-                label: i18n.translate('Battery'),
-                yAxisID: 'battery',
-                borderWidth: 2,
-                lineTension: 0,
-                borderColor: 'blue',
-                backgroundColor: 'blue',
-                fill: false,
-                data: history.map(function(s) { return {x: moment(s.timestamp).toDate(), y: s.battery}; }),
-                pointRadius: 0
-            };
-
-            const pedometerDataset = {
-                label: i18n.translate('Pedometer'),
-                yAxisID: 'pedometer',
-                borderWidth: 2,
-                lineTension: 0,
-                borderColor: 'red',
-                backgroundColor: 'red',
-                fill: false,
-                data: history.map(function(s) { return {x: moment(s.timestamp).toDate(), y: s.pedometer - history[0].pedometer}; }),
-                pointRadius: 0
-            };
-
-            const tooltipTiles = ['Battery {}%', '{} steps'];
-
-            chart = new Chart(ctx, {
-              type: 'line',
-              data: { datasets: [
-                batteryDataset,
-                pedometerDataset
-              ]},
-              options: {
-                aspectRatio: 1,
-                scales: {
-                  xAxes: [{
-                    type: 'time',
-                    time: {
-                      displayFormats: TIME_AXIS_DISPLAY_FORMAT
-                    }
-                  }],
-                  yAxes: [{
-                    id: 'battery',
-                    type: 'linear',
-                    position: 'left',
-                  }, {
-                    id: 'pedometer',
-                    type: 'linear',
-                    position: 'right',
-                  }]
-                },
-                tooltips: {
-                  callbacks: {
-                    label: function(tooltipItem, data) {
-                      return i18n.format(tooltipTiles[tooltipItem.datasetIndex], [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y]);
-                    },
-                    title: function(tooltipItem, data) {
-                      return moment(data.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index].x).format(TOOLTIP_TIME_FORMAT);
-                    }
-                  }
-                }
-              }
-            });
-            $chart.show();
-        } else {
-            await showError(i18n.format('No data'));
-        }
-    }
-}
-
-async function getRange() {
-
-    const start = moment($('#history-start').val(), RANGE_PICKER_DATETIME_FORMAT).toDate();
-    const end = moment($('#history-end').val(), RANGE_PICKER_DATETIME_FORMAT).toDate();
-
-    if (end.getTime() < start.getTime()) {
-        await showError(i18n.format('Time interval end {} is selected before time interval start {}', [
-            moment(end).format(ERROR_MESSAGE_TIME_FORMAT),
-            moment(start).format(ERROR_MESSAGE_TIME_FORMAT)]));
-        return null;
-    }
-
-    return {start: start, end: end};
-}
-
-async function pickRange() {
+async function showHistory(deviceId) {
 
     const $modal = $('#history');
     const $show = $('#history-path');
     const $close = $('#history-close');
     const $chart = $('#history-chart');
+
+    var chart = null;
+
+    function destroyChart() {
+        if (chart != null) {
+            chart.destroy();
+        }
+    }
+
+    async function drawHistoryData() {
+
+        const range = await getRange();
+
+        if (range) {
+
+            const historyResponse = await fetch(`/api/device/${deviceId}/history/${range.start.getTime()}/${range.end.getTime()}`);
+            const history = await historyResponse.json();
+
+            if (history.length > 0) {
+                destroyChart();
+
+                const $chart = $('#history-chart');
+                const ctx = $chart[0].getContext('2d');
+
+
+                const batteryDataset = {
+                    label: i18n.translate('Battery'),
+                    yAxisID: 'battery',
+                    borderWidth: 2,
+                    lineTension: 0,
+                    borderColor: 'blue',
+                    backgroundColor: 'blue',
+                    fill: false,
+                    data: history.map(function(s) { return {x: moment(s.timestamp).toDate(), y: s.battery}; }),
+                    pointRadius: 0
+                };
+
+                const pedometerDataset = {
+                    label: i18n.translate('Pedometer'),
+                    yAxisID: 'pedometer',
+                    borderWidth: 2,
+                    lineTension: 0,
+                    borderColor: 'red',
+                    backgroundColor: 'red',
+                    fill: false,
+                    data: history.map(function(s) { return {x: moment(s.timestamp).toDate(), y: s.pedometer - history[0].pedometer}; }),
+                    pointRadius: 0
+                };
+
+                const tooltipTiles = ['Battery {}%', '{} steps'];
+
+                chart = new Chart(ctx, {
+                  type: 'line',
+                  data: { datasets: [
+                    batteryDataset,
+                    pedometerDataset
+                  ]},
+                  options: {
+                    aspectRatio: 1,
+                    scales: {
+                      xAxes: [{
+                        type: 'time',
+                        time: {
+                          displayFormats: TIME_AXIS_DISPLAY_FORMAT
+                        }
+                      }],
+                      yAxes: [{
+                        id: 'battery',
+                        type: 'linear',
+                        position: 'left',
+                      }, {
+                        id: 'pedometer',
+                        type: 'linear',
+                        position: 'right',
+                      }]
+                    },
+                    tooltips: {
+                      callbacks: {
+                        label: function(tooltipItem, data) {
+                          return i18n.format(tooltipTiles[tooltipItem.datasetIndex], [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y]);
+                        },
+                        title: function(tooltipItem, data) {
+                          return moment(data.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index].x).format(TOOLTIP_TIME_FORMAT);
+                        }
+                      }
+                    }
+                  }
+                });
+                $chart.show();
+            } else {
+                await showWarning(i18n.format('No data'));
+            }
+        }
+    }
+
+    async function getRange() {
+
+        const start = moment($('#history-start').val(), RANGE_PICKER_DATETIME_FORMAT).toDate();
+        const end = moment($('#history-end').val(), RANGE_PICKER_DATETIME_FORMAT).toDate();
+
+        if (end.getTime() < start.getTime()) {
+            await showError(i18n.format('Time interval end {} is selected before time interval start {}', [
+                moment(end).format(ERROR_MESSAGE_TIME_FORMAT),
+                moment(start).format(ERROR_MESSAGE_TIME_FORMAT)]));
+            return null;
+        }
+
+        return {start: start, end: end};
+    }
+
+    $('#history-draw').off('click');
+    $('#history-draw').on('click', function () {
+        drawHistoryData();
+    });
 
     return new Promise(resolve => {
         $modal.on('shown.bs.modal', function onShow() {
@@ -239,4 +238,4 @@ async function pickRange() {
     });
 }
 
-module.exports = {initHistory, pickRange};
+module.exports = {initHistory, showHistory};

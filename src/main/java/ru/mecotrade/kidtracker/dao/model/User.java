@@ -27,4 +27,6 @@ public class User {
     private Collection<Kid> kids;
 
     private String name;
+
+    private String phone;
 }

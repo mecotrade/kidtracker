@@ -55,6 +55,7 @@ public class DeviceController {
     @ResponseBody
     public ResponseEntity<String> locate(@PathVariable String deviceId) {
         try {
+            // TODO: log
             deviceManager.send(deviceId, "CR", null);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (KidTrackerConnectionException ex) {
@@ -67,6 +68,7 @@ public class DeviceController {
     @ResponseBody
     public ResponseEntity<String> find(@PathVariable String deviceId) {
         try {
+            // TODO: log
             deviceManager.send(deviceId, "FIND", null);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (KidTrackerConnectionException ex) {
@@ -75,10 +77,51 @@ public class DeviceController {
         }
     }
 
+    @GetMapping("/monitor/{phone}")
+    @ResponseBody
+    public ResponseEntity<String> monitor(@PathVariable String deviceId, @PathVariable String phone) {
+        try {
+            // TODO: log
+            deviceManager.send(deviceId, "MONITOR", phone);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (KidTrackerConnectionException ex) {
+            log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @GetMapping("/call/{phone}")
+    @ResponseBody
+    public ResponseEntity<String> call(@PathVariable String deviceId, @PathVariable String phone) {
+        try {
+            // TODO: log
+            deviceManager.send(deviceId, "CALL", phone);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (KidTrackerConnectionException ex) {
+            log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @GetMapping("/sms/{phone}/{text}")
+    @ResponseBody
+    public ResponseEntity<String> sms(@PathVariable String deviceId, @PathVariable String phone, @PathVariable String text) {
+        log.info("[{}] send text '{}' to phone {}", deviceId, text, phone);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+//        try {
+//            deviceManager.send(deviceId, "CALL", phone);
+//            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+//        } catch (KidTrackerConnectionException ex) {
+//            log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
+//            return new ResponseEntity<>(HttpStatus.CONFLICT);
+//        }
+    }
+
     @GetMapping("/command/{command}")
     @ResponseBody
     public ResponseEntity<String> command(@PathVariable String deviceId, @PathVariable String command) {
         try {
+            // TODO: log
             String[] parts = command.split(",");
             deviceManager.send(deviceId, parts[0], Stream.of(parts).skip(1).collect(Collectors.joining(",")));
             return new ResponseEntity<>("Command '" + command + "' to device " + deviceId + " successfully sent", HttpStatus.NO_CONTENT);

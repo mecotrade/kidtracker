@@ -3,8 +3,9 @@
 const moment = require('moment/min/moment-with-locales.min.js');
 const createSliderControl = require('./slidercontrol.js');
 const i18n = require('./i18n.js');
-const {initHistory, pickRange} = require('./history.js');
-const {initError, showError} = require('./showerror.js');
+const {initHistory, showHistory} = require('./history.js');
+const {initNotification, showWarning, showError} = require('./notification.js');
+const {initPhone, showPhone} = require('./phone.js');
 
 
 const DEFAULT_ZOOM = 16;
@@ -78,7 +79,9 @@ $('#kid-history').on('click', async function onKidPath() {
 
     if (!path) {
 
-        const pathRange = await pickRange();
+        const deviceId = $('#kid-select').children('option:selected').val();
+        const pathRange = await showHistory(deviceId);
+
         if (pathRange) {
 
             let start = pathRange.start.getTime();
@@ -86,8 +89,6 @@ $('#kid-history').on('click', async function onKidPath() {
 
             $('#kid-path-switch-icon').hide();
             $('#kid-geo-switch-icon').show();
-
-            const deviceId = $('#kid-select').children('option:selected').val();
 
             const kid = kids.find(k => k.deviceId == deviceId);
 
@@ -128,7 +129,7 @@ $('#kid-history').on('click', async function onKidPath() {
 
             } else {
 
-                await showError(i18n.format('No data'));
+                await showWarning(i18n.format('No data'));
 
                 $('#kid-path-switch-icon').show();
                 $('#kid-geo-switch-icon').hide();
@@ -146,14 +147,19 @@ $('#kid-history').on('click', async function onKidPath() {
     }
 });
 
-$('#kid-refresh').on('click', async function onForceGeo() {
+$('#kid-refresh').on('click', async function onRefreshPosition() {
     const deviceId = $('#kid-select').children('option:selected').val();
     await fetch(`/api/device/${deviceId}/locate`);
 });
 
-$('#kid-find').on('click', async function onForceGeo() {
+$('#kid-find').on('click', async function onFind() {
     const deviceId = $('#kid-select').children('option:selected').val();
     await fetch(`/api/device/${deviceId}/find`);
+});
+
+$('#kid-phone').on('click', async function onPhone() {
+    const deviceId = $('#kid-select').children('option:selected').val();
+    await showPhone(user, deviceId);
 });
 
 map.on('locationfound', function onLocationFound(e) {
@@ -278,9 +284,6 @@ window.addEventListener('load', async function onload() {
         i18n.setLocale(locale);
     }
 
-    initHistory();
-    initError();
-
 	L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(map);
@@ -316,4 +319,8 @@ window.addEventListener('load', async function onload() {
         setView: false,
         enableHighAccuracy: true
     });
+
+    initHistory();
+    initNotification();
+    initPhone();
 });

@@ -10,14 +10,19 @@ const i18n = {
             'Date': 'Дата',
             'Start': 'Начало',
             'End': 'Конец',
-            'Close': 'Закрыть',
+            'Warning': 'Предупреждение',
             'Error': 'Ошибка',
             'No data': 'Данных нет',
             'Time interval end {} is selected before time interval start {}': 'Конец интервала {} выбран раньше начала интервала {}',
             'Battery': 'Заряд',
             'Battery {}%': 'Заряд {}%',
             'Pedometer': 'Шагомер',
-            '{} steps': '{} шагов'
+            '{} steps': '{} шагов',
+            'Communication': 'Связь с ребенком',
+            'Phone': 'Телефон',
+            'Message': 'Сообщение',
+            "Kid's watch will call or send a text message to provided phone number.": 'Часы ребенка совершат вызов или отправят СМС на указанный номер.',
+            'Message is empty.': 'Сообщение пусто.'
         }
     },
 
