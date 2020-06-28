@@ -21,8 +21,8 @@ const i18n = {
             'Communication': 'Связь с ребенком',
             'Phone': 'Телефон',
             'Message': 'Сообщение',
-            "Kid's watch will call or send a text message to provided phone number.": 'Часы ребенка совершат вызов или отправят СМС на указанный номер.',
-            'Message is empty.': 'Сообщение пусто.'
+            "Kid's watch will call or send a text message to provided phone number. Some characters might be sent incorrectly.": 'Часы ребенка совершат вызов или отправят СМС на указанный номер. Некоторые символы могут быть отправлены некорректно.',
+            'Command is not completed.': 'Команда не выполнена'
         }
     },
 

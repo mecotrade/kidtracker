@@ -149,12 +149,26 @@ $('#kid-history').on('click', async function onKidPath() {
 
 $('#kid-refresh').on('click', async function onRefreshPosition() {
     const deviceId = $('#kid-select').children('option:selected').val();
-    await fetch(`/api/device/${deviceId}/locate`);
+    const response = await fetch(`/api/device/${deviceId}/command`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({type: 'CR', payload: []})
+    });
+    if (!response.ok) {
+        showError(i18n.translate('Command is not completed.'))
+    }
 });
 
 $('#kid-find').on('click', async function onFind() {
     const deviceId = $('#kid-select').children('option:selected').val();
-    await fetch(`/api/device/${deviceId}/find`);
+    const response = await fetch(`/api/device/${deviceId}/command`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({type: 'FIND', payload: []})
+    });
+    if (!response.ok) {
+        showError(i18n.translate('Command is not completed.'))
+    }
 });
 
 $('#kid-phone').on('click', async function onPhone() {

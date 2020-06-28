@@ -1,9 +1,15 @@
 'use strict';
 
 const i18n = require('./i18n.js');
-const {initNotification, showWarning, showError} = require('./notification.js');
 
 function initPhone() {
+
+    const $text = $('#sms-input');
+    const $sms = $('#phone-sms');
+
+    $text.on('keyup', function () {
+        $sms.attr('disabled', $text.val() == '');
+    });
 
     i18n.applyAll([
         $('#phone-title'),
@@ -28,30 +34,49 @@ async function showPhone(user, deviceId) {
             $modal.off('shown.bs.modal', onShow);
             $phone.val(user.phone);
             $monitor.click(async function onMonitor() {
-                $monitor.off('click', onMonitor);
                 const phone = $phone.val();
-                const response = await fetch(`/api/device/${deviceId}/monitor/${phone}`);
-                $modal.modal('hide');
-                resolve(null);
+                const response = await fetch(`/api/device/${deviceId}/command`, {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({type: 'MONITOR', payload: [phone]})
+                });
+                if (response.ok) {
+                    $monitor.off('click', onMonitor);
+                    $modal.modal('hide');
+                    resolve(null);
+                } else {
+                    showError(i18n.translate('Command is not completed.'))
+                }
             })
             $call.click(async function onCall() {
-                $call.off('click', onCall);
                 const phone = $phone.val();
-                const response = await fetch(`/api/device/${deviceId}/call/${phone}`);
-                $modal.modal('hide');
-                resolve(null);
+                const response = await fetch(`/api/device/${deviceId}/command`, {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({type: 'CALL', payload: [phone]})
+                });
+                if (response.ok) {
+                    $call.off('click', onCall);
+                    $modal.modal('hide');
+                    resolve(null);
+                } else {
+                    showError(i18n.translate('Command is not completed.'))
+                }
             })
             $sms.click(async function onSms() {
                 const text = $text.val();
-                if (!text || text === '') {
-                    await showError(i18n.translate('Message is empty.'));
-                    return;
-                } else {
+                const phone = $phone.val();
+                const response = await fetch(`/api/device/${deviceId}/command`, {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({type: 'SMS', payload: [phone, text]})
+                });
+                if (response.ok) {
                     $sms.off('click', onSms);
-                    const phone = $phone.val();
-                    const response = await fetch(`/api/device/${deviceId}/sms/${phone}/${text}`);
                     $modal.modal('hide');
                     resolve(null);
+                } else {
+                    showError(i18n.translate('Command is not completed.'))
                 }
             })
             $close.click(function onClose() {

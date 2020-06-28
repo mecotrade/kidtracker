@@ -6,16 +6,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import ru.mecotrade.kidtracker.controller.model.Command;
 import ru.mecotrade.kidtracker.controller.model.Position;
 import ru.mecotrade.kidtracker.controller.model.Snapshot;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,6 +31,8 @@ import org.springframework.http.ResponseEntity;
 @Slf4j
 @RequestMapping("/api/device/{deviceId}")
 public class DeviceController {
+
+    private final static Set<String> SUPPORTED_COMMANDS = new HashSet<>(Arrays.asList("FIND", "CR", "MONITOR", "CALL", "SMS"));
 
     @Autowired
     private DeviceProcessor deviceProcessor;
@@ -51,70 +59,22 @@ public class DeviceController {
         return snapshot.map(s -> new ResponseEntity<>(s, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
-    @GetMapping("/locate")
+    @PostMapping("/command")
     @ResponseBody
-    public ResponseEntity<String> locate(@PathVariable String deviceId) {
+    public ResponseEntity<String> command(@PathVariable String deviceId, @RequestBody Command command) {
+        log.info("[{}] Received {}", deviceId, command);
         try {
-            // TODO: log
-            deviceManager.send(deviceId, "CR", null);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            if (isValid(command)) {
+                deviceManager.send(deviceId, command.getType(), String.join(",", command.getPayload()));
+                return new ResponseEntity<>("Command '" + command + "' to device " + deviceId + " successfully sent", HttpStatus.NO_CONTENT);
+            } else {
+                log.error("[{}] {} is incorrect", deviceId, command);
+                return new ResponseEntity<>("Command '" + command + "' to device " + deviceId + " is incorrect", HttpStatus.BAD_REQUEST);
+            }
         } catch (KidTrackerConnectionException ex) {
-            log.error("[{}] Unable to send command CR", deviceId, ex.getCause());
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            log.error("[{}] Unable to send {}", deviceId, command, ex);
+            return new ResponseEntity<>("Fail sending command '" + command + "' to device " + deviceId, HttpStatus.CONFLICT);
         }
-    }
-
-    @GetMapping("/find")
-    @ResponseBody
-    public ResponseEntity<String> find(@PathVariable String deviceId) {
-        try {
-            // TODO: log
-            deviceManager.send(deviceId, "FIND", null);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (KidTrackerConnectionException ex) {
-            log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
-    }
-
-    @GetMapping("/monitor/{phone}")
-    @ResponseBody
-    public ResponseEntity<String> monitor(@PathVariable String deviceId, @PathVariable String phone) {
-        try {
-            // TODO: log
-            deviceManager.send(deviceId, "MONITOR", phone);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (KidTrackerConnectionException ex) {
-            log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
-    }
-
-    @GetMapping("/call/{phone}")
-    @ResponseBody
-    public ResponseEntity<String> call(@PathVariable String deviceId, @PathVariable String phone) {
-        try {
-            // TODO: log
-            deviceManager.send(deviceId, "CALL", phone);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (KidTrackerConnectionException ex) {
-            log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
-    }
-
-    @GetMapping("/sms/{phone}/{text}")
-    @ResponseBody
-    public ResponseEntity<String> sms(@PathVariable String deviceId, @PathVariable String phone, @PathVariable String text) {
-        log.info("[{}] send text '{}' to phone {}", deviceId, text, phone);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//        try {
-//            deviceManager.send(deviceId, "CALL", phone);
-//            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//        } catch (KidTrackerConnectionException ex) {
-//            log.error("[{}] Unable to send command FIND", deviceId, ex.getCause());
-//            return new ResponseEntity<>(HttpStatus.CONFLICT);
-//        }
     }
 
     @GetMapping("/command/{command}")
@@ -129,5 +89,19 @@ public class DeviceController {
             log.error("[{}] Unable to send payload '{}'", deviceId, command, ex);
             return new ResponseEntity<>("Fail sending command '" + command + "' to device " + deviceId, HttpStatus.CONFLICT);
         }
+    }
+
+    private boolean isValid(Command command) {
+        if ("CR".equals(command.getType()) || "FIND".equals(command.getType())) {
+            return command.getPayload() == null || command.getPayload().isEmpty();
+        } else if ("MONITOR".equals(command.getType()) || "CALL".equals(command.getType())) {
+            // TODO: check for valid phone number
+            return command.getPayload() != null && command.getPayload().size() == 1;
+        } else if ("SMS".equals(command.getType())) {
+            // TODO: check for valid phone number (first payload item)
+            return command.getPayload() != null && command.getPayload().size() == 2;
+        }
+
+        return false;
     }
 }
