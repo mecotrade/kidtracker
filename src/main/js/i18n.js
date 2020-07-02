@@ -30,7 +30,7 @@ const i18n = {
             'Name should not be empty.': 'Имя должно быть заполнено.',
             'Phone should not be empty.': 'Телефон должен быть заполнен.',
             "Admin's phones, primary {} and secondary {}, which can manage kid's watch configuration through text messages": 'Телефоны администраторов, основного {} и дополнительного {}, имеющих возможность управлять телефоном ребенка при помощи SMS',
-            "Kid's watch phone book": 'Телефонная книга часов ребенка',
+            "Kid's watch phone book, first two phones, {} and {}, can be called by long press of watch numbered buttons": 'Телефонная книга часов ребенка, первые два номера, {} и {}, могут быть вызваны долгим нажатием соответствующих кнопок на часах',
             'Phones where notification and alert text messages are being sent to': 'Телефоны на которые будут отправляться SMS с предупреждениями и оповещениями об опасности',
             "Phones which incoming call will be accepted from by the kid's watch": 'Телефоны входящие звонки с которых будут приняты на часах ребенка'
         }

@@ -25,7 +25,7 @@ const TABS = {
         ]
     },
     'PHONEBOOK': {
-        info: "Kid's watch phone book",
+        info: "Kid's watch phone book, first two phones, {} and {}, can be called by long press of watch numbered buttons",
         icons: [
             '<svg width="24px" height="24px" viewBox="0 0 16 16" class="bi bi-smartwatch" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14 5h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H14V5z"/><path fill-rule="evenodd" d="M8.5 4.5A.5.5 0 0 1 9 5v3.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h2V5a.5.5 0 0 1 .5-.5z"/><path fill-rule="evenodd" d="M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2zm0 1A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7z"/><path d="M4 2.05v-.383C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v.383a2.512 2.512 0 0 0-.5-.05h-7c-.171 0-.338.017-.5.05zm0 11.9c.162.033.329.05.5.05h7c.171 0 .338-.017.5-.05v.383c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333v-.383z"/></svg>#1',
             '<svg width="24px" height="24px" viewBox="0 0 16 16" class="bi bi-smartwatch" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14 5h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H14V5z"/><path fill-rule="evenodd" d="M8.5 4.5A.5.5 0 0 1 9 5v3.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h2V5a.5.5 0 0 1 .5-.5z"/><path fill-rule="evenodd" d="M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2zm0 1A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7z"/><path d="M4 2.05v-.383C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v.383a2.512 2.512 0 0 0-.5-.05h-7c-.171 0-.338.017-.5.05zm0 11.9c.162.033.329.05.5.05h7c.171 0 .338-.017.5-.05v.383c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333v-.383z"/></svg>#2',
@@ -51,6 +51,7 @@ var capacity = {};
 var contacts = {};
 
 var tab;
+var checked;
 
 function initContact() {
 
@@ -64,6 +65,7 @@ function initContact() {
     };
 
     tab = ADMIN;
+    checked = false;
 
     i18n.applyAll([
         $('#contacts-title'),
@@ -73,7 +75,7 @@ function initContact() {
     ]);
 }
 
-async function showTab(deviceId, tab) {
+async function showTab(deviceId) {
 
     $('#contacts-admin').removeClass('btn-secondary');
     $('#contacts-admin').removeClass('btn-outline-secondary');
@@ -116,11 +118,13 @@ async function showTab(deviceId, tab) {
         if (contact) {
             $th.html(`${$icon[0].outerHTML} ${contact.name}`)
             $td.text(contact.phone);
-        } else {
+            $tr.append($th).append($td);
+            $tbody.append($tr);
+        } else if (checked == false) {
             $th.html($icon[0].outerHTML)
+            $tr.append($th).append($td);
+            $tbody.append($tr);
         }
-        $tr.append($th).append($td);
-        $tbody.append($tr);
     }
 
     $('table.table', $modal).empty().append($tbody);
@@ -213,25 +217,25 @@ async function showContact(deviceId) {
     $('#contacts-admin').off('click');
     $('#contacts-admin').click(function () {
         tab = ADMIN;
-        showTab(deviceId, tab);
+        showTab(deviceId);
     })
 
     $('#contacts-sos').off('click');
     $('#contacts-sos').click(function () {
         tab = SOS;
-        showTab(deviceId, tab);
+        showTab(deviceId);
     })
 
     $('#contacts-phonebook').off('click');
     $('#contacts-phonebook').click(function () {
         tab = PHONEBOOK;
-        showTab(deviceId, tab);
+        showTab(deviceId);
     })
 
     $('#contacts-whitelist').off('click');
     $('#contacts-whitelist').click(function () {
         tab = WHITELIST;
-        showTab(deviceId, tab);
+        showTab(deviceId);
     })
 
 //    $('#contacts-button').off('click');
@@ -239,8 +243,21 @@ async function showContact(deviceId) {
 //        tab = BUTTON;
 //        showTab(deviceId, tab);
 //    })
-//
-    await showTab(deviceId, tab);
+
+    $('#contacts-list').off('click');
+    $('#contacts-list').click(function () {
+        checked = !checked;
+        if (checked == true) {
+            $('#contact-list-checked-icon').hide();
+            $('#contact-list-icon').show();
+        } else {
+            $('#contact-list-checked-icon').show();
+            $('#contact-list-icon').hide();
+        }
+        showTab(deviceId)
+    });
+
+    await showTab(deviceId);
 
     return new Promise(resolve => {
         $modal.on('shown.bs.modal', function onShow() {
