@@ -107,36 +107,62 @@ async function showTab(deviceId) {
 
     const $tbody = $('<tbody>');
 
-    for (let i=0; i < capacity[tab]; i++) {
-        const $tr = $('<tr>');
-        const $th = $('<th>');
-        const $td = $('<td>');
-        const $icon = $('<span>');
-        $icon.attr('id', `${tab}_${i}`);
-        $icon.html(tabData.icons[i < tabData.icons.length ? i : tabData.icons.length  - 1])
-        const contact = contacts[tab][i];
-        if (contact) {
-            $th.html(`${$icon[0].outerHTML} ${contact.name}`)
-            $td.text(contact.phone);
-            $tr.append($th).append($td);
-            $tbody.append($tr);
-        } else if (checked == false) {
-            $th.html($icon[0].outerHTML)
+    if (checked == false) {
+        for (let i=0; i < capacity[tab]; i++) {
+            const $tr = $('<tr>');
+            const $th = $('<th>');
+            const $td = $('<td>');
+            const $icon = $('<span>');
+            $icon.attr('id', `${tab}_${i}`);
+            $icon.html(tabData.icons[i < tabData.icons.length ? i : tabData.icons.length  - 1]);
+            const contact = contacts[tab][i];
+            if (contact) {
+                $th.html(`${$icon[0].outerHTML} ${contact.name}`)
+                $td.text(contact.phone);
+            } else {
+                $th.html($icon[0].outerHTML)
+            }
             $tr.append($th).append($td);
             $tbody.append($tr);
         }
+    } else {
+        data.forEach(c => {
+            const $tr = $('<tr>');
+            const $th = $('<th>');
+            const $td = $('<td>');
+            const $icon = $('<span>');
+            $icon.attr('id', `${c.type}_${c.index}`);
+            $icon.html(tabData.icons[c.index < tabData.icons.length ? c.index : tabData.icons.length  - 1]);
+            $th.html(`${$icon[0].outerHTML} ${c.name}`)
+            $td.text(c.phone);
+            $tr.append($th).append($td);
+            $tbody.append($tr);
+        });
     }
 
     $('table.table', $modal).empty().append($tbody);
 
-    for (let i=0; i < capacity[tab]; i++) {
-        const contactId = `${tab}_${i}`
-        $(`#${contactId}`).off('click');
-        $(`#${contactId}`).on('click', async function onIconClick() {
-            const reload = await editContact(deviceId, contactId);
-            if (reload) {
-                await showTab(deviceId, tab);
-            }
+    if (checked == false) {
+        for (let i=0; i < capacity[tab]; i++) {
+            const contactId = `${tab}_${i}`
+            $(`#${contactId}`).off('click');
+            $(`#${contactId}`).on('click', async function onIconClick() {
+                const reload = await editContact(deviceId, contactId);
+                if (reload) {
+                    await showTab(deviceId, tab);
+                }
+            });
+        }
+    } else {
+        data.forEach(c => {
+            const contactId = `${c.type}_${c.index}`
+            $(`#${contactId}`).off('click');
+            $(`#${contactId}`).on('click', async function onIconClick() {
+                const reload = await editContact(deviceId, contactId);
+                if (reload) {
+                    await showTab(deviceId, tab);
+                }
+            });
         });
     }
 }
