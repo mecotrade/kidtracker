@@ -21,14 +21,18 @@ const i18n = {
             'Communication': 'Связь с ребенком',
             'Phone': 'Телефон',
             'Message': 'Сообщение',
-            "Kid's watch will call or send a text message to provided phone number. Some characters might be sent incorrectly.": 'Часы ребенка совершат вызов или отправят СМС на указанный номер. Некоторые символы могут быть отправлены некорректно.',
+            "Kid's watch will call or send a text message to provided phone number. Some characters might be sent incorrectly.": 'Часы ребенка совершат вызов или отправят SMS на указанный номер. Некоторые символы могут быть отправлены некорректно.',
             'Command is not completed.': 'Команда не выполнена',
             'Contacts': 'Контакты',
             'Edit': 'Редактирование',
             'Name': 'Имя',
             'Phone': 'Телефон',
             'Name should not be empty.': 'Имя должно быть заполнено.',
-            'Phone should not be empty.': 'Телефон должен быть заполнен.'
+            'Phone should not be empty.': 'Телефон должен быть заполнен.',
+            "Admin's phones, primary {} and secondary {}, which can manage kid's watch configuration through text messages": 'Телефоны администраторов, основного {} и дополнительного {}, имеющих возможность управлять телефоном ребенка при помощи SMS',
+            "Kid's watch phone book": 'Телефонная книга часов ребенка',
+            'Phones where notification and alert text messages are being sent to': 'Телефоны на которые будут отправляться SMS с предупреждениями и оповещениями об опасности',
+            "Phones which incoming call will be accepted from by the kid's watch": 'Телефоны входящие звонки с которых будут приняты на часах ребенка'
         }
     },
 
@@ -52,8 +56,8 @@ const i18n = {
     format: function(template, params) {
         if (params) {
             params = Array.isArray(params) ? params : [params];
-            return this.translate(template).split('{}')
-                    .reduce((message, part, idx) => message + part + (idx < params.length ? params[idx] : ''), '');
+            const translation = this.translate(template).split('{}');
+            return translation.reduce((message, part, idx) => message + part + (idx < params.length  && idx < translation.length - 1 ? params[idx] : ''), '');
         } else {
             return this.translate(template);
         }
