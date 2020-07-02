@@ -4,24 +4,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import ru.mecotrade.kidtracker.controller.model.Command;
-import ru.mecotrade.kidtracker.controller.model.Position;
-import ru.mecotrade.kidtracker.controller.model.Snapshot;
+import ru.mecotrade.kidtracker.model.Command;
+import ru.mecotrade.kidtracker.model.Contact;
+import ru.mecotrade.kidtracker.model.ContactType;
+import ru.mecotrade.kidtracker.model.Position;
+import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,8 +31,6 @@ import org.springframework.http.ResponseEntity;
 @Slf4j
 @RequestMapping("/api/device/{deviceId}")
 public class DeviceController {
-
-    private final static Set<String> SUPPORTED_COMMANDS = new HashSet<>(Arrays.asList("FIND", "CR", "MONITOR", "CALL", "SMS"));
 
     @Autowired
     private DeviceProcessor deviceProcessor;
@@ -66,17 +64,50 @@ public class DeviceController {
         try {
             if (isValid(command)) {
                 deviceManager.send(deviceId, command.getType(), String.join(",", command.getPayload()));
-                return new ResponseEntity<>("Command '" + command + "' to device " + deviceId + " successfully sent", HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             } else {
                 log.error("[{}] {} is incorrect", deviceId, command);
-                return new ResponseEntity<>("Command '" + command + "' to device " + deviceId + " is incorrect", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to send {}", deviceId, command, ex);
-            return new ResponseEntity<>("Fail sending command '" + command + "' to device " + deviceId, HttpStatus.CONFLICT);
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
+    @GetMapping("/contact/{type}")
+    @ResponseBody
+    public Collection<Contact> contacts(@PathVariable String deviceId, @PathVariable ContactType type) {
+        return deviceProcessor.contacts(deviceId, type);
+    }
+
+    @PostMapping("/contact")
+    @ResponseBody
+    public ResponseEntity<String> contacts(@PathVariable String deviceId, @RequestBody Contact contact) {
+        log.info("[{}] Received contact {}", deviceId, contact);
+        try {
+            deviceProcessor.update(deviceId, contact);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (KidTrackerConnectionException ex) {
+            log.error("[{}] Unable to update contact {}", deviceId, contact, ex);
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @DeleteMapping("/contact/{type}/{index:\\d+}")
+    @ResponseBody
+    public ResponseEntity<String> contacts(@PathVariable String deviceId, @PathVariable ContactType type, @PathVariable Integer index) {
+        log.info("[{}] Remove contact for type={}, index={}", deviceId, type, index);
+        try {
+            deviceProcessor.remove(deviceId, type, index);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (KidTrackerConnectionException ex) {
+            log.error("[{}] Unable to remove contact for type={}, index={}", deviceId, type, index, ex);
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @Deprecated
     @GetMapping("/command/{command}")
     @ResponseBody
     public ResponseEntity<String> command(@PathVariable String deviceId, @PathVariable String command) {

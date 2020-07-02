@@ -1,13 +1,16 @@
 package ru.mecotrade.kidtracker.processor;
 
-import com.google.common.collect.Sets;
-import com.google.common.collect.Streams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.mecotrade.kidtracker.controller.model.Report;
-import ru.mecotrade.kidtracker.controller.model.Snapshot;
-import ru.mecotrade.kidtracker.controller.model.Position;
+import ru.mecotrade.kidtracker.dao.ContactService;
+import ru.mecotrade.kidtracker.dao.model.ContactRecord;
+import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
+import ru.mecotrade.kidtracker.model.Contact;
+import ru.mecotrade.kidtracker.model.ContactType;
+import ru.mecotrade.kidtracker.model.Report;
+import ru.mecotrade.kidtracker.model.Snapshot;
+import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.dao.model.Kid;
@@ -19,14 +22,19 @@ import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
+import javax.xml.bind.DatatypeConverter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -40,12 +48,14 @@ public class DeviceProcessor {
     private MessageService messageService;
 
     @Autowired
+    private ContactService contactService;
+
+    @Autowired
     private DeviceManager deviceManager;
 
     private Map<String, Map<LocalDate, Integer>> initPedometers;
 
     public Report report(Long userId) throws KidTrackerUnknownUserException {
-        // TODO use cache
         Optional<User> user = userService.get(userId);
         if (user.isPresent()) {
             Collection<Device> devices = deviceManager.select(user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList()));
@@ -126,6 +136,13 @@ public class DeviceProcessor {
                 new Date(timestamp)).stream().map(MessageUtils::toSnapshot).findFirst();
     }
 
+    public Collection<Snapshot> snapshots(String deviceId, Long start, Long end) {
+        return messageService.slice(deviceId, MessageUtils.SNAPSHOT_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
+                .map(MessageUtils::toSnapshot)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
     public Collection<Position> path(String deviceId, Long start, Long end) {
         return messageService.slice(deviceId, MessageUtils.LOCATION_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
                 .map(MessageUtils::toPosition)
@@ -133,10 +150,60 @@ public class DeviceProcessor {
                 .collect(Collectors.toList());
     }
 
-    public Collection<Snapshot> snapshots(String deviceId, Long start, Long end) {
-        return messageService.slice(deviceId, MessageUtils.SNAPSHOT_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
-                .map(MessageUtils::toSnapshot)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+    public Collection<Contact> contacts(String deviceId, ContactType type) {
+        return contactService.get(deviceId, type).stream().map(ContactRecord::toContact).collect(Collectors.toList());
+    }
+
+    public void update(String deviceId, Contact contact) throws KidTrackerConnectionException {
+        contactService.put(deviceId, ContactRecord.of(contact));
+        sync(deviceId, contact.getType(), contact.getIndex());
+    }
+
+    public void remove(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
+        contactService.remove(deviceId, type, index);
+        sync(deviceId, type, index);
+    }
+
+    private static String encodeContact(Contact contact) {
+        byte[] bytes = contact.getName().getBytes(StandardCharsets.UTF_16);
+        return contact.getPhone() + "," + DatatypeConverter.printHexBinary(Arrays.copyOfRange(bytes, 2, bytes.length));
+    }
+
+    private void sync(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
+
+        Map<Integer, ContactRecord> contacts = contactService.get(deviceId, type).stream()
+                .collect(Collectors.toMap(ContactRecord::getIndex, Function.identity()));
+
+        switch (type) {
+            case ADMIN: {
+                deviceManager.send(deviceId, index == 0 ? "CENTER" : "SLAVE",
+                        contacts.containsKey(index) ? contacts.get(index).getPhone() : "d");
+                break;
+            }
+            case SOS: {
+                deviceManager.send(deviceId, index == 0 ? "SOS1" : (index == 1 ? "SOS2" : "SOS3"),
+                        contacts.containsKey(index) ? contacts.get(index).getPhone() : "");
+                break;
+            }
+            case PHONEBOOK: {
+                int shift = index < 5 ? 0 : 5;
+                deviceManager.send(deviceId, index < 5 ? "PHB" : "PHB2", IntStream.range(shift, shift + 5)
+                        .mapToObj(i -> contacts.containsKey(i) ? encodeContact(contacts.get(i).toContact()) : "")
+                        .collect(Collectors.joining(",")));
+                break;
+            }
+            case WHITELIST: {
+                int shift = index < 5 ? 0 : 5;
+                deviceManager.send(deviceId, index < 5 ? "WHITELIST1" : "WHITELIST2", IntStream.range(shift, shift + 5)
+                        .mapToObj(i -> contacts.containsKey(i) ? contacts.get(i).getPhone() : "")
+                        .collect(Collectors.joining(",")));
+                break;
+            }
+            case BUTTON: {
+                deviceManager.send(deviceId, index == 0 ? "TEL1" : "TEL2",
+                        contacts.containsKey(index) ? contacts.get(index).getPhone() : "");
+                break;
+            }
+        }
     }
 }

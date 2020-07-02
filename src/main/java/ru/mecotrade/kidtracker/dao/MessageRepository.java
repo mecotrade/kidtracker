@@ -11,9 +11,9 @@ import java.util.Date;
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    Collection<Message> findByDeviceIdAndTypeInAndSourceAndTimestampBetweenOrderById(String deviceId, Collection<String> type, Message.Source source, Date start, Date end);
+    Collection<Message> findByDeviceIdAndTypeInAndSourceAndTimestampBetweenOrderById(String deviceId, Collection<String> types, Message.Source source, Date start, Date end);
 
-    Message findFirstByDeviceIdAndTypeInAndSourceOrderByIdDesc(String deviceId, Collection<String> type, Message.Source source);
+    Message findFirstByDeviceIdAndTypeInAndSourceOrderByIdDesc(String deviceId, Collection<String> types, Message.Source source);
 
     @Query("select message from Message message where message.id in (select max(id) from Message where deviceId in (:deviceIds) and type in (:types) and source = :source and timestamp < :timestamp group by deviceId)")
     Collection<Message> lastMessages(Collection<String> deviceIds, Collection<String> types, Message.Source source, Date timestamp);

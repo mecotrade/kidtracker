@@ -29,10 +29,11 @@ async function showPhone(user, deviceId) {
     const $sms = $('#phone-sms');
     const $close = $('#phone-close');
 
+    $phone.val(user.phone);
+
     return new Promise(resolve => {
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
-            $phone.val(user.phone);
             $monitor.click(async function onMonitor() {
                 const phone = $phone.val();
                 const response = await fetch(`/api/device/${deviceId}/command`, {
@@ -80,7 +81,10 @@ async function showPhone(user, deviceId) {
                 }
             })
             $close.click(function onClose() {
-                $close.off('click', onClose);
+                $monitor.off('click');
+                $call.off('click');
+                $sms.off('click');
+                $close.off('click');
                 $modal.modal('hide');
                 resolve(null);
             });

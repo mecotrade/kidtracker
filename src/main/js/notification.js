@@ -18,8 +18,8 @@ async function showWarning(warning) {
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
             $('div.alert', $modal).html(warning);
-            $close.click(function onJoin() {
-                $close.off('click', onJoin);
+            $close.click(function onClose() {
+                $close.off('click', onClose);
                 $modal.modal('hide');
                 resolve(null);
             });
@@ -43,8 +43,8 @@ async function showError(error) {
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
             $('div.alert', $modal).html(error);
-            $close.click(function onJoin() {
-                $close.off('click', onJoin);
+            $close.click(function onClose() {
+                $close.off('click', onClose);
                 $modal.modal('hide');
                 resolve(null);
             });

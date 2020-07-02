@@ -22,7 +22,13 @@ const i18n = {
             'Phone': 'Телефон',
             'Message': 'Сообщение',
             "Kid's watch will call or send a text message to provided phone number. Some characters might be sent incorrectly.": 'Часы ребенка совершат вызов или отправят СМС на указанный номер. Некоторые символы могут быть отправлены некорректно.',
-            'Command is not completed.': 'Команда не выполнена'
+            'Command is not completed.': 'Команда не выполнена',
+            'Contacts': 'Контакты',
+            'Edit': 'Редактирование',
+            'Name': 'Имя',
+            'Phone': 'Телефон',
+            'Name should not be empty.': 'Имя должно быть заполнено.',
+            'Phone should not be empty.': 'Телефон должен быть заполнен.'
         }
     },
 

@@ -1,4 +1,4 @@
-package ru.mecotrade.kidtracker.controller.model;
+package ru.mecotrade.kidtracker.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
