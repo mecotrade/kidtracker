@@ -12,7 +12,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 @Configuration
-public class Config {
+public class KidTrackerConfig {
 
     @Autowired
     private MessageConnectorFactory messageListenerFactory;

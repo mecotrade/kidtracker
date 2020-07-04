@@ -55,7 +55,7 @@ public class UserController {
     @ResponseBody
     public Collection<Snapshot> snapshot(@PathVariable Long userId, @PathVariable Long timestamp) throws KidTrackerUnknownUserException {
         // TODO: process unknown user exception
-        return deviceProcessor.snapshot(userId, new Date(timestamp));
+        return deviceProcessor.lastSnapshots(userId, new Date(timestamp));
     }
 
 

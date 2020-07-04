@@ -3,9 +3,12 @@ package ru.mecotrade.kidtracker.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.mecotrade.kidtracker.dao.ConfigService;
 import ru.mecotrade.kidtracker.dao.ContactService;
+import ru.mecotrade.kidtracker.dao.model.ConfigRecord;
 import ru.mecotrade.kidtracker.dao.model.ContactRecord;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
+import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
 import ru.mecotrade.kidtracker.model.ContactType;
 import ru.mecotrade.kidtracker.model.Report;
@@ -49,6 +52,9 @@ public class DeviceProcessor {
 
     @Autowired
     private ContactService contactService;
+
+    @Autowired
+    private ConfigService configService;
 
     @Autowired
     private DeviceManager deviceManager;
@@ -115,7 +121,7 @@ public class DeviceProcessor {
         }
     }
 
-    public Collection<Snapshot> snapshot(Long userId, Date timestamp) throws KidTrackerUnknownUserException {
+    public Collection<Snapshot> lastSnapshots(Long userId, Date timestamp) throws KidTrackerUnknownUserException {
         // TODO use cache
         Optional<User> user = userService.get(userId);
         if (user.isPresent()) {
@@ -129,7 +135,7 @@ public class DeviceProcessor {
         }
     }
 
-    public Optional<Snapshot> snapshot(String deviceId, Long timestamp) {
+    public Optional<Snapshot> lastSnapshot(String deviceId, Long timestamp) {
         return messageService.last(Collections.singletonList(deviceId),
                 Stream.concat(MessageUtils.LOCATION_TYPES.stream(), Stream.of(MessageUtils.LINK_TYPE)).collect(Collectors.toList()),
                 Message.Source.DEVICE,
@@ -154,14 +160,23 @@ public class DeviceProcessor {
         return contactService.get(deviceId, type).stream().map(ContactRecord::toContact).collect(Collectors.toList());
     }
 
-    public void update(String deviceId, Contact contact) throws KidTrackerConnectionException {
-        contactService.put(deviceId, ContactRecord.of(contact));
-        sync(deviceId, contact.getType(), contact.getIndex());
+    public void updateContact(String deviceId, Contact contact) throws KidTrackerConnectionException {
+        contactService.put(deviceId, contact);
+        syncContact(deviceId, contact.getType(), contact.getIndex());
     }
 
-    public void remove(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
+    public void removeContact(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
         contactService.remove(deviceId, type, index);
-        sync(deviceId, type, index);
+        syncContact(deviceId, type, index);
+    }
+
+    public Collection<Config> configs(String deviceId) {
+        return configService.get(deviceId).stream().map(ConfigRecord::toConfig).collect(Collectors.toList());
+    }
+
+    public void updateConfig(String deviceId, Config config) throws KidTrackerConnectionException {
+        configService.put(deviceId, config);
+        syncConfig(deviceId, config.getParameter());
     }
 
     private static String encodeContact(Contact contact) {
@@ -169,7 +184,7 @@ public class DeviceProcessor {
         return contact.getPhone() + "," + DatatypeConverter.printHexBinary(Arrays.copyOfRange(bytes, 2, bytes.length));
     }
 
-    private void sync(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
+    private void syncContact(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
 
         Map<Integer, ContactRecord> contacts = contactService.get(deviceId, type).stream()
                 .collect(Collectors.toMap(ContactRecord::getIndex, Function.identity()));
@@ -204,6 +219,13 @@ public class DeviceProcessor {
                         contacts.containsKey(index) ? contacts.get(index).getPhone() : "");
                 break;
             }
+        }
+    }
+
+    private void syncConfig(String deviceId, String parameter) throws KidTrackerConnectionException {
+        Config config = configService.get(deviceId, parameter).map(ConfigRecord::toConfig).orElse(null);
+        if (config != null) {
+            deviceManager.send(deviceId, config.getParameter(), config.getValue());
         }
     }
 }

@@ -7,7 +7,7 @@ const {initHistory, showHistory} = require('./history.js');
 const {initNotification, showWarning, showError} = require('./notification.js');
 const {initPhone, showPhone} = require('./phone.js');
 const {initContact, showContact} = require('./contact.js');
-
+const {initWatchSettings, showWatchSettings} = require('./watchsettings.js');
 
 const DEFAULT_ZOOM = 16;
 const KID_POSITION_QUERY_INTERVAL = 10000;
@@ -149,7 +149,17 @@ $('#kid-history').on('click', async function onKidPath() {
     }
 });
 
-$('#kid-refresh').on('click', async function onRefreshPosition() {
+$('#kid-phone').on('click', async function () {
+    const deviceId = $('#kid-select').children('option:selected').val();
+    await showPhone(user, deviceId);
+});
+
+$('#kid-contacts').on('click', async function () {
+    const deviceId = $('#kid-select').children('option:selected').val();
+    await showContact(deviceId);
+});
+
+$('#kid-locate').on('click', async function () {
     const deviceId = $('#kid-select').children('option:selected').val();
     const response = await fetch(`/api/device/${deviceId}/command`, {
       method: 'POST',
@@ -161,7 +171,7 @@ $('#kid-refresh').on('click', async function onRefreshPosition() {
     }
 });
 
-$('#kid-find').on('click', async function onFind() {
+$('#kid-find').on('click', async function () {
     const deviceId = $('#kid-select').children('option:selected').val();
     const response = await fetch(`/api/device/${deviceId}/command`, {
       method: 'POST',
@@ -173,15 +183,10 @@ $('#kid-find').on('click', async function onFind() {
     }
 });
 
-$('#kid-phone').on('click', async function onPhone() {
+$('#kid-settings').on('click', async function () {
     const deviceId = $('#kid-select').children('option:selected').val();
-    await showPhone(user, deviceId);
-});
-
-$('#kid-contacts').on('click', async function onContacts() {
-    const deviceId = $('#kid-select').children('option:selected').val();
-    await showContact(deviceId);
-});
+    await showWatchSettings(deviceId);
+})
 
 map.on('locationfound', function onLocationFound(e) {
 
@@ -345,4 +350,5 @@ window.addEventListener('load', async function onload() {
     initNotification();
     initPhone();
     initContact();
+    initWatchSettings();
 });

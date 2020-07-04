@@ -4,10 +4,13 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.Date;
 
 @Data
 @Entity
+@Table(uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"deviceId"})})
 public class Kid {
 
     @Id
@@ -16,9 +19,6 @@ public class Kid {
 
     @CreationTimestamp
     private Date timestamp;
-
-    @ManyToOne
-    private User user;
 
     private String deviceId;
 

@@ -58,3 +58,10 @@ html, body, #map {
   width: 100%;
   overflow-y: scroll;
 }
+
+#show-kid-settings div.modal-body {
+  height: 500px;
+  max-height: 500px;
+  width: 100%;
+  overflow-y: scroll;
+}

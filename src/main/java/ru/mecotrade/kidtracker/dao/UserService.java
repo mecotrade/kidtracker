@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.User;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

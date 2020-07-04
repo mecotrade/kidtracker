@@ -12,7 +12,8 @@
   "dependencies": {
     "moment": "^2.26.0",
     "jquery-ui": "^1.12.1",
-    "chart.js": "^2.9.3"
+    "chart.js": "^2.9.3",
+    "bootstrap-input-spinner": "^1.13.9"
   },
   "devDependencies": {
     "browserify": "^14.3.0",

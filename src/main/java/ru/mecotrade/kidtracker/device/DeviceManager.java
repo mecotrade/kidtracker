@@ -3,8 +3,10 @@ package ru.mecotrade.kidtracker.device;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.mecotrade.kidtracker.dao.KidService;
 import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.model.Message;
+import ru.mecotrade.kidtracker.dao.model.User;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 
@@ -19,6 +21,9 @@ public class DeviceManager implements MessageListener {
 
     @Autowired
     private MessageService messageService;
+
+    @Autowired
+    private KidService kidService;
 
     private final Map<String, Device> devices = new HashMap<>();
 
@@ -36,9 +41,19 @@ public class DeviceManager implements MessageListener {
 
         Device device = devices.get(message.getDeviceId());
         if (device == null) {
-            device = new Device(message.getDeviceId(), message.getManufacturer(), messageConnector);
-            devices.put(message.getDeviceId(), device);
-            log.debug("[{}] New device by {} connected to [{}]", device.getId(), message.getManufacturer(), messageConnector.getId());
+            Collection<User> users = kidService.users(message.getDeviceId());
+            if (!users.isEmpty()) {
+                device = new Device(message.getDeviceId(), message.getManufacturer(), messageConnector);
+                devices.put(message.getDeviceId(), device);
+                log.info("[{}] New device by {} connected to [{}]", device.getId(), message.getManufacturer(), messageConnector.getId());
+            } else {
+                log.warn("[{}] Unknown device by {} tries to connect to [{}] with message {}",
+                        message.getDeviceId(),
+                        message.getManufacturer(),
+                        messageConnector.getId(),
+                        message);
+                return;
+            }
         } else {
             device.check(messageConnector);
         }

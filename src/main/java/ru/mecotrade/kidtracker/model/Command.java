@@ -2,12 +2,12 @@ package ru.mecotrade.kidtracker.model;
 
 import lombok.Data;
 
-import java.util.Collection;
+import java.util.List;
 
 @Data
 public class Command {
 
     private String type;
 
-    private Collection<String> payload;
+    private List<String> payload;
 }

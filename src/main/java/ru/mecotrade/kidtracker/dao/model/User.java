@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import java.util.Collection;
 import java.util.Date;
@@ -22,8 +24,10 @@ public class User {
     @CreationTimestamp
     private Date timestamp;
 
-    @OneToMany
-    @JoinColumn(name="id")
+    @ManyToMany
+    @JoinTable(name = "assignment",
+            joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "kidId") )
     private Collection<Kid> kids;
 
     private String name;

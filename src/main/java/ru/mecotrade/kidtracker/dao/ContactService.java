@@ -3,6 +3,7 @@ package ru.mecotrade.kidtracker.dao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.mecotrade.kidtracker.dao.model.ContactRecord;
+import ru.mecotrade.kidtracker.model.Contact;
 import ru.mecotrade.kidtracker.model.ContactType;
 
 import javax.transaction.Transactional;
@@ -25,17 +26,18 @@ public class ContactService {
         return contactRepository.findByDeviceIdAndTypeAndIndexIn(deviceId, type, indices);
     }
 
-    public void put(String deviceId, ContactRecord contact) {
+    public void put(String deviceId, Contact contact) {
 
-        Optional<ContactRecord> oldContactOpt = get(deviceId, contact.getType(), Collections.singleton(contact.getIndex())).stream().findFirst();
-        if (oldContactOpt.isPresent()) {
-            ContactRecord oldContact = oldContactOpt.get();
-            oldContact.setPhone(contact.getPhone());
-            oldContact.setName(contact.getName());
-            contactRepository.save(oldContact);
+        Optional<ContactRecord> oldContact = get(deviceId, contact.getType(), Collections.singleton(contact.getIndex())).stream().findFirst();
+        if (oldContact.isPresent()) {
+            ContactRecord oldRecord = oldContact.get();
+            oldRecord.setPhone(contact.getPhone());
+            oldRecord.setName(contact.getName());
+            contactRepository.save(oldRecord);
         } else {
-            contact.setDeviceId(deviceId);
-            contactRepository.save(contact);
+            ContactRecord newRecord = ContactRecord.of(contact);
+            newRecord.setDeviceId(deviceId);
+            contactRepository.save(newRecord);
         }
     }
 
