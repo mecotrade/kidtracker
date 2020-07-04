@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
@@ -92,7 +93,11 @@ public class DeviceController {
         log.info("[{}] Received {}", deviceId, command);
         try {
             if (isValid(command)) {
-                deviceManager.send(deviceId, command.getType(), String.join(",", command.getPayload()));
+                if (isProtected(command)) {
+                    deviceManager.apply(deviceId, command);
+                } else {
+                    deviceManager.send(deviceId, command.getType(), String.join(",", command.getPayload()));
+                }
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             } else {
                 log.error("[{}] {} is incorrect", deviceId, command);
@@ -100,6 +105,19 @@ public class DeviceController {
             }
         } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to send {}", deviceId, command, ex);
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @GetMapping("/execute/{token}")
+    @ResponseBody
+    public ResponseEntity<String> execute(@PathVariable String deviceId, @PathVariable String token) {
+        log.info("[{}] Received token {}", deviceId, token);
+        try {
+            deviceManager.execute(deviceId, token);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (KidTrackerException ex) {
+            log.error("[{}] Unable to execute token {}", deviceId, token, ex);
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
@@ -218,6 +236,17 @@ public class DeviceController {
         }
     }
 
+    private boolean isProtected(Command command) {
+
+        switch (command.getType()) {
+            case "POWEROFF":
+            case "FACTORY":
+                return true;
+            default:
+                return false;
+        }
+    }
+
     private boolean isValid(Command command) {
 
         List<String> payload = command.getPayload();
@@ -225,14 +254,10 @@ public class DeviceController {
             case "CR":
             case "FIND":
             case "TIMECALI":
-                // TODO: for RESET and POWEROFF an additional check - SMS code is being sent
-                // by the watch to the user number, should be provided to execute command
             case "RESET":
             case "POWEROFF":
-                return payload == null || payload.isEmpty();
             case "FACTORY":
-                // TODO: uncomment
-                return false;
+                return payload == null || payload.isEmpty();
             case "MONITOR":
             case "CALL":
                 return payload != null && payload.size() == 1

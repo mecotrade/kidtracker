@@ -89,7 +89,9 @@ const i18n = {
             '(GMT+10:00) Vladivostok, Melbourne, Sydney': '(GMT+10:00) Владивосток, Мельбурн, Сидней',
             '(GMT+11:00) Magadan, New Caledonia, Solomon Is.': '(GMT+11:00) Магадан, Новая Каледония, Соломоновы Острова',
             '(GMT+12:00) Kamchatka, Fiji, Marshall Is.': '(GMT+12:00) Камчатка, Фиджи, Маршалловы острова',
-            "(GMT+13:00) Nuku'alofa": '(GMT+13:00) Нукуалофа'
+            "(GMT+13:00) Nuku'alofa": '(GMT+13:00) Нукуалофа',
+            'Input token': 'Ввод кода',
+            'One-time SMS token': 'Одноразовый SMS-код'
         }
     },
 

@@ -3,6 +3,8 @@ package ru.mecotrade.kidtracker.device;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.mecotrade.kidtracker.exception.KidTrackerInvalidTokenException;
+import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.dao.model.Message;
@@ -16,6 +18,10 @@ import ru.mecotrade.kidtracker.util.MessageUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class Device implements DeviceSender {
@@ -33,6 +39,8 @@ public class Device implements DeviceSender {
     @Getter
     @Setter
     private Temporal<Link> link;
+
+    private final Map<String, Temporal<DeviceJob>> jobs = new HashMap<>();
 
     private MessageConnector messageConnector;
 
@@ -79,6 +87,32 @@ public class Device implements DeviceSender {
             }
             send(type);
         }
+    }
+
+    public void apply(String token, Command command) {
+        jobs.put(token, Temporal.of(() -> send(command.getType(), String.join(",", command.getPayload()))));
+    }
+
+    public void execute(String token, long ttl) throws KidTrackerException {
+        Temporal<DeviceJob> job = jobs.get(token);
+        if (job != null && System.currentTimeMillis() - job.getTimestamp().getTime() < ttl) {
+            job.getValue().execute();
+            jobs.remove(token);
+        } else {
+            throw new KidTrackerInvalidTokenException(token);
+        }
+    }
+
+    public void clean(long ttl) {
+        long millis = System.currentTimeMillis();
+        Collection<String> obsolete = jobs.entrySet().stream()
+                .filter(e -> millis - e.getValue().getTimestamp().getTime() > ttl)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        obsolete.forEach(t -> {
+            jobs.remove(t);
+            log.info("[{}] Obsolete token {} removed", id, t);
+        });
     }
 
     public Position position() {

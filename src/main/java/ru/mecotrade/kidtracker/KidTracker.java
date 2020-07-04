@@ -4,11 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import ru.mecotrade.kidtracker.device.DeviceServer;
 
 import javax.annotation.PostConstruct;
 
 @SpringBootApplication
+@EnableScheduling
 public class KidTracker {
 
     @Autowired

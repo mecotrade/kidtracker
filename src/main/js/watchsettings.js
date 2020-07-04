@@ -40,7 +40,9 @@ function initWatchSettings() {
         $('#kid-settings-bigtime-label'),
         $('#kid-settings-contacts-label'),
         $('#kid-settings-tz-input-label'),
-        $('#kid-settings-lang-label')
+        $('#kid-settings-lang-label'),
+        $('#input-token-input-label'),
+        $('#input-token-title')
     ]);
 
     $('#kid-settings-lang-select option').each(function(index) {
@@ -97,9 +99,6 @@ async function showWatchSettings(deviceId) {
     function initCommand($button, command, callback) {
         $button.off('click');
         $button.click(async function () {
-            if (callback) {
-                callback();
-            }
             const response = await fetch(`/api/device/${deviceId}/command`, {
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
@@ -108,12 +107,14 @@ async function showWatchSettings(deviceId) {
             if (!response.ok) {
                 showError(i18n.translate('Command is not completed.'))
             }
+            if (callback) {
+                callback();
+            }
         });
     }
 
-    initCommand($('#kid-settings-timeserver'), 'TIMECALI', function() {
-        $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));
-    });
+    initCommand($('#kid-settings-timeserver'), 'TIMECALI',
+        () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT)));
 
     function initCheck($check, parameter) {
         config.filter(c => c.parameter == parameter).forEach(c => $check[0].checked = c.value == '1');
@@ -174,9 +175,50 @@ async function showWatchSettings(deviceId) {
     $lang.off('click');
     $lang.click(clickLangTz);
 
-    initCommand($('#kid-settings-factory'), 'FACTORY');
-    initCommand($('#kid-settings-poweroff'), 'POWEROFF');
-    initCommand($('#kid-settings-restart'), 'RESET');
+    async function showInputToken() {
+
+        const $modalToken = $('#input-token');
+
+        const $closeToken = $('#input-token-close');
+        const $executeToken = $('#input-token-execute');
+
+        function hide() {
+            $closeToken.off('click');
+            $executeToken.off('click');
+            $modalToken.modal('hide');
+        }
+
+        return new Promise(resolve => {
+
+            $modalToken.on('shown.bs.modal', function onShow() {
+                $modalToken.off('shown.bs.modal', onShow);
+                $closeToken.click(function () {
+                    hide();
+                    resolve(null);
+                });
+                $executeToken.click(async function () {
+                    const token = $('#input-token-input').val();
+                    const response = await fetch(`/api/device/${deviceId}/execute/${token}`);
+                    if (!response.ok) {
+                        showError(i18n.translate('Command is not completed.'))
+                    }
+                    hide();
+                    resolve(null);
+                });
+            });
+
+            $modalToken.modal({
+                backdrop: 'static',
+                focus: true,
+                keyboard: false,
+                show: true
+            });
+        });
+    }
+
+    initCommand($('#kid-settings-factory'), 'FACTORY', async () => await showInputToken());
+    initCommand($('#kid-settings-poweroff'), 'POWEROFF', async () => await showInputToken());
+    initCommand($('#kid-settings-restart'), 'RESET', async () => await showInputToken());
 
     const $close = $('#kid-settings-close');
 
