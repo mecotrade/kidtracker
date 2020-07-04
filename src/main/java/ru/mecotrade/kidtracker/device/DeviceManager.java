@@ -110,4 +110,11 @@ public class DeviceManager implements MessageListener {
     public void clean() {
         devices.forEach((key, value) -> value.clean(tokenTtlMillis));
     }
+
+    public void alarmOff(String deviceId) {
+        Device device = devices.get(deviceId);
+        if (device != null) {
+            device.alarmOff();
+        }
+    }
 }

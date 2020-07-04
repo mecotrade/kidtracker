@@ -13,7 +13,9 @@ public class Report {
 
     private Collection<Snapshot> snapshots;
 
-    public static Report of(Collection<Position> positions, Collection<Snapshot> snapshots) {
-        return new Report(positions, snapshots);
+    private Collection<String> alarms;
+
+    public static Report of(Collection<Position> positions, Collection<Snapshot> snapshots, Collection<String> alarms) {
+        return new Report(positions, snapshots, alarms);
     }
 }

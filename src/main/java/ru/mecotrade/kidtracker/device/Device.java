@@ -40,6 +40,10 @@ public class Device implements DeviceSender {
     @Setter
     private Temporal<Link> link;
 
+    @Getter
+    @Setter
+    private Temporal<Boolean> alarm = Temporal.of(false);
+
     private final Map<String, Temporal<DeviceJob>> jobs = new HashMap<>();
 
     private MessageConnector messageConnector;
@@ -76,6 +80,9 @@ public class Device implements DeviceSender {
             send(type);
         } else if (MessageUtils.LOCATION_TYPES.contains(type)) {
             location = MessageUtils.toLocation(message);
+            if (location.getValue().getState().isSosAlarm() || MessageUtils.ALARM_TYPE.equals(type)) {
+                alarm = Temporal.of(true);
+            }
             send(type);
         } else if (MessageUtils.BASE_64_TYPES.contains(type)) {
             // TODO: work with audio files, learn proper play rate
@@ -121,5 +128,9 @@ public class Device implements DeviceSender {
 
     public Snapshot snapshot() {
         return link != null ? MessageUtils.toSnapshot(id, link) : null;
+    }
+
+    public void alarmOff() {
+        alarm = Temporal.of(false);
     }
 }

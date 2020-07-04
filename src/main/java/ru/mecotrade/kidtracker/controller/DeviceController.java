@@ -183,6 +183,14 @@ public class DeviceController {
         }
     }
 
+    @GetMapping("/alarmoff")
+    @ResponseBody
+    public ResponseEntity<String> alarmOff(@PathVariable String deviceId) {
+        log.info("[{}] Received alarm off request", deviceId);
+        deviceManager.alarmOff(deviceId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     // TODO: remove
     @Deprecated
     @GetMapping("/command/{command}")

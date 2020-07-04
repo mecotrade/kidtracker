@@ -116,7 +116,9 @@ public class DeviceProcessor {
                 }
             }
 
-            return Report.of(positions, snapshots);
+            Collection<String> alarms = devices.stream().filter(d -> d.getAlarm().getValue()).map(Device::getId).collect(Collectors.toList());
+
+            return Report.of(positions, snapshots, alarms);
         } else {
             throw new KidTrackerUnknownUserException(String.valueOf(userId));
         }

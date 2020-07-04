@@ -114,7 +114,7 @@ $('#kid-history').on('click', async function onKidPath() {
                 };
 
                 function move(i) {
-                    updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true);
+                    updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false);
                     return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
                 }
 
@@ -216,7 +216,7 @@ map.on('drag', function onMouseDrag(e) {
     view = 'none';
 });
 
-function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView) {
+function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, alarm) {
 
     const now = new Date();
 
@@ -243,16 +243,43 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
             + (position.takeOff ? WATCH_OFF_ICON : '')
             + (position.lowBattery ? LOW_BATTERY_ICON : '');
 
-    const content = `<center><img src="${kid.thumb}" class="kid-popup-thumb"/><div class="kid-popup-name"><b>${kid.name}</b></div><div id="kid-popup-${kid.deviceId}" class="kid-popup-time">${datetime}</div><div><span class="kid-popup-pedometer">${pedometer}</span><span class="${batteryClass}">${battery}%</span><div class="kid-popup-alert">${alert}</div></div></center>`;
-    kid.popup.setContent(content).setLatLng([position.latitude, position.longitude]);
+    const $thumb = $('<img>').attr('src', kid.thumb).addClass('kid-popup-thumb');
+    const $name = $('<div>').addClass('kid-popup-name').append($('<b>').text(kid.name));
+    const $time = $('<div>').addClass('kid-popup-time').text(datetime);
+    const $info = $('<div>').append($('<span>').addClass('kid-popup-pedometer').text(pedometer))
+            .append($('<span>').addClass(batteryClass).text(`${battery}%`))
+            .append($('<div>').addClass('kid-popup-alert').html(alert));
+    const $content = $('<div>').attr('id', `kid-popup-${kid.deviceId}`)
+            .append($('<center>').append($thumb).append($name).append($time).append($info));
+
+    kid.popup.setContent($content[0].outerHTML).setLatLng([position.latitude, position.longitude]);
     kid.circle.setLatLng([position.latitude, position.longitude]).setRadius(position.accuracy);
 
-    $(`#kid-popup-${kid.deviceId}`).on('click', function() {
+    if (alarm == true) {
+
+        const $parent = $(`#kid-popup-${kid.deviceId}`).parent().parent();
+        $parent.attr('style', 'background: red');
+        $('div.leaflet-popup-tip', $parent.parent()).attr('style', 'background: red');
+        $(`#kid-popup-${kid.deviceId} span.${batteryClass}`).attr('style', 'color: white');
+        $(`#kid-popup-${kid.deviceId} div.kid-popup-alert`).attr('style', 'color: white');
+
+        $(`#kid-popup-${kid.deviceId}`).off('click');
+        $(`#kid-popup-${kid.deviceId}`).click(async function () {
+            const $parent = $(`#kid-popup-${kid.deviceId}`).parent().parent();
+            $parent.removeAttr('style');
+            $('div.leaflet-popup-tip', $parent.parent()).removeAttr('style');
+            $(`#kid-popup-${kid.deviceId} span.${batteryClass}`).removeAttr('style');
+            $(`#kid-popup-${kid.deviceId} div.kid-popup-alert`).removeAttr('style');
+            await fetch(`/api/device/${kid.deviceId}/alarmoff`);
+        });
+    }
+
+    $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).click(function () {
         if (kid.popupTimeFromNow) {
-            $(`#kid-popup-${kid.deviceId}`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
+            $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
             kid.popupTimeFromNow = false;
         } else {
-            $(`#kid-popup-${kid.deviceId}`).text(moment(date).fromNow());
+            $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).text(moment(date).fromNow());
             kid.popupTimeFromNow = true;
         }
     });
@@ -280,7 +307,9 @@ async function locateKids() {
             const kid = kids.find(k => k.deviceId == p.deviceId);
             if (kid) {
                 const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
-                updateKidPopup(kid, p, snapshot, kid.snapshot, true, !path && kid.deviceId == deviceId);
+                const setView = !path && kid.deviceId == deviceId
+                const alarm = report.alarms.includes(p.deviceId);
+                updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm);
             } else {
                 // TODO if not found
             }

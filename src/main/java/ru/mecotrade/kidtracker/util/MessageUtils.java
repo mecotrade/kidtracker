@@ -44,6 +44,8 @@ public class MessageUtils {
 
     public static final String LINK_TYPE = "LK";
 
+    public static final String ALARM_TYPE = "AL";
+
     public static final Set<String> SNAPSHOT_TYPES;
 
     static {
