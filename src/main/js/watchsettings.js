@@ -115,20 +115,6 @@ async function showWatchSettings(deviceId) {
         $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));
     });
 
-//    const $timeserver = $('#kid-settings-timeserver');
-//    $timeserver.off('click');
-//    $timeserver.click(async function () {
-//        $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));
-//        const response = await fetch(`/api/device/${deviceId}/command`, {
-//          method: 'POST',
-//          headers: {'Content-Type': 'application/json'},
-//          body: JSON.stringify({type: 'TIMECALI', payload: []})
-//        });
-//        if (!response.ok) {
-//            showError(i18n.translate('Command is not completed.'))
-//        }
-//    });
-
     function initCheck($check, parameter) {
         config.filter(c => c.parameter == parameter).forEach(c => $check[0].checked = c.value == '1');
         $check.off('change');
@@ -191,46 +177,6 @@ async function showWatchSettings(deviceId) {
     initCommand($('#kid-settings-factory'), 'FACTORY');
     initCommand($('#kid-settings-poweroff'), 'POWEROFF');
     initCommand($('#kid-settings-restart'), 'RESET');
-
-//    const $factory = $('#kid-settings-factory');
-//    $factory.off('click');
-//    $factory.click(async function () {
-//        const response = await fetch(`/api/device/${deviceId}/command`, {
-//          method: 'POST',
-//          headers: {'Content-Type': 'application/json'},
-//          body: JSON.stringify({type: 'FACTORY', payload: []})
-//        });
-//        if (!response.ok) {
-//            showError(i18n.translate('Command is not completed.'))
-//        }
-//    });
-
-//    const $poweroff = $('#kid-settings-poweroff');
-//    $poweroff.off('click');
-//    $poweroff.click(async function () {
-//        const response = await fetch(`/api/device/${deviceId}/command`, {
-//          method: 'POST',
-//          headers: {'Content-Type': 'application/json'},
-//          body: JSON.stringify({type: 'POWEROFF', payload: []})
-//        });
-//        if (!response.ok) {
-//            showError(i18n.translate('Command is not completed.'))
-//        }
-//    });
-
-//    const $restart = $('#kid-settings-restart');
-//    $restart.off('click');
-//    $restart.click(async function () {
-//        const response = await fetch(`/api/device/${deviceId}/command`, {
-//          method: 'POST',
-//          headers: {'Content-Type': 'application/json'},
-//          body: JSON.stringify({type: 'RESET', payload: []})
-//        });
-//        if (!response.ok) {
-//            showError(i18n.translate('Command is not completed.'))
-//        }
-//    });
-
 
     const $close = $('#kid-settings-close');
 
