@@ -58,7 +58,7 @@ public class DeviceController {
     //  10:Francais
     private final static String LANGUAGE_CODE_REGEX = "^(0|1|3|4|5|7|8|9|10)$";
 
-    private final static String TIMEZONE_REGEX = "^(-12|-11|-10|-9|-8|-7|-6|-5|-4|-3\\.30|-3|-2|-1|0|1|2|3|3\\.30|4|4\\.30|5|5\\.30|5\\.45|6|6\\.30|7|8|9|9\\.30|10|11|12|13)$";
+    private final static String TIMEZONE_REGEX = "^(-12|-11|-10|-9|-8|-7|-6|-5|-4|-3\\.50|-3|-2|-1|0|1|2|3|3\\.50|4|4\\.30|5|5\\.50|5\\.75|6|6\\.50|7|8|9|9\\.50|10|11|12|13)$";
 
     private final static int MIN_UPLOAD_INTERVAL = 10;
 
@@ -231,6 +231,8 @@ public class DeviceController {
                     return false;
                 }
             case "SOSSMS":
+            case "REMOVESMS":
+            case "LOWBAT":
             case "TKONOFF":
             case "SMSONOFF":
             case "PEDO":

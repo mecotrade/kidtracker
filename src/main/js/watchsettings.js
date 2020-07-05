@@ -31,6 +31,8 @@ function initWatchSettings() {
         $('#kid-settings-title'),
         $('#kid-settings-uploadinterval-input-label'),
         $('#kid-settings-datetime-label'),
+        $('#kid-settings-removesms-label'),
+        $('#kid-settings-lowbatsms-label'),
         $('#kid-settings-sossms-label'),
         $('#kid-settings-voicemsg-label'),
         $('#kid-settings-sms-label'),
@@ -133,6 +135,8 @@ async function showWatchSettings(deviceId) {
         });
     }
 
+    initCheck($('#kid-settings-removesms'), 'REMOVESMS');
+    initCheck($('#kid-settings-lowbatsms'), 'LOWBAT');
     initCheck($('#kid-settings-sossms'), 'SOSSMS');
     initCheck($('#kid-settings-voicemsg'), 'TKONOFF');
     initCheck($('#kid-settings-sms'), 'SMSONOFF');

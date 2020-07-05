@@ -162,7 +162,7 @@
                 <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-telephone" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" d="M3.925 1.745a.636.636 0 0 0-.951-.059l-.97.97c-.453.453-.62 1.095-.421 1.658A16.47 16.47 0 0 0 5.49 10.51a16.471 16.471 0 0 0 6.196 3.907c.563.198 1.205.032 1.658-.421l.97-.97a.636.636 0 0 0-.06-.951l-2.162-1.682a.636.636 0 0 0-.544-.115l-2.052.513a1.636 1.636 0 0 1-1.554-.43L5.64 8.058a1.636 1.636 0 0 1-.43-1.554l.513-2.052a.636.636 0 0 0-.115-.544L3.925 1.745zM2.267.98a1.636 1.636 0 0 1 2.448.153l1.681 2.162c.309.396.418.913.296 1.4l-.513 2.053a.636.636 0 0 0 .167.604L8.65 9.654a.636.636 0 0 0 .604.167l2.052-.513a1.636 1.636 0 0 1 1.401.296l2.162 1.681c.777.604.849 1.753.153 2.448l-.97.97c-.693.693-1.73.998-2.697.658a17.47 17.47 0 0 1-6.571-4.144A17.47 17.47 0 0 1 .639 4.646c-.34-.967-.035-2.004.658-2.698l.97-.969z"/>
                 </svg>
-                <h5 class="modal-title" id="phone-title">Communication</h5>
+                <h5 class="modal-title" id="phone-title">Call control</h5>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info" id="phone-info">Kid's watch will call or send a text message to provided phone number. Some characters might be sent incorrectly.</div>
@@ -341,8 +341,24 @@
                 <div class="form-row">
                     <div class="form-group col-md-12">
                         <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="kid-settings-removesms">
+                            <label class="custom-control-label" for="kid-settings-removesms" id="kid-settings-removesms-label">Send SMS when watch is removed</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="kid-settings-lowbatsms">
+                            <label class="custom-control-label" for="kid-settings-lowbatsms" id="kid-settings-lowbatsms-label">Send SMS when battery level is low</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <div class="custom-control custom-checkbox">
                             <input type="checkbox" class="custom-control-input" id="kid-settings-sossms">
-                            <label class="custom-control-label" for="kid-settings-sossms" id="kid-settings-sossms-label">Send text message when SOS button pressed</label>
+                            <label class="custom-control-label" for="kid-settings-sossms" id="kid-settings-sossms-label">Send SMS when SOS button pressed</label>
                         </div>
                     </div>
                 </div>
@@ -448,7 +464,7 @@
                             <option value="-6">(GMT-06:00) Central Time (US & Canada)</option>
                             <option value="-5">(GMT-05:00) Eastern Time (US & Canada)</option>
                             <option value="-4">(GMT-04:00) Atlantic Time (Canada)</option>
-                            <option value="-3.30">(GMT-03:30) Newfoundland</option>
+                            <option value="-3.50">(GMT-03:30) Newfoundland</option>
                             <option value="-3">(GMT-03:00) Brasilia, Greenland</option>
                             <option value="-2">(GMT-02:00) Mid-Atlantic</option>
                             <option value="-1">(GMT-01:00) Azores, Cape Verde Is.</option>
@@ -456,18 +472,18 @@
                             <option value="1">(GMT+01:00) Berlin, Rome, Paris</option>
                             <option value="2">(GMT+02:00) Minsk, Helsinki</option>
                             <option value="3">(GMT+03:00) Moscow, St. Petersburg</option>
-                            <option value="3.30">(GMT+03:30) Tehran</option>
+                            <option value="3.50">(GMT+03:30) Tehran</option>
                             <option value="4">(GMT+04:00) Baku, Yerevan</option>
-                            <option value="4.30">(GMT+04:30) Kabul</option>
+                            <option value="4.50">(GMT+04:30) Kabul</option>
                             <option value="5">(GMT+05:00) Yekaterinburg, Tashkent</option>
-                            <option value="5.30">(GMT+05:30) Mumbai, New Delhi</option>
-                            <option value="5.45">(GMT+05:45) Kathmandu</option>
+                            <option value="5.50">(GMT+05:30) Mumbai, New Delhi</option>
+                            <option value="5.75">(GMT+05:45) Kathmandu</option>
                             <option value="5">(GMT+06:00) Novosibirsk, Almaty</option>
-                            <option value="6.30">(GMT+06:30) Yangon (Rangoon)</option>
+                            <option value="6.50">(GMT+06:30) Yangon (Rangoon)</option>
                             <option value="7">(GMT+07:00) Krasnoyarsk</option>
                             <option value="8">(GMT+08:00) Irkutsk, Beijing, Hong Kong</option>
                             <option value="9">(GMT+09:00) Yakutsk, Tokyo</option>
-                            <option value="9.30">(GMT+09:30) Adelaide, Darwin</option>
+                            <option value="9.50">(GMT+09:30) Adelaide, Darwin</option>
                             <option value="10">(GMT+10:00) Vladivostok, Melbourne, Sydney</option>
                             <option value="11">(GMT+11:00) Magadan, New Caledonia, Solomon Is.</option>
                             <option value="12">(GMT+12:00) Kamchatka, Fiji, Marshall Is.</option>
