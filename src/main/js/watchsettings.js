@@ -26,6 +26,10 @@ function initWatchSettings() {
         value: moment().format(WATCH_DATETIME_FORMAT)
     });
 
+    $('#kid-settings-reminder-1-input').timepicker({
+        uiLibrary: 'bootstrap4'
+    });
+
     i18n.applyAll([
         $('#kid-settings-title'),
         $('#kid-settings-uploadinterval-input-label'),
@@ -44,6 +48,7 @@ function initWatchSettings() {
         $('#kid-settings-contacts-label'),
         $('#kid-settings-tz-input-label'),
         $('#kid-settings-lang-label'),
+        $('#kid-settings-reminder-1-input-label'),
         $('#input-token-input-label'),
         $('#input-token-title')
     ]);
@@ -58,7 +63,7 @@ function initWatchSettings() {
 
     $('#show-kid-settings div.card').each(function (i)  {
         const $header = $('div.card-header', $(this));
-        i18n.apply($header);
+        i18n.apply($('span', $header));
         $header.off('click');
         $header.click(() => {
             $('div.card-body', $(this)).toggle();

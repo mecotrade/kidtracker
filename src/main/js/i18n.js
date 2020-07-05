@@ -98,6 +98,8 @@ const i18n = {
             'Vietnam': 'Вьетнамский',
             'Russian': 'Русский',
             'Francais': 'Французский',
+            'Reminders': 'Будильники',
+            'Reminder 1': 'Будильник 1',
             'Input token': 'Ввод кода',
             'One-time SMS token': 'Одноразовый SMS-код'
         }
