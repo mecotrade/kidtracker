@@ -325,200 +325,251 @@
                 <h5 class="modal-title" id="kid-settings-title">Watch Settings</h5>
             </div>
             <div class="modal-body">
-                <label for="kid-settings-uploadinterval-input" id="kid-settings-uploadinterval-input-label">Upload interval</label>
-                <div class="form-row">
-                    <div class="form-group col-md-9">
-                        <input id="kid-settings-uploadinterval-input" type="text" class="form-control" min="10"/>
-                    </div>
-                    <div class="form-group col-md-3 text-right">
-                        <button class="btn btn-outline-secondary" type="button" id="kid-settings-uploadinterval">
-                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-removesms">
-                            <label class="custom-control-label" for="kid-settings-removesms" id="kid-settings-removesms-label">Send SMS when watch is removed</label>
+                <div class="card">
+                    <div class="card-header">GPS refresh rate</div>
+                    <div class="card-body" style="display: none">
+                        <label for="kid-settings-uploadinterval-input" id="kid-settings-uploadinterval-input-label">Upload interval (sec)</label>
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <input id="kid-settings-uploadinterval-input" type="text" class="form-control" min="10"/>
+                            </div>
+                            <div class="form-group col-md-4 text-right">
+                                <button class="btn btn-outline-secondary" type="button" id="kid-settings-uploadinterval">
+                                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <label for="kid-settings-worktime-input" id="kid-settings-worktime-input-label">Work time after force GPS on (min)</label>
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <input id="kid-settings-worktime-input" type="text" class="form-control" min="1"/>
+                            </div>
+                            <div class="form-group col-md-4 text-right">
+                                <button class="btn btn-outline-secondary" type="button" id="kid-settings-worktime">
+                                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-lowbatsms">
-                            <label class="custom-control-label" for="kid-settings-lowbatsms" id="kid-settings-lowbatsms-label">Send SMS when battery level is low</label>
+                <div class="card">
+                    <div class="card-header">SMS alerts</div>
+                    <div class="card-body" style="display: none">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-removesms">
+                                    <label class="custom-control-label" for="kid-settings-removesms" id="kid-settings-removesms-label">Send SMS when watch is removed</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-lowbatsms">
+                                    <label class="custom-control-label" for="kid-settings-lowbatsms" id="kid-settings-lowbatsms-label">Send SMS when battery level is low</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-sossms">
+                                    <label class="custom-control-label" for="kid-settings-sossms" id="kid-settings-sossms-label">Send SMS when SOS button pressed</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-sossms">
-                            <label class="custom-control-label" for="kid-settings-sossms" id="kid-settings-sossms-label">Send SMS when SOS button pressed</label>
+                <div class="card">
+                    <div class="card-header">Diverse</div>
+                    <div class="card-body" style="display: none">
+                        <div class="form-row">
+                            <div class="form-group  col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-voicemsg">
+                                    <label class="custom-control-label" for="kid-settings-voicemsg">
+                                        <span id="kid-settings-voicemsg-label">Send voice message with button</span>
+                                        <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-power" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M5.578 4.437a5 5 0 1 0 4.922.044l.5-.866a6 6 0 1 1-5.908-.053l.486.875z"/>
+                                            <path fill-rule="evenodd" d="M7.5 8V1h1v7h-1z"/>
+                                        </svg>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-sms">
+                                    <label class="custom-control-label" for="kid-settings-sms" id="kid-settings-sms-label">Accept SMS commands to the watch</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-pedometer">
+                                    <label class="custom-control-label" for="kid-settings-pedometer" id="kid-settings-pedometer-label">Activate pedometer</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-bigtime">
+                                    <label class="custom-control-label" for="kid-settings-bigtime" id="kid-settings-bigtime-label">Bold time font</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-contacts">
+                                    <label class="custom-control-label" for="kid-settings-contacts" id="kid-settings-contacts-label">Activate contact list</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group  col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-voicemsg">
-                            <label class="custom-control-label" for="kid-settings-voicemsg">
-                                <span id="kid-settings-voicemsg-label">Send voice message with button</span>
-                                <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-power" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" d="M5.578 4.437a5 5 0 1 0 4.922.044l.5-.866a6 6 0 1 1-5.908-.053l.486.875z"/>
-                                    <path fill-rule="evenodd" d="M7.5 8V1h1v7h-1z"/>
-                                </svg>
-                            </label>
+                <div class="card">
+                    <div class="card-header">Bluetooth</div>
+                    <div class="card-body" style="display: none">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-bt">
+                                    <label class="custom-control-label" for="kid-settings-bt" id="kid-settings-bt-label">Activate Bluetooth</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="kid-settings-makefriend">
+                                    <label class="custom-control-label" for="kid-settings-makefriend">
+                                        <span  id="kid-settings-makefriend-label">Makefriend instead of call on button</span>
+                                        <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-smartwatch" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M14 5h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H14V5z"/>
+                                            <path fill-rule="evenodd" d="M8.5 4.5A.5.5 0 0 1 9 5v3.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h2V5a.5.5 0 0 1 .5-.5z"/>
+                                            <path fill-rule="evenodd" d="M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2zm0 1A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7z"/>
+                                            <path d="M4 2.05v-.383C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v.383a2.512 2.512 0 0 0-.5-.05h-7c-.171 0-.338.017-.5.05zm0 11.9c.162.033.329.05.5.05h7c.171 0 .338-.017.5-.05v.383c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333v-.383z"/>
+                                        </svg>#1
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <label for="kid-settings-btname-input" id="kid-settings-btname-input-label">Bluetooth name</label>
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <input id="kid-settings-btname-input" class="form-control" type="text"/>
+                            </div>
+                            <div class="form-group col-md-4 text-right">
+                                <button class="btn btn-outline-secondary" type="button" id="kid-settings-btname">
+                                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-sms">
-                            <label class="custom-control-label" for="kid-settings-sms" id="kid-settings-sms-label">Accept SMS commands to the watch</label>
+                <div class="card">
+                    <div class="card-header">Regional settings</div>
+                    <div class="card-body" style="display: none">
+                        <label for="kid-settings-datetime" id="kid-settings-datetime-label">Watch Time</label>
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <input id="kid-settings-datetime" type="text"/>
+                            </div>
+                            <div class="form-group col-md-4 text-right">
+                                <button class="btn btn-outline-secondary" type="button" id="kid-settings-timeserver">
+                                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-clock" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm8-7A8 8 0 1 1 0 8a8 8 0 0 1 16 0z"/>
+                                        <path fill-rule="evenodd" d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+                                    </svg>
+                                </button>
+                                <button class="btn btn-outline-secondary" type="button" id="kid-settings-timecustom">
+                                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-pedometer">
-                            <label class="custom-control-label" for="kid-settings-pedometer" id="kid-settings-pedometer-label">Activate pedometer</label>
+                        <label for="kid-settings-tz-select" id="kid-settings-tz-input-label">Timezone</label>
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <select class="custom-select" id="kid-settings-tz-select">
+                                    <option value="-12">(GMT-12:00) International Date Line West</option>
+                                    <option value="-11">(GMT-11:00) Midway Island, Samoa</option>
+                                    <option value="-10">(GMT-10:00) Hawaii</option>
+                                    <option value="-9">(GMT-09:00) Alaska</option>
+                                    <option value="-8">(GMT-08:00) Pacific Time (US & Canada)</option>
+                                    <option value="-7">(GMT-07:00) Mountain Time (US & Canada)</option>
+                                    <option value="-6">(GMT-06:00) Central Time (US & Canada)</option>
+                                    <option value="-5">(GMT-05:00) Eastern Time (US & Canada)</option>
+                                    <option value="-4">(GMT-04:00) Atlantic Time (Canada)</option>
+                                    <option value="-3.50">(GMT-03:30) Newfoundland</option>
+                                    <option value="-3">(GMT-03:00) Brasilia, Greenland</option>
+                                    <option value="-2">(GMT-02:00) Mid-Atlantic</option>
+                                    <option value="-1">(GMT-01:00) Azores, Cape Verde Is.</option>
+                                    <option value="0">(GMT+00:00) London, Reykjavik</option>
+                                    <option value="1">(GMT+01:00) Berlin, Rome, Paris</option>
+                                    <option value="2">(GMT+02:00) Minsk, Helsinki</option>
+                                    <option value="3">(GMT+03:00) Moscow, St. Petersburg</option>
+                                    <option value="3.50">(GMT+03:30) Tehran</option>
+                                    <option value="4">(GMT+04:00) Baku, Yerevan</option>
+                                    <option value="4.50">(GMT+04:30) Kabul</option>
+                                    <option value="5">(GMT+05:00) Yekaterinburg, Tashkent</option>
+                                    <option value="5.50">(GMT+05:30) Mumbai, New Delhi</option>
+                                    <option value="5.75">(GMT+05:45) Kathmandu</option>
+                                    <option value="5">(GMT+06:00) Novosibirsk, Almaty</option>
+                                    <option value="6.50">(GMT+06:30) Yangon (Rangoon)</option>
+                                    <option value="7">(GMT+07:00) Krasnoyarsk</option>
+                                    <option value="8">(GMT+08:00) Irkutsk, Beijing, Hong Kong</option>
+                                    <option value="9">(GMT+09:00) Yakutsk, Tokyo</option>
+                                    <option value="9.50">(GMT+09:30) Adelaide, Darwin</option>
+                                    <option value="10">(GMT+10:00) Vladivostok, Melbourne, Sydney</option>
+                                    <option value="11">(GMT+11:00) Magadan, New Caledonia, Solomon Is.</option>
+                                    <option value="12">(GMT+12:00) Kamchatka, Fiji, Marshall Is.</option>
+                                    <option value="13">(GMT+13:00) Nuku'alofa</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4 text-right">
+                                <button class="btn btn-outline-secondary" type="button" id="kid-settings-tz">
+                                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-makefriend">
-                            <label class="custom-control-label" for="kid-settings-makefriend">
-                                <span  id="kid-settings-makefriend-label">Makefriend instead of call on button</span>
-                                <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-smartwatch" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M14 5h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H14V5z"/>
-                                    <path fill-rule="evenodd" d="M8.5 4.5A.5.5 0 0 1 9 5v3.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h2V5a.5.5 0 0 1 .5-.5z"/>
-                                    <path fill-rule="evenodd" d="M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2zm0 1A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7z"/>
-                                    <path d="M4 2.05v-.383C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v.383a2.512 2.512 0 0 0-.5-.05h-7c-.171 0-.338.017-.5.05zm0 11.9c.162.033.329.05.5.05h7c.171 0 .338-.017.5-.05v.383c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333v-.383z"/>
-                                </svg>#1
-                            </label>
+                        <label for="kid-settings-lang" id="kid-settings-lang-label">Interface language</label>
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <select class="custom-select" id="kid-settings-lang-select">
+                                    <option value="0">English</option>
+                                    <option value="1">Chinese</option>
+                                    <option value="3">Portuguese</option>
+                                    <option value="4">Spanish</option>
+                                    <option value="5">Deutsch</option>
+                                    <option value="7">Turkiye</option>
+                                    <option value="8">Vietnam</option>
+                                    <option value="9">Russian</option>
+                                    <option value="10">Francais</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4 text-right">
+                                <button class="btn btn-outline-secondary" type="button" id="kid-settings-lang">
+                                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-bt">
-                            <label class="custom-control-label" for="kid-settings-bt" id="kid-settings-bt-label">Activate Bluetooth</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-bigtime">
-                            <label class="custom-control-label" for="kid-settings-bigtime" id="kid-settings-bigtime-label">Bold time font</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="kid-settings-contacts">
-                            <label class="custom-control-label" for="kid-settings-contacts" id="kid-settings-contacts-label">Activate contact list</label>
-                        </div>
-                    </div>
-                </div>
-                <label for="kid-settings-datetime" id="kid-settings-datetime-label">Watch Time</label>
-                <div class="form-row">
-                    <div class="form-group col-md-9">
-                        <input id="kid-settings-datetime" type="text"/>
-                    </div>
-                    <div class="form-group col-md-3 text-right">
-                        <button class="btn btn-outline-secondary" type="button" id="kid-settings-timeserver">
-                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-clock" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm8-7A8 8 0 1 1 0 8a8 8 0 0 1 16 0z"/>
-                                <path fill-rule="evenodd" d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
-                            </svg>
-                        </button>
-                        <button class="btn btn-outline-secondary" type="button" id="kid-settings-timecustom">
-                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <label for="kid-settings-tz-select" id="kid-settings-tz-input-label">Timezone</label>
-                <div class="form-row">
-                    <div class="form-group col-md-9">
-                        <select class="custom-select" id="kid-settings-tz-select">
-                            <option value="-12">(GMT-12:00) International Date Line West</option>
-                            <option value="-11">(GMT-11:00) Midway Island, Samoa</option>
-                            <option value="-10">(GMT-10:00) Hawaii</option>
-                            <option value="-9">(GMT-09:00) Alaska</option>
-                            <option value="-8">(GMT-08:00) Pacific Time (US & Canada)</option>
-                            <option value="-7">(GMT-07:00) Mountain Time (US & Canada)</option>
-                            <option value="-6">(GMT-06:00) Central Time (US & Canada)</option>
-                            <option value="-5">(GMT-05:00) Eastern Time (US & Canada)</option>
-                            <option value="-4">(GMT-04:00) Atlantic Time (Canada)</option>
-                            <option value="-3.50">(GMT-03:30) Newfoundland</option>
-                            <option value="-3">(GMT-03:00) Brasilia, Greenland</option>
-                            <option value="-2">(GMT-02:00) Mid-Atlantic</option>
-                            <option value="-1">(GMT-01:00) Azores, Cape Verde Is.</option>
-                            <option value="0">(GMT+00:00) London, Reykjavik</option>
-                            <option value="1">(GMT+01:00) Berlin, Rome, Paris</option>
-                            <option value="2">(GMT+02:00) Minsk, Helsinki</option>
-                            <option value="3">(GMT+03:00) Moscow, St. Petersburg</option>
-                            <option value="3.50">(GMT+03:30) Tehran</option>
-                            <option value="4">(GMT+04:00) Baku, Yerevan</option>
-                            <option value="4.50">(GMT+04:30) Kabul</option>
-                            <option value="5">(GMT+05:00) Yekaterinburg, Tashkent</option>
-                            <option value="5.50">(GMT+05:30) Mumbai, New Delhi</option>
-                            <option value="5.75">(GMT+05:45) Kathmandu</option>
-                            <option value="5">(GMT+06:00) Novosibirsk, Almaty</option>
-                            <option value="6.50">(GMT+06:30) Yangon (Rangoon)</option>
-                            <option value="7">(GMT+07:00) Krasnoyarsk</option>
-                            <option value="8">(GMT+08:00) Irkutsk, Beijing, Hong Kong</option>
-                            <option value="9">(GMT+09:00) Yakutsk, Tokyo</option>
-                            <option value="9.50">(GMT+09:30) Adelaide, Darwin</option>
-                            <option value="10">(GMT+10:00) Vladivostok, Melbourne, Sydney</option>
-                            <option value="11">(GMT+11:00) Magadan, New Caledonia, Solomon Is.</option>
-                            <option value="12">(GMT+12:00) Kamchatka, Fiji, Marshall Is.</option>
-                            <option value="13">(GMT+13:00) Nuku'alofa</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-md-3 text-right">
-                        <button class="btn btn-outline-secondary" type="button" id="kid-settings-tz">
-                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <label for="kid-settings-lang" id="kid-settings-lang-label">Interface language</label>
-                <div class="form-row">
-                    <div class="form-group col-md-9">
-                        <select class="custom-select" id="kid-settings-lang-select">
-                            <option value="0">English</option>
-                            <option value="1">Chinese</option>
-                            <option value="3">Portuguese</option>
-                            <option value="4">Spanish</option>
-                            <option value="5">Deutsch</option>
-                            <option value="7">Turkiye</option>
-                            <option value="8">Vietnam</option>
-                            <option value="9">Russian</option>
-                            <option value="10">Francais</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-md-3 text-right">
-                        <button class="btn btn-outline-secondary" type="button" id="kid-settings-lang">
-                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-check2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-                            </svg>
-                        </button>
                     </div>
                 </div>
             </div>

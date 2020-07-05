@@ -9,13 +9,12 @@ const WATCH_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
 const WATCH_COMMAND_TIME_FORMAT = 'HH.mm.ss';
 const WATCH_COMMAND_DATE_FORMAT = 'YYYY.MM.DD';
 
-const MIN_UPLOAD_INTERVAL = 10;
-
 const $modal = $('#show-kid-settings');
 
 function initWatchSettings() {
 
     $('#kid-settings-uploadinterval-input').inputSpinner();
+    $('#kid-settings-worktime-input').inputSpinner();
 
     $('#kid-settings-datetime').datetimepicker({
         locale: 'ru-ru',
@@ -30,6 +29,7 @@ function initWatchSettings() {
     i18n.applyAll([
         $('#kid-settings-title'),
         $('#kid-settings-uploadinterval-input-label'),
+        $('#kid-settings-worktime-input-label'),
         $('#kid-settings-datetime-label'),
         $('#kid-settings-removesms-label'),
         $('#kid-settings-lowbatsms-label'),
@@ -37,8 +37,9 @@ function initWatchSettings() {
         $('#kid-settings-voicemsg-label'),
         $('#kid-settings-sms-label'),
         $('#kid-settings-pedometer-label'),
-        $('#kid-settings-makefriend-label'),
         $('#kid-settings-bt-label'),
+        $('#kid-settings-makefriend-label'),
+        $('#kid-settings-btname-input-label'),
         $('#kid-settings-bigtime-label'),
         $('#kid-settings-contacts-label'),
         $('#kid-settings-tz-input-label'),
@@ -47,12 +48,21 @@ function initWatchSettings() {
         $('#input-token-title')
     ]);
 
-    $('#kid-settings-lang-select option').each(function(index) {
+    $('#kid-settings-lang-select option').each(function (i) {
         i18n.apply($(this));
     });
 
-    $('#kid-settings-tz-select option').each(function(index) {
+    $('#kid-settings-tz-select option').each(function (i)  {
         i18n.apply($(this));
+    });
+
+    $('#show-kid-settings div.card').each(function (i)  {
+        const $header = $('div.card-header', $(this));
+        i18n.apply($header);
+        $header.off('click');
+        $header.click(() => {
+            $('div.card-body', $(this)).toggle();
+        });
     });
 }
 
@@ -61,67 +71,70 @@ async function showWatchSettings(deviceId) {
     const configResponse = await fetch(`/api/device/${deviceId}/config`);
     const config = await configResponse.json();
 
-    const $uploadinterval = $('#kid-settings-uploadinterval');
-    config.filter(c => c.parameter == 'UPLOAD').forEach(c => $('#kid-settings-uploadinterval-input').val(c.value));
-    $uploadinterval.off('click');
-    $uploadinterval.click(async function () {
-        const value = Number.parseInt($('#kid-settings-uploadinterval-input').val());
-        if (!isNaN(value) && value >= MIN_UPLOAD_INTERVAL) {
-            const response = await fetch(`/api/device/${deviceId}/config`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({parameter: 'UPLOAD', value: value.toString()})
-            });
-            if (!response.ok) {
-                showError(i18n.translate('Command is not completed.'))
-            }
-        } else {
-            showError(i18n.format('Upload interval should not be less than {}', [MIN_UPLOAD_INTERVAL]));
-        }
-    });
-
-    const $timecustom = $('#kid-settings-timecustom');
-    $timecustom.off('click');
-    $timecustom.click(async function () {
-        const datetime = $('#kid-settings-datetime').val();
-        const response = await fetch(`/api/device/${deviceId}/command`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({type: 'TIME', payload: [
-            moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_TIME_FORMAT),
-            'DATE',
-            moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_DATE_FORMAT)
-          ]})
-        });
-        if (!response.ok) {
-            showError(i18n.translate('Command is not completed.'))
-        }
-    })
-
-    function initCommand($button, command, callback) {
+    function initCommand($button, command, options) {
         $button.off('click');
-        $button.click(async function () {
+        $button.click(async () => {
+            if (options.before) {
+                options.before();
+            }
             const response = await fetch(`/api/device/${deviceId}/command`, {
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({type: command, payload: []})
+              body: JSON.stringify({type: command, payload: options.payload ? options.payload() : []})
             });
-            if (!response.ok) {
-                showError(i18n.translate('Command is not completed.'))
-            }
-            if (callback) {
-                callback();
+            if (response.ok) {
+                if (options.after) {
+                    options.after();
+                }
+            } else {
+                showError(i18n.translate('Command is not completed.'));
+                if (options.error) {
+                    options.error();
+                }
             }
         });
     }
 
-    initCommand($('#kid-settings-timeserver'), 'TIMECALI',
-        () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT)));
+    function initConfig($input, $button, parameter, options) {
+        if (options.initValue) {
+            $input.val(options.initValue());
+        } else {
+            let isSet = false;
+            config.filter(c => c.parameter == parameter).forEach(c => {
+                $input.val(c.value);
+                isSet = true;
+            });
+            if (isSet == false && options.defaultValue) {
+                $input.val(options.defaultValue());
+            }
+        }
+        $button.off('click');
+        $button.click(async () => {
+            if (options.before) {
+                options.before();
+            }
+            const response = await fetch(`/api/device/${deviceId}/config`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({parameter: parameter, value: options.value ? options.value() : $input.val()})
+            });
+            if (response.ok) {
+                if (options.after) {
+                    options.after();
+                }
+            } else {
+                showError(i18n.translate('Command is not completed.'));
+                if (options.error) {
+                    options.error();
+                }
+            }
+        });
+    }
 
     function initCheck($check, parameter) {
         config.filter(c => c.parameter == parameter).forEach(c => $check[0].checked = c.value == '1');
         $check.off('change');
-        $check.click(async function () {
+        $check.click(async () => {
             const value = $check[0].checked == true ? '1' : '0';
             const response = await fetch(`/api/device/${deviceId}/config`, {
               method: 'POST',
@@ -135,14 +148,37 @@ async function showWatchSettings(deviceId) {
         });
     }
 
+    initConfig($('#kid-settings-uploadinterval-input'), $('#kid-settings-uploadinterval'), 'UPLOAD', {
+        defaultValue: () => 60,
+        value: () => $('#kid-settings-uploadinterval-input').val()
+    });
+
+    initConfig($('#kid-settings-worktime-input'), $('#kid-settings-worktime'), 'WORKTIME', {
+        defaultValue: () => 3,
+        value: () => $('#kid-settings-worktime-input').val()
+    });
+
+    initConfig($('#kid-settings-datetime'), $('#kid-settings-timecustom'), 'TIME', {
+        initValue: () => moment().format(WATCH_DATETIME_FORMAT),
+        value: () => {
+            const datetime = $('#kid-settings-datetime').val();
+            return `${moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_TIME_FORMAT)},DATE,${moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_DATE_FORMAT)}`;
+        }
+    });
+
+    initCommand($('#kid-settings-timeserver'), 'TIMECALI', {after: () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT))});
+
     initCheck($('#kid-settings-removesms'), 'REMOVESMS');
     initCheck($('#kid-settings-lowbatsms'), 'LOWBAT');
     initCheck($('#kid-settings-sossms'), 'SOSSMS');
     initCheck($('#kid-settings-voicemsg'), 'TKONOFF');
     initCheck($('#kid-settings-sms'), 'SMSONOFF');
     initCheck($('#kid-settings-pedometer'), 'PEDO');
-    initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND');
     initCheck($('#kid-settings-bt'), 'BT');
+    initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND');
+
+    initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', {});
+
     initCheck($('#kid-settings-bigtime'), 'BIGTIME');
     initCheck($('#kid-settings-contacts'), 'PHBONOFF');
 
@@ -168,7 +204,7 @@ async function showWatchSettings(deviceId) {
     });
 
     if (!tzSet) {
-        $('#kid-settings-tz-select').val(-Math.round((new Date()).getTimezoneOffset() / 60));
+        $('#kid-settings-tz-select').val(-Number(Math.round(((new Date()).getTimezoneOffset() / 60) + "e2") + "e-2"));
     }
 
     const $timezone = $('#kid-settings-tz');
@@ -220,9 +256,9 @@ async function showWatchSettings(deviceId) {
         });
     }
 
-    initCommand($('#kid-settings-factory'), 'FACTORY', async () => await showInputToken());
-    initCommand($('#kid-settings-poweroff'), 'POWEROFF', async () => await showInputToken());
-    initCommand($('#kid-settings-restart'), 'RESET', async () => await showInputToken());
+    initCommand($('#kid-settings-factory'), 'FACTORY', {after: async () => await showInputToken()});
+    initCommand($('#kid-settings-poweroff'), 'POWEROFF', {after: async () => await showInputToken()});
+    initCommand($('#kid-settings-restart'), 'RESET', {after: async () => await showInputToken()});
 
     const $close = $('#kid-settings-close');
 

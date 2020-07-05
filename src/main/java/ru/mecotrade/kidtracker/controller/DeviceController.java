@@ -3,6 +3,7 @@ package ru.mecotrade.kidtracker.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,7 +61,11 @@ public class DeviceController {
 
     private final static String TIMEZONE_REGEX = "^(-12|-11|-10|-9|-8|-7|-6|-5|-4|-3\\.50|-3|-2|-1|0|1|2|3|3\\.50|4|4\\.30|5|5\\.50|5\\.75|6|6\\.50|7|8|9|9\\.50|10|11|12|13)$";
 
-    private final static int MIN_UPLOAD_INTERVAL = 10;
+    @Value("${kidtracker.device.controller.min.upload.interval}")
+    private int minUploadInterval;
+
+    @Value("${kidtracker.device.controller.min.worktime}")
+    private int minWorktime;
 
     @Autowired
     private DeviceProcessor deviceProcessor;
@@ -207,81 +212,95 @@ public class DeviceController {
     }
 
     private boolean isValid(Contact contact) {
-        switch (contact.getType()) {
-            case PHONEBOOK:
-                return !StringUtils.isBlank(contact.getName())
-                        && !StringUtils.isBlank(contact.getPhone()) && contact.getPhone().matches(PHONE_NUMBER_REGEX);
-            default:
-                return !StringUtils.isBlank(contact.getPhone()) && contact.getPhone().matches(PHONE_NUMBER_REGEX);
+        if (contact.getType() != null) {
+            switch (contact.getType()) {
+                case PHONEBOOK:
+                    return !StringUtils.isBlank(contact.getName())
+                            && !StringUtils.isBlank(contact.getPhone()) && contact.getPhone().matches(PHONE_NUMBER_REGEX);
+                default:
+                    return !StringUtils.isBlank(contact.getPhone()) && contact.getPhone().matches(PHONE_NUMBER_REGEX);
+            }
         }
+
+        return false;
     }
 
     private boolean isValid(Config config) {
-        switch (config.getParameter()) {
-            case "UPLOAD":
-                return config.getValue() != null && config.getValue().matches(NUMBER_REGEX)
-                        && Integer.parseInt(config.getValue()) >= MIN_UPLOAD_INTERVAL;
-            case "LZ":
-                if (config.getValue() != null) {
-                    String[] payload = config.getValue().split(",");
-                    return payload.length == 2
-                            && payload[0].matches(LANGUAGE_CODE_REGEX)
-                            && payload[1].matches(TIMEZONE_REGEX);
-                } else {
-                    return false;
-                }
-            case "SOSSMS":
-            case "REMOVESMS":
-            case "LOWBAT":
-            case "TKONOFF":
-            case "SMSONOFF":
-            case "PEDO":
-            case "MAKEFRIEND":
-            case "BT":
-            case "BIGTIME":
-            case "PHBONOFF":
-                return config.getValue() != null && config.getValue().matches(SWITCH_REGEX);
-            default:
-                return false;
+        if (config.getParameter() != null) {
+            switch (config.getParameter()) {
+                case "UPLOAD":
+                    return config.getValue() != null && config.getValue().matches(NUMBER_REGEX)
+                            && Integer.parseInt(config.getValue()) >= minUploadInterval;
+                case "WORKTIME":
+                    return config.getValue() != null && config.getValue().matches(NUMBER_REGEX)
+                            && Integer.parseInt(config.getValue()) >= minWorktime;
+                case "LZ":
+                    if (config.getValue() != null) {
+                        String[] payload = config.getValue().split(",");
+                        return payload.length == 2
+                                && payload[0].matches(LANGUAGE_CODE_REGEX)
+                                && payload[1].matches(TIMEZONE_REGEX);
+                    } else {
+                        return false;
+                    }
+                case "BTNAME":
+                    return StringUtils.isNoneBlank(config.getValue());
+                case "SOSSMS":
+                case "REMOVESMS":
+                case "LOWBAT":
+                case "TKONOFF":
+                case "SMSONOFF":
+                case "PEDO":
+                case "MAKEFRIEND":
+                case "BT":
+                case "BIGTIME":
+                case "PHBONOFF":
+                    return config.getValue() != null && config.getValue().matches(SWITCH_REGEX);
+            }
         }
+
+        return false;
     }
 
     private boolean isProtected(Command command) {
 
-        switch (command.getType()) {
-            case "POWEROFF":
-            case "FACTORY":
-                return true;
-            default:
-                return false;
+        if (command.getType() != null) {
+            switch (command.getType()) {
+                case "POWEROFF":
+                case "FACTORY":
+            }
         }
+
+        return false;
     }
 
     private boolean isValid(Command command) {
 
-        List<String> payload = command.getPayload();
-        switch (command.getType()) {
-            case "CR":
-            case "FIND":
-            case "TIMECALI":
-            case "RESET":
-            case "POWEROFF":
-            case "FACTORY":
-                return payload == null || payload.isEmpty();
-            case "MONITOR":
-            case "CALL":
-                return payload != null && payload.size() == 1
-                        && payload.get(0) != null && payload.get(0).matches(PHONE_NUMBER_REGEX);
-            case "SMS":
-                return payload != null && payload.size() == 2
-                        && payload.get(0) != null && payload.get(0).matches(PHONE_NUMBER_REGEX);
-            case "TIME":
-                return payload != null && payload.size() == 3
-                        && payload.get(0) != null && payload.get(0).matches(TIME_REGEX)
-                        && "DATE".equals(payload.get(1))
-                        && payload.get(2) != null && payload.get(2).matches(DATE_REGEX);
-            default:
-                return false;
+        if (command.getType() != null) {
+            List<String> payload = command.getPayload();
+            switch (command.getType()) {
+                case "CR":
+                case "FIND":
+                case "TIMECALI":
+                case "RESET":
+                case "POWEROFF":
+                case "FACTORY":
+                    return payload == null || payload.isEmpty();
+                case "MONITOR":
+                case "CALL":
+                    return payload != null && payload.size() == 1
+                            && payload.get(0) != null && payload.get(0).matches(PHONE_NUMBER_REGEX);
+                case "SMS":
+                    return payload != null && payload.size() == 2
+                            && payload.get(0) != null && payload.get(0).matches(PHONE_NUMBER_REGEX);
+                case "TIME":
+                    return payload != null && payload.size() == 3
+                            && payload.get(0) != null && payload.get(0).matches(TIME_REGEX)
+                            && "DATE".equals(payload.get(1))
+                            && payload.get(2) != null && payload.get(2).matches(DATE_REGEX);
+            }
         }
+
+        return false;
     }
 }
