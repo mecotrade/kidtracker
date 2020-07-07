@@ -141,41 +141,48 @@ async function showHistory(deviceId) {
                 const tooltipTiles = ['Battery {}%', '{} steps'];
 
                 chart = new Chart(ctx, {
-                  type: 'line',
-                  data: { datasets: [
-                    batteryDataset,
-                    pedometerDataset
-                  ]},
-                  options: {
-                    aspectRatio: 1,
-                    scales: {
-                      xAxes: [{
-                        type: 'time',
-                        time: {
-                          displayFormats: TIME_AXIS_DISPLAY_FORMAT
-                        }
-                      }],
-                      yAxes: [{
-                        id: 'battery',
-                        type: 'linear',
-                        position: 'left',
-                      }, {
-                        id: 'pedometer',
-                        type: 'linear',
-                        position: 'right',
-                      }]
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            batteryDataset,
+                            pedometerDataset
+                        ]
                     },
-                    tooltips: {
-                      callbacks: {
-                        label: function(tooltipItem, data) {
-                          return i18n.format(tooltipTiles[tooltipItem.datasetIndex], [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y]);
+                    options: {
+                        aspectRatio: 1,
+                        scales: {
+                            xAxes: [
+                                {
+                                    type: 'time',
+                                    time: {
+                                        displayFormats: TIME_AXIS_DISPLAY_FORMAT
+                                    }
+                                }
+                            ],
+                            yAxes: [
+                                {
+                                    id: 'battery',
+                                    type: 'linear',
+                                    position: 'left',
+                                },
+                                {
+                                    id: 'pedometer',
+                                    type: 'linear',
+                                    position: 'right',
+                                }
+                            ]
                         },
-                        title: function(tooltipItem, data) {
-                          return moment(data.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index].x).format(TOOLTIP_TIME_FORMAT);
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                    return i18n.format(tooltipTiles[tooltipItem.datasetIndex], [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].y]);
+                                },
+                                title: function(tooltipItem, data) {
+                                    return moment(data.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index].x).format(TOOLTIP_TIME_FORMAT);
+                                }
+                            }
                         }
-                      }
                     }
-                  }
                 });
                 $chart.show();
             } else {
