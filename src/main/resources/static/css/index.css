@@ -65,3 +65,12 @@ html, body, #map {
   width: 100%;
   overflow-y: scroll;
 }
+
+div.form-group.reminder-multiselect {
+  width: 100%;
+  margin: 0 5px 12px 5px;
+}
+
+.reminder-multiselect-container {
+  width: 100%;
+}

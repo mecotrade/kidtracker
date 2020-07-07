@@ -100,8 +100,27 @@ const i18n = {
             'Francais': 'Французский',
             'Reminders': 'Будильники',
             'Reminder 1': 'Будильник 1',
+            'Reminder 2': 'Будильник 2',
+            'Reminder 3': 'Будильник 3',
             'Input token': 'Ввод кода',
-            'One-time SMS token': 'Одноразовый SMS-код'
+            'One-time SMS token': 'Одноразовый SMS-код',
+            'Once': 'Один раз',
+            'Everyday': 'Ежедневно',
+            'Select days': 'Выбрать дни',
+            'Available': 'Доступно',
+            'Selected': 'Выбрано',
+            'Sunday': 'Воскресенье',
+            'Monday': 'Понедельник',
+            'Tuesday': 'Вторник',
+            'Wednesday': 'Среда',
+            'Thursday': 'Четверг',
+            'Friday': 'Пятница',
+            'Saturday': 'Суббота',
+            'Active': 'Активен',
+            'Danger zone': 'Опасные действия',
+            'Reboot watch': 'Перезагрузить часы',
+            'Switch the watch off': 'Выключить часы',
+            'Reset watch to factory config': 'Сбросить все настройки'
         }
     },
 

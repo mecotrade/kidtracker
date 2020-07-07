@@ -2,6 +2,7 @@
 
 const i18n = require('./i18n.js');
 const {initNotification, showWarning, showError} = require('./notification.js');
+const {initCommand, initConfig, initCheck} = require('./util.js');
 
 const ADMIN = 'ADMIN';
 const SOS = 'SOS';
@@ -72,6 +73,9 @@ function initContact() {
 
     i18n.applyAll([
         $('#contacts-title'),
+        $('#kid-settings-removesms-label'),
+        $('#kid-settings-lowbatsms-label'),
+        $('#kid-settings-sossms-label'),
         $('#edit-contact-title'),
         $('#contact-name-label'),
         $('#contact-phone-label')
@@ -102,6 +106,12 @@ async function showTab(deviceId) {
 
     const tabData = TABS[tab];
     $('div.alert', $modal).html(i18n.format(tabData.info, tabData.icons));
+
+    if (tab == SOS) {
+        $('#contacts-alert').show();
+    } else {
+        $('#contacts-alert').hide();
+    }
 
     const response = await fetch(`/api/device/${deviceId}/contact/${tab}`);
     const data = await response.json();
@@ -285,6 +295,13 @@ async function showContact(deviceId) {
         }
         showTab(deviceId)
     });
+
+    const configResponse = await fetch(`/api/device/${deviceId}/config`);
+    const config = await configResponse.json();
+
+    initCheck($('#kid-settings-removesms'), 'REMOVESMS', config, deviceId);
+    initCheck($('#kid-settings-lowbatsms'), 'LOWBAT', config, deviceId);
+    initCheck($('#kid-settings-sossms'), 'SOSSMS', config, deviceId);
 
     await showTab(deviceId);
 

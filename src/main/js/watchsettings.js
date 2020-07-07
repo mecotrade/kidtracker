@@ -3,9 +3,11 @@
 const i18n = require('./i18n.js');
 const moment = require('moment/min/moment-with-locales.min.js');
 const {initNotification, showWarning, showError} = require('./notification.js');
-require('bootstrap-input-spinner/src/bootstrap-input-spinner.js')
+const {initCommand, initConfig, initCheck} = require('./util.js');
+require('bootstrap-input-spinner/src/bootstrap-input-spinner.js');
 
 const WATCH_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
+const WATCH_TIME_FORMAT = 'HH:mm';
 const WATCH_COMMAND_TIME_FORMAT = 'HH.mm.ss';
 const WATCH_COMMAND_DATE_FORMAT = 'YYYY.MM.DD';
 
@@ -26,18 +28,11 @@ function initWatchSettings() {
         value: moment().format(WATCH_DATETIME_FORMAT)
     });
 
-    $('#kid-settings-reminder-1-input').timepicker({
-        uiLibrary: 'bootstrap4'
-    });
-
     i18n.applyAll([
         $('#kid-settings-title'),
         $('#kid-settings-uploadinterval-input-label'),
         $('#kid-settings-worktime-input-label'),
         $('#kid-settings-datetime-label'),
-        $('#kid-settings-removesms-label'),
-        $('#kid-settings-lowbatsms-label'),
-        $('#kid-settings-sossms-label'),
         $('#kid-settings-voicemsg-label'),
         $('#kid-settings-sms-label'),
         $('#kid-settings-pedometer-label'),
@@ -48,7 +43,6 @@ function initWatchSettings() {
         $('#kid-settings-contacts-label'),
         $('#kid-settings-tz-input-label'),
         $('#kid-settings-lang-label'),
-        $('#kid-settings-reminder-1-input-label'),
         $('#input-token-input-label'),
         $('#input-token-title')
     ]);
@@ -64,11 +58,106 @@ function initWatchSettings() {
     $('#show-kid-settings div.card').each(function (i)  {
         const $header = $('div.card-header', $(this));
         i18n.apply($('span', $header));
+        $('div.form-group > span', $(this)).each(function (i) {
+            i18n.apply($(this));
+        });
         $header.off('click');
         $header.click(() => {
             $('div.card-body', $(this)).toggle();
+            $('ul.list-group.list-group-flush', $(this)).toggle();
         });
     });
+
+    initReminder('kid-settings-reminder-1');
+    initReminder('kid-settings-reminder-2');
+    initReminder('kid-settings-reminder-3');
+
+    $('#input-token-input').off('keydown');
+    $('#input-token-input').on('keydown', function(e) {
+        if (e.keyCode == 13) {
+            $('#input-token-execute')[0].dispatchEvent(new Event('click'));
+            e.preventDefault();
+        }
+    });
+}
+
+function initReminder(prefix) {
+
+    const $typeSelect = $(`#${prefix}-select`);
+    const $daysRow = $(`#${prefix}-days`);
+
+    $(`#${prefix}-time`).timepicker({
+        locale: 'ru-ru',
+        format: 'HH:MM',
+        mode: '24hr',
+        footer: true,
+        modal: true,
+        uiLibrary: 'bootstrap4',
+        value: moment().format(WATCH_TIME_FORMAT)
+    });
+
+    i18n.applyAll([
+        $(`#${prefix}-time-label`),
+        $(`#${prefix}-on-label`)
+    ]);
+
+    $typeSelect.off('change');
+    $typeSelect.on('change', () => {
+        if ($typeSelect.val() == 'choice') {
+            $daysRow.show();
+        } else {
+            $daysRow.hide();
+        }
+    });
+
+    $('option', $typeSelect).each(function (i) {
+        i18n.apply($(this));
+    });
+
+    $('option', $daysRow).each(function(i) {
+        i18n.apply($(this));
+    });
+
+    $('select', $daysRow).multiSelect({
+        selectableHeader: i18n.translate('Available'),
+        selectionHeader: i18n.translate('Selected'),
+        cssClass: 'reminder-multiselect-container'
+    });
+}
+
+function reminderValue(prefix) {
+
+    const time = $(`#${prefix}-time`).val();
+    const active = $(`#${prefix}-on`)[0].checked ? '1' : '0';
+    let type = $(`#${prefix}-select`).children('option:selected').val();
+    if (type == 'choice') {
+        type = '0000000';
+        $(`#${prefix}-days select`).val().forEach(i => {
+            const index = parseInt(i);
+            type = type.substring(0, index) + '1' + type.substring(index + 1);
+        })
+    }
+
+    return `${time}-${active}-${type}`;
+}
+
+function reminderConfig(prefix, value) {
+
+    const [time, active, type] = value.split('-');
+    $(`#${prefix}-time`).val(time);
+    $(`#${prefix}-on`)[0].checked = active == '1';
+    if (type == '1' || type == '2') {
+        $(`#${prefix}-select`).val(type);
+    } else {
+        $(`#${prefix}-select`).val('choice');
+        const value = [];
+        for(let i=0; i < type.length; i++) {
+            if (type[i] === '1') value.push(i.toString());
+        }
+        $(`#${prefix}-days select`).multiSelect('select', value);
+    }
+
+    $(`#${prefix}-select`)[0].dispatchEvent(new Event('change'));
 }
 
 async function showWatchSettings(deviceId) {
@@ -76,149 +165,77 @@ async function showWatchSettings(deviceId) {
     const configResponse = await fetch(`/api/device/${deviceId}/config`);
     const config = await configResponse.json();
 
-    function initCommand($button, command, options) {
-        $button.off('click');
-        $button.click(async () => {
-            if (options.before) {
-                options.before();
-            }
-            const response = await fetch(`/api/device/${deviceId}/command`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({type: command, payload: options.payload ? options.payload() : []})
-            });
-            if (response.ok) {
-                if (options.after) {
-                    options.after();
-                }
-            } else {
-                showError(i18n.translate('Command is not completed.'));
-                if (options.error) {
-                    options.error();
-                }
-            }
-        });
-    }
-
-    function initConfig($input, $button, parameter, options) {
-        if (options.initValue) {
-            $input.val(options.initValue());
-        } else {
-            let isSet = false;
-            config.filter(c => c.parameter == parameter).forEach(c => {
-                $input.val(c.value);
-                isSet = true;
-            });
-            if (isSet == false && options.defaultValue) {
-                $input.val(options.defaultValue());
-            }
-        }
-        $button.off('click');
-        $button.click(async () => {
-            if (options.before) {
-                options.before();
-            }
-            const response = await fetch(`/api/device/${deviceId}/config`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({parameter: parameter, value: options.value ? options.value() : $input.val()})
-            });
-            if (response.ok) {
-                if (options.after) {
-                    options.after();
-                }
-            } else {
-                showError(i18n.translate('Command is not completed.'));
-                if (options.error) {
-                    options.error();
-                }
-            }
-        });
-    }
-
-    function initCheck($check, parameter) {
-        config.filter(c => c.parameter == parameter).forEach(c => $check[0].checked = c.value == '1');
-        $check.off('change');
-        $check.click(async () => {
-            const value = $check[0].checked == true ? '1' : '0';
-            const response = await fetch(`/api/device/${deviceId}/config`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({parameter: parameter, value: value})
-            });
-            if (!response.ok) {
-                $check[0].checked = !$check[0].checked;
-                showError(i18n.translate('Command is not completed.'))
-            }
-        });
-    }
-
-    initConfig($('#kid-settings-uploadinterval-input'), $('#kid-settings-uploadinterval'), 'UPLOAD', {
+    initConfig($('#kid-settings-uploadinterval-input'), $('#kid-settings-uploadinterval'), 'UPLOAD', config, deviceId, {
         defaultValue: () => 60,
         value: () => $('#kid-settings-uploadinterval-input').val()
     });
 
-    initConfig($('#kid-settings-worktime-input'), $('#kid-settings-worktime'), 'WORKTIME', {
+    initConfig($('#kid-settings-worktime-input'), $('#kid-settings-worktime'), 'WORKTIME', config, deviceId, {
         defaultValue: () => 3,
         value: () => $('#kid-settings-worktime-input').val()
     });
 
-    initConfig($('#kid-settings-datetime'), $('#kid-settings-timecustom'), 'TIME', {
-        initValue: () => moment().format(WATCH_DATETIME_FORMAT),
-        value: () => {
+    initCommand($('#kid-settings-timecustom'), 'TIME', deviceId, {
+        init: () => {
+            $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));
+        },
+        payload: () => {
             const datetime = $('#kid-settings-datetime').val();
-            return `${moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_TIME_FORMAT)},DATE,${moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_DATE_FORMAT)}`;
+            return [
+                moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_TIME_FORMAT),
+                'DATE',
+                moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_DATE_FORMAT)
+            ];
         }
     });
 
-    initCommand($('#kid-settings-timeserver'), 'TIMECALI', {after: () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT))});
+    initCommand($('#kid-settings-timeserver'), 'TIMECALI', deviceId, {after: () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT))});
 
-    initCheck($('#kid-settings-removesms'), 'REMOVESMS');
-    initCheck($('#kid-settings-lowbatsms'), 'LOWBAT');
-    initCheck($('#kid-settings-sossms'), 'SOSSMS');
-    initCheck($('#kid-settings-voicemsg'), 'TKONOFF');
-    initCheck($('#kid-settings-sms'), 'SMSONOFF');
-    initCheck($('#kid-settings-pedometer'), 'PEDO');
-    initCheck($('#kid-settings-bt'), 'BT');
-    initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND');
+    initCheck($('#kid-settings-voicemsg'), 'TKONOFF', config, deviceId);
+    initCheck($('#kid-settings-sms'), 'SMSONOFF', config, deviceId);
+    initCheck($('#kid-settings-pedometer'), 'PEDO', config, deviceId);
+    initCheck($('#kid-settings-bt'), 'BT', config, deviceId);
+    initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND', config, deviceId);
 
-    initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', {});
+    initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', config, deviceId);
 
-    initCheck($('#kid-settings-bigtime'), 'BIGTIME');
-    initCheck($('#kid-settings-contacts'), 'PHBONOFF');
+    initCheck($('#kid-settings-bigtime'), 'BIGTIME', config, deviceId);
+    initCheck($('#kid-settings-contacts'), 'PHBONOFF', config, deviceId);
 
-    async function clickLangTz() {
-        const lang = $('#kid-settings-lang-select').children('option:selected').val();
-        const tz = $('#kid-settings-tz-select').children('option:selected').val();
-        const response = await fetch(`/api/device/${deviceId}/config`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({parameter: 'LZ', value: `${lang},${tz}`})
-        });
-        if (!response.ok) {
-            showError(i18n.translate('Command is not completed.'))
+    initConfig(null, $('#kid-settings-langtz'), 'LZ', config, deviceId, {
+        init: function() {
+            let done = false;
+            config.filter(c => c.parameter == 'LZ').forEach(function(c) {
+                const [lang, tz] = c.value.split(',');
+                $('#kid-settings-tz-select').val(tz);
+                $('#kid-settings-lang-select').val(lang);
+                done = true;
+            });
+
+            if (!done) {
+                $('#kid-settings-tz-select').val(-Number(Math.round(((new Date()).getTimezoneOffset() / 60) + "e2") + "e-2"));
+            }
+        },
+        value: function() {
+            const lang = $('#kid-settings-lang-select').children('option:selected').val();
+            const tz = $('#kid-settings-tz-select').children('option:selected').val();
+            return `${lang},${tz}`;
         }
-    }
-
-    let tzSet = false;
-    config.filter(c => c.parameter == 'LZ').forEach(function(c) {
-        const [lang, tz] = c.value.split(',');
-        $('#kid-settings-tz-select').val(tz);
-        $('#kid-settings-lang-select').val(lang);
-        tzSet = true;
     });
 
-    if (!tzSet) {
-        $('#kid-settings-tz-select').val(-Number(Math.round(((new Date()).getTimezoneOffset() / 60) + "e2") + "e-2"));
-    }
-
-    const $timezone = $('#kid-settings-tz');
-    $timezone.off('click');
-    $timezone.click(clickLangTz);
-
-    const $lang = $('#kid-settings-lang');
-    $lang.off('click');
-    $lang.click(clickLangTz);
+    initConfig(null, $('#kid-settings-reminder'), 'REMIND', config, deviceId, {
+        init: () => {
+            config.filter(c => c.parameter == 'REMIND').forEach(function (c) {
+                const [reminder1, reminder2, reminder3] = c.value.split(',');
+                reminderConfig('kid-settings-reminder-1', reminder1);
+                reminderConfig('kid-settings-reminder-2', reminder2);
+                reminderConfig('kid-settings-reminder-3', reminder3);
+            });
+        },
+        value: () => {
+            return `${reminderValue('kid-settings-reminder-1')},${reminderValue('kid-settings-reminder-2')},${reminderValue('kid-settings-reminder-3')}`;
+        }
+    });
 
     async function showInputToken() {
 
@@ -261,9 +278,9 @@ async function showWatchSettings(deviceId) {
         });
     }
 
-    initCommand($('#kid-settings-factory'), 'FACTORY', {after: async () => await showInputToken()});
-    initCommand($('#kid-settings-poweroff'), 'POWEROFF', {after: async () => await showInputToken()});
-    initCommand($('#kid-settings-restart'), 'RESET', {after: async () => await showInputToken()});
+    initCommand($('#kid-settings-restart'), 'RESET', deviceId);
+    initCommand($('#kid-settings-factory'), 'FACTORY', deviceId, {after: async () => await showInputToken()});
+    initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId, {after: async () => await showInputToken()});
 
     const $close = $('#kid-settings-close');
 

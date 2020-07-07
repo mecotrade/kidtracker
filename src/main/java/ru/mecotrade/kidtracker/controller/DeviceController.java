@@ -41,11 +41,15 @@ public class DeviceController {
 
     private final static String TIME_REGEX = "^([0-1]?[0-9]|2[0-3])\\.[0-5][0-9]\\.[0-5][0-9]$";
 
+    private final static String TIME2_REGEX = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$";
+
     private final static String DATE_REGEX = "^\\d{4}\\.(0[1-9]|1[0-2])\\.(0[1-9]|[1-2][0-9]|3[0-1])$";
 
     private final static String NUMBER_REGEX = "^[0-9]+$";
 
     private final static String SWITCH_REGEX = "^[01]$";
+
+    private final static String REMINDER_TYPE_REGEX = "^([12]|[01]{7})$";
 
     // only acceptable languages:
     //  0:English,
@@ -229,19 +233,39 @@ public class DeviceController {
         if (config.getParameter() != null) {
             switch (config.getParameter()) {
                 case "UPLOAD":
-                    return config.getValue() != null && config.getValue().matches(NUMBER_REGEX)
+                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(NUMBER_REGEX)
                             && Integer.parseInt(config.getValue()) >= minUploadInterval;
                 case "WORKTIME":
-                    return config.getValue() != null && config.getValue().matches(NUMBER_REGEX)
+                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(NUMBER_REGEX)
                             && Integer.parseInt(config.getValue()) >= minWorktime;
                 case "LZ":
-                    if (config.getValue() != null) {
+                    if (StringUtils.isNoneBlank(config.getValue())) {
                         String[] payload = config.getValue().split(",");
                         return payload.length == 2
                                 && payload[0].matches(LANGUAGE_CODE_REGEX)
                                 && payload[1].matches(TIMEZONE_REGEX);
                     } else {
                         return false;
+                    }
+                case "REMIND":
+                    if (StringUtils.isNoneBlank(config.getValue())) {
+                        String[] payload = config.getValue().split(",");
+                        if (payload.length == 3) {
+                            for (String p : payload) {
+                                String[] reminder = p.split("-");
+                                if (reminder.length != 3
+                                        || !reminder[0].matches(TIME2_REGEX)
+                                        || !reminder[1].matches(SWITCH_REGEX)
+                                        || !reminder[2].matches(REMINDER_TYPE_REGEX)) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                        return false;
+                    } else {
+                        // remove all reminders
+                        return true;
                     }
                 case "BTNAME":
                     return StringUtils.isNoneBlank(config.getValue());
@@ -255,7 +279,7 @@ public class DeviceController {
                 case "BT":
                 case "BIGTIME":
                 case "PHBONOFF":
-                    return config.getValue() != null && config.getValue().matches(SWITCH_REGEX);
+                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(SWITCH_REGEX);
             }
         }
 
@@ -268,6 +292,7 @@ public class DeviceController {
             switch (command.getType()) {
                 case "POWEROFF":
                 case "FACTORY":
+                    return true;
             }
         }
 
