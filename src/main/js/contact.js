@@ -70,16 +70,6 @@ function initContact() {
 
     tab = ADMIN;
     checked = false;
-
-    i18n.applyAll([
-        $('#contacts-title'),
-        $('#kid-settings-removesms-label'),
-        $('#kid-settings-lowbatsms-label'),
-        $('#kid-settings-sossms-label'),
-        $('#edit-contact-title'),
-        $('#contact-name-label'),
-        $('#contact-phone-label')
-    ]);
 }
 
 async function showTab(deviceId) {

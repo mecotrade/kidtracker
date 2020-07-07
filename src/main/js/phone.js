@@ -11,12 +11,7 @@ function initPhone() {
         $sms.attr('disabled', $text.val() == '');
     });
 
-    i18n.applyAll([
-        $('#phone-title'),
-        $('#phone-input-label'),
-        $('#sms-input-label'),
-        $('#phone-info')
-    ]);
+    i18n.apply($('#phone-info'));
 }
 
 async function showPhone(user, deviceId) {

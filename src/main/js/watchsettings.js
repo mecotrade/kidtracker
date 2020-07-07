@@ -28,33 +28,6 @@ function initWatchSettings() {
         value: moment().format(WATCH_DATETIME_FORMAT)
     });
 
-    i18n.applyAll([
-        $('#kid-settings-title'),
-        $('#kid-settings-uploadinterval-input-label'),
-        $('#kid-settings-worktime-input-label'),
-        $('#kid-settings-datetime-label'),
-        $('#kid-settings-voicemsg-label'),
-        $('#kid-settings-sms-label'),
-        $('#kid-settings-pedometer-label'),
-        $('#kid-settings-bt-label'),
-        $('#kid-settings-makefriend-label'),
-        $('#kid-settings-btname-input-label'),
-        $('#kid-settings-bigtime-label'),
-        $('#kid-settings-contacts-label'),
-        $('#kid-settings-tz-input-label'),
-        $('#kid-settings-lang-label'),
-        $('#input-token-input-label'),
-        $('#input-token-title')
-    ]);
-
-    $('#kid-settings-lang-select option').each(function (i) {
-        i18n.apply($(this));
-    });
-
-    $('#kid-settings-tz-select option').each(function (i)  {
-        i18n.apply($(this));
-    });
-
     $('#show-kid-settings div.card').each(function (i)  {
         const $header = $('div.card-header', $(this));
         i18n.apply($('span', $header));

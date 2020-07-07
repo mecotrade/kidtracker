@@ -81,12 +81,6 @@ function initHistory() {
         $('#date-picker-title').hide();
     });
 
-    i18n.applyAll([
-        $('#history-title'),
-        $('#history-start-label'),
-        $('#history-end-label'),
-        $('#history-date-label'),
-    ]);
 }
 
 async function showHistory(deviceId) {

@@ -375,6 +375,25 @@ window.addEventListener('load', async function onload() {
         enableHighAccuracy: true
     });
 
+    $('h5.modal-title').each(function (i) {
+        i18n.apply($(this));
+    });
+
+    $('label').each(function (i) {
+        const $this = $(this);
+        if ($this.has('span').length) {
+            $('span', $this).each(function (i) {
+                i18n.apply($(this));
+            })
+        } else {
+            i18n.apply($this);
+        }
+    });
+
+    $('option').each(function (i) {
+        i18n.apply($(this));
+    });
+
     initHistory();
     initNotification();
     initPhone();
