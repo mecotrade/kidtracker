@@ -32,7 +32,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .and()
                 .authorizeRequests()
                         .antMatchers("/h2-console/**").permitAll()
-                        .antMatchers("/api/user/0/**").permitAll()
                         .anyRequest().hasAnyAuthority(Roles.USER.toString())
                         .and()
                 .addFilterAfter(new UserDeviceFilter(), FilterSecurityInterceptor.class)
