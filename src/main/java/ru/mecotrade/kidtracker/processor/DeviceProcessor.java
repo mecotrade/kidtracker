@@ -19,7 +19,7 @@ import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.dao.model.Kid;
 import ru.mecotrade.kidtracker.dao.model.Message;
-import ru.mecotrade.kidtracker.dao.model.User;
+import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.device.Device;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
@@ -63,7 +63,7 @@ public class DeviceProcessor {
     private Map<String, Map<LocalDate, Integer>> initPedometers;
 
     public Report report(Long userId) throws KidTrackerUnknownUserException {
-        Optional<User> user = userService.get(userId);
+        Optional<UserInfo> user = userService.get(userId);
         if (user.isPresent()) {
             Collection<Device> devices = deviceManager.select(user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList()));
 
@@ -126,7 +126,7 @@ public class DeviceProcessor {
 
     public Collection<Snapshot> lastSnapshots(Long userId, Date timestamp) throws KidTrackerUnknownUserException {
         // TODO use cache
-        Optional<User> user = userService.get(userId);
+        Optional<UserInfo> user = userService.get(userId);
         if (user.isPresent()) {
             Collection<String> deviceIds = user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList());
             return messageService.last(deviceIds,

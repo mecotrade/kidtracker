@@ -10,12 +10,17 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 import java.util.Date;
 
 @Data
 @Entity
-public class User {
+@Table(name="user",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"username"})})
+public class UserInfo {
 
     @Id
     @GeneratedValue
@@ -23,6 +28,10 @@ public class User {
 
     @CreationTimestamp
     private Date timestamp;
+
+    private String username;
+
+    private String password;
 
     @ManyToMany
     @JoinTable(name = "assignment",

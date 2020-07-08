@@ -25,8 +25,6 @@ const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
 
 const LOST_INTERVAL = 15 * 60 * 1000;
 
-const userId = 1;
-
 var map = L.map('map');
 
 var user;
@@ -299,7 +297,7 @@ async function locateKids() {
 
     const deviceId = $('#kid-select').children('option:selected').val();
 
-    const reportResponse = await fetch(`/api/user/${userId}/kids/report`);
+    const reportResponse = await fetch(`/api/user/kids/report`);
     const report = await reportResponse.json();
     report.positions.forEach(p => {
         if (!path || p.deviceId != deviceId) {
@@ -320,7 +318,7 @@ async function updateMidnightSnapshot() {
 
     midnight = moment().startOf('day').toDate();
 
-    const snapshotResponse = await fetch(`/api/user/${userId}/kids/snapshot/${midnight.getTime()}`);
+    const snapshotResponse = await fetch(`/api/user/kids/snapshot/${midnight.getTime()}`);
     const snapshot = await snapshotResponse.json();
     kids.forEach(k => {
         const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
@@ -345,7 +343,7 @@ window.addEventListener('load', async function onload() {
 	map.setZoom(DEFAULT_ZOOM);
 
     // kids definition and location
-	const kidsResponse = await fetch(`/api/user/${userId}/kids/info`);
+	const kidsResponse = await fetch(`/api/user/kids/info`);
     kids = await kidsResponse.json();
     $('#kid-select').html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
     kids.forEach(k => {
@@ -361,7 +359,7 @@ window.addEventListener('load', async function onload() {
     setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);
 
     // user definition and location
-    const userResponse = await fetch(`/api/user/${userId}/info`);
+    const userResponse = await fetch(`/api/user/info`);
     user = await userResponse.json();
     $('#user-name').text(user.name);
     user.marker = L.marker([0,0]).addTo(map);

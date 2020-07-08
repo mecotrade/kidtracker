@@ -2,6 +2,9 @@ package ru.mecotrade.kidtracker.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +17,7 @@ import ru.mecotrade.kidtracker.model.User;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
+import ru.mecotrade.kidtracker.security.UserPrincipal;
 
 import java.util.Collection;
 import java.util.Date;
@@ -21,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @Slf4j
-@RequestMapping("/api/user/{userId}")
+@RequestMapping("/api/user")
 public class UserController {
 
     @Autowired
@@ -32,31 +36,51 @@ public class UserController {
 
     @GetMapping("/info")
     @ResponseBody
-    public User info(@PathVariable Long userId) {
-        // TODO: user not found
-        return userService.get(userId).map(u -> new User(u.getName(), u.getPhone())).get();
+    public ResponseEntity<User> info(Authentication authentication) {
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            return ResponseEntity.ok(new User(userPrincipal.getUserInfo().getName(), userPrincipal.getUserInfo().getPhone()));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @GetMapping("/kids/info")
     @ResponseBody
-    public Collection<Kid> kidInfo(@PathVariable Long userId) {
-        // TODO: user not found
-        return userService.get(userId).get().getKids().stream().map(k -> new Kid(k.getDeviceId(), k.getName(), k.getThumb())).collect(Collectors.toList());
+    public ResponseEntity<Collection<Kid>> kidInfo(Authentication authentication) {
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            return ResponseEntity.ok(userPrincipal.getUserInfo().getKids().stream()
+                    .map(k -> new Kid(k.getDeviceId(), k.getName(), k.getThumb()))
+                    .collect(Collectors.toList()));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @GetMapping("/kids/report")
     @ResponseBody
-    public Report report(@PathVariable Long userId) throws KidTrackerUnknownUserException {
-        // TODO: process unknown user exception
-        return deviceProcessor.report(userId);
+    public ResponseEntity<Report> report(Authentication authentication) throws KidTrackerUnknownUserException {
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            return ResponseEntity.ok(deviceProcessor.report(userPrincipal.getUserInfo().getId()));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @GetMapping("/kids/snapshot/{timestamp:\\d+}")
     @ResponseBody
-    public Collection<Snapshot> snapshot(@PathVariable Long userId, @PathVariable Long timestamp) throws KidTrackerUnknownUserException {
-        // TODO: process unknown user exception
-        return deviceProcessor.lastSnapshots(userId, new Date(timestamp));
+    public ResponseEntity<Collection<Snapshot>> snapshot(@PathVariable Long timestamp, Authentication authentication) throws KidTrackerUnknownUserException {
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            return ResponseEntity.ok(deviceProcessor.lastSnapshots(userPrincipal.getUserInfo().getId(), new Date(timestamp)));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-
-
 }

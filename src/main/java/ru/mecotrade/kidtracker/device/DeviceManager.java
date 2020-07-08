@@ -9,7 +9,7 @@ import ru.mecotrade.kidtracker.dao.KidService;
 import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.dao.model.Message;
-import ru.mecotrade.kidtracker.dao.model.User;
+import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownDeviceException;
@@ -56,7 +56,7 @@ public class DeviceManager implements MessageListener {
 
         Device device = devices.get(message.getDeviceId());
         if (device == null) {
-            Collection<User> users = kidService.users(message.getDeviceId());
+            Collection<UserInfo> users = kidService.users(message.getDeviceId());
             if (!users.isEmpty()) {
                 device = new Device(message.getDeviceId(), message.getManufacturer(), messageConnector);
                 devices.put(message.getDeviceId(), device);
@@ -87,7 +87,7 @@ public class DeviceManager implements MessageListener {
         Device device = devices.get(deviceId);
         if (device != null) {
             // TODO get user from security context
-            Optional<User> user = userService.get(1L);
+            Optional<UserInfo> user = userService.get(1L);
             if (user.isPresent()) {
                 String phone = user.get().getPhone();
                 String token = RandomStringUtils.randomNumeric(tokenLength);

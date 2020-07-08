@@ -93,7 +93,7 @@ public class DeviceController {
     @ResponseBody
     public ResponseEntity<Snapshot> lastSnapshot(@PathVariable String deviceId, @PathVariable Long timestamp) {
         Optional<Snapshot> lastSnapshot = deviceProcessor.lastSnapshot(deviceId, timestamp);
-        return lastSnapshot.map(s -> new ResponseEntity<>(s, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
+        return lastSnapshot.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PostMapping("/command")
@@ -107,14 +107,14 @@ public class DeviceController {
                 } else {
                     deviceManager.send(deviceId, command.getType(), String.join(",", command.getPayload()));
                 }
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return ResponseEntity.noContent().build();
             } else {
                 log.error("[{}] {} is incorrect", deviceId, command);
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return ResponseEntity.badRequest().build();
             }
         } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to send {}", deviceId, command, ex);
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.unprocessableEntity().build();
         }
     }
 
@@ -124,10 +124,10 @@ public class DeviceController {
         log.info("[{}] Received token {}", deviceId, token);
         try {
             deviceManager.execute(deviceId, token);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.noContent().build();
         } catch (KidTrackerException ex) {
             log.error("[{}] Unable to execute token {}", deviceId, token, ex);
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.unprocessableEntity().build();
         }
     }
 
@@ -144,14 +144,14 @@ public class DeviceController {
         try {
             if (isValid(contact)) {
                 deviceProcessor.updateContact(deviceId, contact);
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return ResponseEntity.noContent().build();
             } else {
                 log.error("[{}] {} is incorrect", deviceId, contact);
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return ResponseEntity.badRequest().build();
             }
         } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to update {}", deviceId, contact, ex);
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.unprocessableEntity().build();
         }
     }
 
@@ -161,10 +161,10 @@ public class DeviceController {
         log.info("[{}] Remove contact for type={}, index={}", deviceId, type, index);
         try {
             deviceProcessor.removeContact(deviceId, type, index);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.noContent().build();
         } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to remove contact for type={}, index={}", deviceId, type, index, ex);
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.unprocessableEntity().build();
         }
     }
 
@@ -181,14 +181,14 @@ public class DeviceController {
         try {
             if (isValid(config)) {
                 deviceProcessor.updateConfig(deviceId, config);
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return ResponseEntity.noContent().build();
             } else {
                 log.error("[{}] {} is incorrect", deviceId, config);
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return ResponseEntity.badRequest().build();
             }
         } catch (KidTrackerConnectionException ex) {
             log.error("[{}] Unable to update {}", deviceId, config, ex);
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.unprocessableEntity().build();
         }
     }
 
@@ -197,7 +197,7 @@ public class DeviceController {
     public ResponseEntity<String> alarmOff(@PathVariable String deviceId) {
         log.info("[{}] Received alarm off request", deviceId);
         deviceManager.alarmOff(deviceId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
     // TODO: remove
