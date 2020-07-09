@@ -2,7 +2,7 @@
 
 const i18n = require('./i18n.js');
 const {initNotification, showWarning, showError} = require('./notification.js');
-const {initCommand, initConfig, initCheck} = require('./util.js');
+const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 
 const TABS = {
     'ADMIN': {
@@ -81,10 +81,11 @@ async function showTab(deviceId) {
     });
     tabData.button.addClass('btn-primary').removeClass('btn-outline-primary');
 
-    const response = await fetch(`/api/device/${deviceId}/contact/${tab}`);
-    const data = await response.json();
-    contacts[tab] = [];
-    data.forEach(c => contacts[c.type][c.index] = c);
+    const data = await fetchWithRedirect(`/api/device/${deviceId}/contact/${tab}`);
+    if (data) {
+        contacts[tab] = [];
+        data.forEach(c => contacts[c.type][c.index] = c);
+    }
 
     const $tbody = $('<tbody>');
 
@@ -177,12 +178,11 @@ function editContact(deviceId, contactId) {
         $editModal.on('shown.bs.modal', async function onShow() {
             $editModal.off('shown.bs.modal', onShow);
             $remove.click(async function () {
-                const response = await fetch(`/api/device/${deviceId}/contact/${type}/${index}`, {
+                const response = await fetchWithRedirect(`/api/device/${deviceId}/contact/${type}/${index}`, {
                   method: 'DELETE'
-                });
-                if (!response.ok) {
+                }, () => {
                     showError(i18n.translate('Command is not completed.'))
-                }
+                })
                 hide(true);
             });
             $upload.click(async function () {
@@ -191,14 +191,13 @@ function editContact(deviceId, contactId) {
                 } else if (!$phone.val()) {
                     showError(i18n.translate('Phone should not be empty.'))
                 } else {
-                    const response = await fetch(`/api/device/${deviceId}/contact`, {
+                    const response = await fetchWithRedirect(`/api/device/${deviceId}/contact`, {
                       method: 'POST',
                       headers: {'Content-Type': 'application/json'},
                       body: JSON.stringify({type: type, index: index, phone: $phone.val(), name: $name.val()})
-                    });
-                    if (!response.ok) {
+                    }, () => {
                         showError(i18n.translate('Command is not completed.'))
-                    }
+                    });
                     hide(true);
                 }
             });
@@ -236,12 +235,12 @@ async function showContact(deviceId) {
         showTab(deviceId)
     });
 
-    const configResponse = await fetch(`/api/device/${deviceId}/config`);
-    const config = await configResponse.json();
-
-    initCheck($('#kid-settings-removesms'), 'REMOVESMS', config, deviceId);
-    initCheck($('#kid-settings-lowbatsms'), 'LOWBAT', config, deviceId);
-    initCheck($('#kid-settings-sossms'), 'SOSSMS', config, deviceId);
+    const config = await fetchWithRedirect(`/api/device/${deviceId}/config`);
+    if (config) {
+        initCheck($('#kid-settings-removesms'), 'REMOVESMS', config, deviceId);
+        initCheck($('#kid-settings-lowbatsms'), 'LOWBAT', config, deviceId);
+        initCheck($('#kid-settings-sossms'), 'SOSSMS', config, deviceId);
+    }
 
     $('#contacts-list').toggleClass('btn-info', full).toggleClass('btn-outline-info', !full);
     await showTab(deviceId);

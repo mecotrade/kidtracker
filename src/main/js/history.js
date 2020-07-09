@@ -6,6 +6,7 @@ const moment = require('moment/min/moment-with-locales.min.js');
 const i18n = require('./i18n.js');
 require('chart.js/dist/Chart.min.js');
 const {initNotification, showWarning, showError} = require('./notification.js');
+const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 
 const RANGE_PICKER_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
 const RANGE_PICKER_DATE_FORMAT = 'DD/MM/YYYY';
@@ -104,10 +105,9 @@ async function showHistory(deviceId) {
 
         if (range) {
 
-            const historyResponse = await fetch(`/api/device/${deviceId}/history/${range.start.getTime()}/${range.end.getTime()}`);
-            const history = await historyResponse.json();
+            const history = await fetchWithRedirect(`/api/device/${deviceId}/history/${range.start.getTime()}/${range.end.getTime()}`);
 
-            if (history.length > 0) {
+            if (history && history.length > 0) {
                 destroyChart();
 
                 const $chart = $('#history-chart');

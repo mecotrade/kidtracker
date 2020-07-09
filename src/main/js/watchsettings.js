@@ -3,7 +3,8 @@
 const i18n = require('./i18n.js');
 const moment = require('moment/min/moment-with-locales.min.js');
 const {initNotification, showWarning, showError} = require('./notification.js');
-const {initCommand, initConfig, initCheck} = require('./util.js');
+const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
+
 require('bootstrap-input-spinner/src/bootstrap-input-spinner.js');
 
 const WATCH_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
@@ -135,127 +136,87 @@ function reminderConfig(prefix, value) {
 
 async function showWatchSettings(deviceId) {
 
-    const configResponse = await fetch(`/api/device/${deviceId}/config`);
-    const config = await configResponse.json();
-
-    initConfig($('#kid-settings-uploadinterval-input'), $('#kid-settings-uploadinterval'), 'UPLOAD', config, deviceId, {
-        defaultValue: () => 60,
-        value: () => $('#kid-settings-uploadinterval-input').val()
-    });
-
-    initConfig($('#kid-settings-worktime-input'), $('#kid-settings-worktime'), 'WORKTIME', config, deviceId, {
-        defaultValue: () => 3,
-        value: () => $('#kid-settings-worktime-input').val()
-    });
-
-    initCommand($('#kid-settings-timecustom'), 'TIME', deviceId, {
-        init: () => {
-            $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));
-        },
-        payload: () => {
-            const datetime = $('#kid-settings-datetime').val();
-            return [
-                moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_TIME_FORMAT),
-                'DATE',
-                moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_DATE_FORMAT)
-            ];
-        }
-    });
-
-    initCommand($('#kid-settings-timeserver'), 'TIMECALI', deviceId, {after: () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT))});
-
-    initCheck($('#kid-settings-voicemsg'), 'TKONOFF', config, deviceId);
-    initCheck($('#kid-settings-sms'), 'SMSONOFF', config, deviceId);
-    initCheck($('#kid-settings-pedometer'), 'PEDO', config, deviceId);
-    initCheck($('#kid-settings-bt'), 'BT', config, deviceId);
-    initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND', config, deviceId);
-
-    initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', config, deviceId);
-
-    initCheck($('#kid-settings-bigtime'), 'BIGTIME', config, deviceId);
-    initCheck($('#kid-settings-contacts'), 'PHBONOFF', config, deviceId);
-
-    initConfig(null, $('#kid-settings-langtz'), 'LZ', config, deviceId, {
-        init: function() {
-            let done = false;
-            config.filter(c => c.parameter == 'LZ').forEach(function(c) {
-                const [lang, tz] = c.value.split(',');
-                $('#kid-settings-tz-select').val(tz);
-                $('#kid-settings-lang-select').val(lang);
-                done = true;
-            });
-
-            if (!done) {
-                $('#kid-settings-tz-select').val(-Number(Math.round(((new Date()).getTimezoneOffset() / 60) + "e2") + "e-2"));
-            }
-        },
-        value: function() {
-            const lang = $('#kid-settings-lang-select').children('option:selected').val();
-            const tz = $('#kid-settings-tz-select').children('option:selected').val();
-            return `${lang},${tz}`;
-        }
-    });
-
-    initConfig(null, $('#kid-settings-reminder'), 'REMIND', config, deviceId, {
-        init: () => {
-            config.filter(c => c.parameter == 'REMIND').forEach(function (c) {
-                const [reminder1, reminder2, reminder3] = c.value.split(',');
-                reminderConfig('kid-settings-reminder-1', reminder1);
-                reminderConfig('kid-settings-reminder-2', reminder2);
-                reminderConfig('kid-settings-reminder-3', reminder3);
-            });
-        },
-        value: () => {
-            return `${reminderValue('kid-settings-reminder-1')},${reminderValue('kid-settings-reminder-2')},${reminderValue('kid-settings-reminder-3')}`;
-        }
-    });
-
-    async function showInputToken() {
-
-        const $modalToken = $('#input-token');
-
-        const $closeToken = $('#input-token-close');
-        const $executeToken = $('#input-token-execute');
-
-        function hide() {
-            $closeToken.off('click');
-            $executeToken.off('click');
-            $modalToken.modal('hide');
-        }
-
-        return new Promise(resolve => {
-
-            $modalToken.on('shown.bs.modal', function onShow() {
-                $modalToken.off('shown.bs.modal', onShow);
-                $closeToken.click(function () {
-                    hide();
-                    resolve(null);
-                });
-                $executeToken.click(async function () {
-                    const token = $('#input-token-input').val();
-                    const response = await fetch(`/api/device/${deviceId}/execute/${token}`);
-                    if (!response.ok) {
-                        showError(i18n.translate('Command is not completed.'))
-                    }
-                    hide();
-                    resolve(null);
-                });
-            });
-
-            $modalToken.modal({
-                backdrop: 'static',
-                focus: true,
-                keyboard: false,
-                show: true
-            });
-        });
-    }
-
-    initCommand($('#kid-settings-restart'), 'RESET', deviceId);
-    initCommand($('#kid-settings-factory'), 'FACTORY', deviceId, {after: async () => await showInputToken()});
-    initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId, {after: async () => await showInputToken()});
-
     const $close = $('#kid-settings-close');
+
+    const config = await fetchWithRedirect(`/api/device/${deviceId}/config`);
+    if (config) {
+
+        initConfig($('#kid-settings-uploadinterval-input'), $('#kid-settings-uploadinterval'), 'UPLOAD', config, deviceId, {
+            defaultValue: () => 60,
+            value: () => $('#kid-settings-uploadinterval-input').val()
+        });
+
+        initConfig($('#kid-settings-worktime-input'), $('#kid-settings-worktime'), 'WORKTIME', config, deviceId, {
+            defaultValue: () => 3,
+            value: () => $('#kid-settings-worktime-input').val()
+        });
+
+        initCommand($('#kid-settings-timecustom'), 'TIME', deviceId, {
+            init: () => {
+                $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));
+            },
+            payload: () => {
+                const datetime = $('#kid-settings-datetime').val();
+                return [
+                    moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_TIME_FORMAT),
+                    'DATE',
+                    moment(datetime, WATCH_DATETIME_FORMAT).format(WATCH_COMMAND_DATE_FORMAT)
+                ];
+            }
+        });
+
+        initCommand($('#kid-settings-timeserver'), 'TIMECALI', deviceId, {after: () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT))});
+
+        initCheck($('#kid-settings-voicemsg'), 'TKONOFF', config, deviceId);
+        initCheck($('#kid-settings-sms'), 'SMSONOFF', config, deviceId);
+        initCheck($('#kid-settings-pedometer'), 'PEDO', config, deviceId);
+        initCheck($('#kid-settings-bt'), 'BT', config, deviceId);
+        initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND', config, deviceId);
+
+        initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', config, deviceId);
+
+        initCheck($('#kid-settings-bigtime'), 'BIGTIME', config, deviceId);
+        initCheck($('#kid-settings-contacts'), 'PHBONOFF', config, deviceId);
+
+        initConfig(null, $('#kid-settings-langtz'), 'LZ', config, deviceId, {
+            init: function() {
+                let done = false;
+                config.filter(c => c.parameter == 'LZ').forEach(function(c) {
+                    const [lang, tz] = c.value.split(',');
+                    $('#kid-settings-tz-select').val(tz);
+                    $('#kid-settings-lang-select').val(lang);
+                    done = true;
+                });
+
+                if (!done) {
+                    $('#kid-settings-tz-select').val(-Number(Math.round(((new Date()).getTimezoneOffset() / 60) + "e2") + "e-2"));
+                }
+            },
+            value: function() {
+                const lang = $('#kid-settings-lang-select').children('option:selected').val();
+                const tz = $('#kid-settings-tz-select').children('option:selected').val();
+                return `${lang},${tz}`;
+            }
+        });
+
+        initConfig(null, $('#kid-settings-reminder'), 'REMIND', config, deviceId, {
+            init: () => {
+                config.filter(c => c.parameter == 'REMIND').forEach(function (c) {
+                    const [reminder1, reminder2, reminder3] = c.value.split(',');
+                    reminderConfig('kid-settings-reminder-1', reminder1);
+                    reminderConfig('kid-settings-reminder-2', reminder2);
+                    reminderConfig('kid-settings-reminder-3', reminder3);
+                });
+            },
+            value: () => {
+                return `${reminderValue('kid-settings-reminder-1')},${reminderValue('kid-settings-reminder-2')},${reminderValue('kid-settings-reminder-3')}`;
+            }
+        });
+
+        initCommand($('#kid-settings-restart'), 'RESET', deviceId);
+        initCommand($('#kid-settings-factory'), 'FACTORY', deviceId, {after: async () => await showInputToken(deviceId)});
+        initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId, {after: async () => await showInputToken(deviceId)});
+    }
 
     return new Promise(resolve => {
         $modal.on('shown.bs.modal', function onShow() {

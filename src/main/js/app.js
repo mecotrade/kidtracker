@@ -8,6 +8,7 @@ const {initNotification, showWarning, showError} = require('./notification.js');
 const {initPhone, showPhone} = require('./phone.js');
 const {initContact, showContact} = require('./contact.js');
 const {initWatchSettings, showWatchSettings} = require('./watchsettings.js');
+const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 
 const DEFAULT_ZOOM = 16;
 const KID_POSITION_QUERY_INTERVAL = 10000;
@@ -93,22 +94,20 @@ $('#kid-history').on('click', async function onKidPath() {
 
             // TODO if not found
 
-            const kidPathResponse = await fetch(`/api/device/${deviceId}/path/${start}/${end}`);
-            const kidPath = await kidPathResponse.json();
+            const kidPath = await fetchWithRedirect(`/api/device/${deviceId}/path/${start}/${end}`);
 
             if (kidPath.length > 0) {
 
                 const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
 
                 let snapshotDate = moment(start).startOf('day').toDate();
-                const snapshotResponse = await fetch(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`);
-                const pathMidnightSnapshot = snapshotResponse.status == 200 ? await snapshotResponse.json() : {
+                const pathMidnightSnapshot = await fetchWithRedirect(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`) || {
                     deviceId: kidPath[0].deviceId,
                     timestamp: kidPath[0].timestamp,
                     pedometer: kidPath[0].pedometer,
                     rolls: kidPath[0].rolls,
                     battery: kidPath[0].battery
-                };
+                }
 
                 function move(i) {
                     updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false);
@@ -158,26 +157,24 @@ $('#kid-contacts').on('click', async function () {
 
 $('#kid-locate').on('click', async function () {
     const deviceId = $('#kid-select').children('option:selected').val();
-    const response = await fetch(`/api/device/${deviceId}/command`, {
+    const response = await fetchWithRedirect(`/api/device/${deviceId}/command`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({type: 'CR', payload: []})
-    });
-    if (!response.ok) {
+    }, () => {
         showError(i18n.translate('Command is not completed.'))
-    }
+    });
 });
 
 $('#kid-find').on('click', async function () {
     const deviceId = $('#kid-select').children('option:selected').val();
-    const response = await fetch(`/api/device/${deviceId}/command`, {
+    const response = await fetchWithRedirect(`/api/device/${deviceId}/command`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({type: 'FIND', payload: []})
-    });
-    if (!response.ok) {
+    }, () => {
         showError(i18n.translate('Command is not completed.'))
-    }
+    });
 });
 
 $('#kid-settings').on('click', async function () {
@@ -267,7 +264,7 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
             $('div.leaflet-popup-tip', $parent.parent()).removeAttr('style');
             $(`#kid-popup-${kid.deviceId} span.${batteryClass}`).removeAttr('style');
             $(`#kid-popup-${kid.deviceId} div.kid-popup-alert`).removeAttr('style');
-            await fetch(`/api/device/${kid.deviceId}/alarmoff`);
+            await fetchWithRedirect(`/api/device/${kid.deviceId}/alarmoff`);
         });
     }
 
@@ -297,35 +294,37 @@ async function locateKids() {
 
     const deviceId = $('#kid-select').children('option:selected').val();
 
-    const reportResponse = await fetch(`/api/user/kids/report`);
-    const report = await reportResponse.json();
-    report.positions.forEach(p => {
-        if (!path || p.deviceId != deviceId) {
-            const kid = kids.find(k => k.deviceId == p.deviceId);
-            if (kid) {
-                const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
-                const setView = !path && kid.deviceId == deviceId
-                const alarm = report.alarms.includes(p.deviceId);
-                updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm);
-            } else {
-                // TODO if not found
+    const report = await fetchWithRedirect(`/api/user/kids/report`);
+    if (report) {
+        report.positions.forEach(p => {
+            if (!path || p.deviceId != deviceId) {
+                const kid = kids.find(k => k.deviceId == p.deviceId);
+                if (kid) {
+                    const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
+                    const setView = !path && kid.deviceId == deviceId
+                    const alarm = report.alarms.includes(p.deviceId);
+                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm);
+                } else {
+                    // TODO if not found
+                }
             }
-        }
-    });
+        });
+    }
 }
 
 async function updateMidnightSnapshot() {
 
     midnight = moment().startOf('day').toDate();
 
-    const snapshotResponse = await fetch(`/api/user/kids/snapshot/${midnight.getTime()}`);
-    const snapshot = await snapshotResponse.json();
-    kids.forEach(k => {
-        const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
-        if (kidSnapshot) {
-            k.snapshot = kidSnapshot;
-        }
-    });
+    const snapshot = await fetchWithRedirect(`/api/user/kids/snapshot/${midnight.getTime()}`);
+    if (snapshot) {
+        kids.forEach(k => {
+            const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
+            if (kidSnapshot) {
+                k.snapshot = kidSnapshot;
+            }
+        });
+    }
 }
 
 window.addEventListener('load', async function onload() {
@@ -343,14 +342,15 @@ window.addEventListener('load', async function onload() {
 	map.setZoom(DEFAULT_ZOOM);
 
     // kids definition and location
-	const kidsResponse = await fetch(`/api/user/kids/info`);
-    kids = await kidsResponse.json();
-    $('#kid-select').html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
-    kids.forEach(k => {
-        k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng([0, 0]).addTo(map);
-        k.popupTimeFromNow = true;
-        k.circle = L.circle([0,0], 0, {weight: 0}).addTo(map);
-    });
+	kids = await fetchWithRedirect(`/api/user/kids/info`);
+	if (kids) {
+        $('#kid-select').html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
+        kids.forEach(k => {
+            k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng([0, 0]).addTo(map);
+            k.popupTimeFromNow = true;
+            k.circle = L.circle([0,0], 0, {weight: 0}).addTo(map);
+        });
+    }
 
     // init pedometer to closest midnight
     await updateMidnightSnapshot();
@@ -359,11 +359,12 @@ window.addEventListener('load', async function onload() {
     setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);
 
     // user definition and location
-    const userResponse = await fetch(`/api/user/info`);
-    user = await userResponse.json();
-    $('#user-name').text(user.name);
-    user.marker = L.marker([0,0]).addTo(map);
-    user.circle = L.circle([0, 0], 0, {weight: 0, color: 'green'}).addTo(map);
+    user = await fetchWithRedirect(`/api/user/info`);
+    if (user) {
+        $('#user-name').text(user.name);
+        user.marker = L.marker([0,0]).addTo(map);
+        user.circle = L.circle([0, 0], 0, {weight: 0, color: 'green'}).addTo(map);
+    }
 
     view = 'user-once';
     map.locate({
