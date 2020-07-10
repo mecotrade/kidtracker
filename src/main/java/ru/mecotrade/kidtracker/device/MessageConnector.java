@@ -30,6 +30,11 @@ public class MessageConnector extends DeviceConnector {
     }
 
     @Override
+    public void init() {
+        log.info("[{}] Device messages connection accepted", getId());
+    }
+
+    @Override
     void process(byte[] data) throws KidTrackerException {
 
         messageBuffer = Bytes.concat(messageBuffer, data);

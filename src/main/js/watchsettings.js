@@ -176,7 +176,6 @@ async function showWatchSettings(deviceId) {
         initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', config, deviceId);
 
         initCheck($('#kid-settings-bigtime'), 'BIGTIME', config, deviceId);
-        initCheck($('#kid-settings-contacts'), 'PHBONOFF', config, deviceId);
 
         initConfig(null, $('#kid-settings-langtz'), 'LZ', config, deviceId, {
             init: function() {

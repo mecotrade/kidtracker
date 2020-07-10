@@ -34,10 +34,14 @@ public abstract class DeviceConnector implements Runnable, Closeable {
         id = RandomStringUtils.random(ID_LENGTH, ID_CHARS);
     }
 
+    public void init() {
+        log.info("[{}] Connection accepted", id);
+    }
+
     @Override
     public void run() {
 
-        log.info("[{}] Connection accepted", id);
+        init();
 
         try (DataOutputStream out = new DataOutputStream(socket.getOutputStream());
              DataInputStream in = new DataInputStream(socket.getInputStream())) {

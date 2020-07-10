@@ -76,6 +76,7 @@ async function showTab(deviceId) {
 
     $('div.alert', $modal).html(i18n.format(tabData.info, tabData.icons));
     $('#contacts-alert').toggle(tab == 'SOS');
+    $('#contacts-phonebook-activate').toggle(tab == 'PHONEBOOK');
     Object.keys(TABS).forEach(k => {
         TABS[k].button.removeClass('btn-primary').addClass('btn-outline-primary')
     });
@@ -240,6 +241,7 @@ async function showContact(deviceId) {
         initCheck($('#kid-settings-removesms'), 'REMOVESMS', config, deviceId);
         initCheck($('#kid-settings-lowbatsms'), 'LOWBAT', config, deviceId);
         initCheck($('#kid-settings-sossms'), 'SOSSMS', config, deviceId);
+        initCheck($('#kid-settings-contacts'), 'PHBONOFF', config, deviceId);
     }
 
     $('#contacts-list').toggleClass('btn-info', full).toggleClass('btn-outline-info', !full);
