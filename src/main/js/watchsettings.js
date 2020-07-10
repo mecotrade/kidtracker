@@ -151,6 +151,26 @@ async function showWatchSettings(deviceId) {
             value: () => $('#kid-settings-worktime-input').val()
         });
 
+        initConfig(null, [$('#kid-settings-profile-sound'), $('#kid-settings-profile-vibro')], 'PROFILE', config, deviceId, {
+            init: () => {
+                function set(value) {
+                    $('#kid-settings-profile-sound')[0].checked = value == 1 || value == 2;
+                    $('#kid-settings-profile-vibro')[0].checked = value == 1 || value == 3;
+                }
+                let done = false;
+                config.filter(c => c.parameter == 'PROFILE').forEach(c => {
+                    set(c.value);
+                    done = true;
+                });
+                if (done == false) {
+                    set(1);
+                }
+            },
+            value: () => {
+                return 4 - ($('#kid-settings-profile-sound')[0].checked ? 2 : 0) - ($('#kid-settings-profile-vibro')[0].checked ? 1 : 0);
+            }
+        });
+
         initCommand($('#kid-settings-timecustom'), 'TIME', deviceId, {
             init: () => {
                 $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));

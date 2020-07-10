@@ -120,7 +120,10 @@ const i18n = {
             'Danger zone': 'Опасные действия',
             'Reboot watch': 'Перезагрузить часы',
             'Switch the watch off': 'Выключить часы',
-            'Reset watch to factory config': 'Сбросить все настройки'
+            'Reset watch to factory config': 'Сбросить все настройки',
+            'Call ring profile': 'Настройки звонка',
+            'Sound': 'Звук вызова',
+            'Vibro': 'Вибрация'
         }
     },
 

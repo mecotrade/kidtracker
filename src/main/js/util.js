@@ -49,7 +49,7 @@ function initCommand($button, command, deviceId, options) {
     });
 }
 
-function initConfig($input, $button, parameter, config, deviceId, options) {
+function initConfig($input, $elements, parameter, config, deviceId, options) {
     options = options || {};
     if (options.init) {
         options.init();
@@ -67,24 +67,29 @@ function initConfig($input, $button, parameter, config, deviceId, options) {
             }
         }
     }
-    $button.off('click');
-    $button.click(async () => {
-        if (options.before) {
-            options.before();
-        }
-        await fetchWithRedirect(`/api/device/${deviceId}/config`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({parameter: parameter, value: options.value ? options.value() : $input.val()})
-        }, () => {
-            showError(i18n.translate('Command is not completed.'));
-            if (options.error) {
-                options.error();
+    if (!Array.isArray($elements)) {
+        $elements = [$elements];
+    }
+    $elements.forEach($element => {
+        $element.off('click');
+        $element.click(async () => {
+            if (options.before) {
+                options.before();
             }
-        }, () => {
-            if (options.after) {
-                options.after();
-            }
+            await fetchWithRedirect(`/api/device/${deviceId}/config`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({parameter: parameter, value: options.value ? options.value() : $input.val()})
+            }, () => {
+                showError(i18n.translate('Command is not completed.'));
+                if (options.error) {
+                    options.error();
+                }
+            }, () => {
+                if (options.after) {
+                    options.after();
+                }
+            });
         });
     });
 }

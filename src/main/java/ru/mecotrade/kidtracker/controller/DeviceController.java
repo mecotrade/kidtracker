@@ -51,6 +51,8 @@ public class DeviceController {
 
     private final static String REMINDER_TYPE_REGEX = "^([12]|[01]{7})$";
 
+    private final static String PROFILE_REGEX = "^([1234])$";
+
     // only acceptable languages:
     //  0:English,
     //  1:Chinese,
@@ -269,6 +271,8 @@ public class DeviceController {
                     }
                 case "BTNAME":
                     return StringUtils.isNoneBlank(config.getValue());
+                case "PROFILE":
+                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(PROFILE_REGEX);
                 case "SOSSMS":
                 case "REMOVESMS":
                 case "LOWBAT":
