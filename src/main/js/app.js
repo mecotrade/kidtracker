@@ -4,11 +4,12 @@ const moment = require('moment/min/moment-with-locales.min.js');
 const createSliderControl = require('./slidercontrol.js');
 const i18n = require('./i18n.js');
 const {initHistory, showHistory} = require('./history.js');
-const {initNotification, showWarning, showError} = require('./notification.js');
+const {showWarning, showError} = require('./notification.js');
 const {initPhone, showPhone} = require('./phone.js');
 const {initContact, showContact} = require('./contact.js');
 const {initWatchSettings, showWatchSettings} = require('./watchsettings.js');
 const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
+const showDevice = require('./device.js');
 
 const DEFAULT_ZOOM = 16;
 const KID_POSITION_QUERY_INTERVAL = 10000;
@@ -127,7 +128,7 @@ $('#kid-history').on('click', async function onKidPath() {
 
             } else {
 
-                await showWarning(i18n.format('No data'));
+                await showWarning(i18n.translate('No data'));
 
                 $('#kid-path-switch-icon').show();
                 $('#kid-geo-switch-icon').hide();
@@ -180,6 +181,10 @@ $('#kid-find').on('click', async function () {
 $('#kid-settings').on('click', async function () {
     const deviceId = $('#kid-select').children('option:selected').val();
     await showWatchSettings(deviceId);
+})
+
+$('#user-devices').on('click', async function () {
+    await showDevice();
 })
 
 map.on('locationfound', function onLocationFound(e) {
@@ -383,6 +388,8 @@ window.addEventListener('load', async function onload() {
             $('span', $this).each(function (i) {
                 i18n.apply($(this));
             })
+        } else if ($(this).hasClass('btn')) {
+            // do nothing
         } else {
             i18n.apply($this);
         }
@@ -393,7 +400,6 @@ window.addEventListener('load', async function onload() {
     });
 
     initHistory();
-    initNotification();
     initPhone();
     initContact();
     initWatchSettings();

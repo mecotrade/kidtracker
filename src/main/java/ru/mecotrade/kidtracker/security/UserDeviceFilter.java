@@ -41,7 +41,7 @@ public class UserDeviceFilter extends GenericFilterBean {
 
             Map<String, String> uriParams = URI_TEMPLATE.match(uri);
             String deviceId = uriParams.get("deviceId");
-            if (deviceId != null && userPrincipal.getUserInfo().getKids().stream().noneMatch(k -> k.getDeviceId().equals(deviceId))) {
+            if (deviceId != null && userPrincipal.getUserInfo().getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
                 log.warn("User {} attempts to access unauthorized device {} in request {}", userPrincipal.getUserInfo().getUsername(), deviceId, uri);
                 throw new InsufficientAuthenticationException(deviceId);
             }

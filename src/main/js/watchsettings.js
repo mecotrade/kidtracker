@@ -2,7 +2,7 @@
 
 const i18n = require('./i18n.js');
 const moment = require('moment/min/moment-with-locales.min.js');
-const {initNotification, showWarning, showError} = require('./notification.js');
+const {showWarning, showError} = require('./notification.js');
 const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 
 require('bootstrap-input-spinner/src/bootstrap-input-spinner.js');
@@ -70,10 +70,7 @@ function initReminder(prefix) {
         value: moment().format(WATCH_TIME_FORMAT)
     });
 
-    i18n.applyAll([
-        $(`#${prefix}-time-label`),
-        $(`#${prefix}-on-label`)
-    ]);
+    i18n.apply($(`#${prefix}-time-label`), $(`#${prefix}-on-label`));
 
     $typeSelect.off('change');
     $typeSelect.on('change', () => {

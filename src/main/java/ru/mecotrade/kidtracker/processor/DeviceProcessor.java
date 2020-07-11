@@ -7,6 +7,7 @@ import ru.mecotrade.kidtracker.dao.ConfigService;
 import ru.mecotrade.kidtracker.dao.ContactService;
 import ru.mecotrade.kidtracker.dao.model.ConfigRecord;
 import ru.mecotrade.kidtracker.dao.model.ContactRecord;
+import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
@@ -17,7 +18,7 @@ import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.UserService;
-import ru.mecotrade.kidtracker.dao.model.Kid;
+import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.device.Device;
@@ -65,7 +66,10 @@ public class DeviceProcessor {
     public Report report(Long userId) throws KidTrackerUnknownUserException {
         Optional<UserInfo> user = userService.get(userId);
         if (user.isPresent()) {
-            Collection<Device> devices = deviceManager.select(user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList()));
+            Collection<Device> devices = deviceManager.select(user.get().getKids().stream()
+                    .map(KidInfo::getDevice)
+                    .map(DeviceInfo::getId)
+                    .collect(Collectors.toList()));
 
             Collection<Position> positions = devices.stream()
                     .map(Device::position)
@@ -128,7 +132,10 @@ public class DeviceProcessor {
         // TODO use cache
         Optional<UserInfo> user = userService.get(userId);
         if (user.isPresent()) {
-            Collection<String> deviceIds = user.get().getKids().stream().map(Kid::getDeviceId).collect(Collectors.toList());
+            Collection<String> deviceIds = user.get().getKids().stream()
+                    .map(KidInfo::getDevice)
+                    .map(DeviceInfo::getId)
+                    .collect(Collectors.toList());
             return messageService.last(deviceIds,
                     Stream.concat(MessageUtils.LOCATION_TYPES.stream(), Stream.of(MessageUtils.LINK_TYPE)).collect(Collectors.toList()),
                     Message.Source.DEVICE,

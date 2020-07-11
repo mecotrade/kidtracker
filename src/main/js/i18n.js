@@ -123,7 +123,9 @@ const i18n = {
             'Reset watch to factory config': 'Сбросить все настройки',
             'Call ring profile': 'Настройки звонка',
             'Sound': 'Звук вызова',
-            'Vibro': 'Вибрация'
+            'Vibro': 'Вибрация',
+            'Device list': 'Список устройств',
+            'Device id': 'Идентификатор устройства'
         }
     },
 
@@ -136,12 +138,8 @@ const i18n = {
         }
     },
 
-    apply: function(element) {
-        element.text(this.translate(element.text()));
-    },
-
-    applyAll: function(elements) {
-        elements.forEach(e => this.apply(e));
+    apply: function(...elements) {
+        elements.forEach(e => e.text(this.translate(e.text())));
     },
 
     format: function(template, params) {

@@ -1,7 +1,7 @@
 'use strict';
 
 const i18n = require('./i18n.js');
-const {initNotification, showWarning, showError} = require('./notification.js');
+const {showWarning, showError} = require('./notification.js');
 
 async function fetchWithRedirect(url, options, error, success) {
 

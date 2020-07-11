@@ -2,13 +2,6 @@
 
 const i18n = require('./i18n.js');
 
-function initNotification() {
-    i18n.applyAll([
-        $('#warning-title'),
-        $('#error-title')
-    ]);
-}
-
 async function showWarning(warning) {
 
     const $modal = $('#show-warning');
@@ -59,4 +52,4 @@ async function showError(error) {
     });
 }
 
-module.exports = {initNotification, showWarning, showError};
+module.exports = {showWarning, showError};

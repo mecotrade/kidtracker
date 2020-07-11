@@ -1,7 +1,6 @@
 package ru.mecotrade.kidtracker.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
@@ -14,8 +13,6 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-
-    private User.UserBuilder users = User.withDefaultPasswordEncoder();
 
     public Optional<UserInfo> get(Long id) {
         return userRepository.findById(id);

@@ -36,6 +36,10 @@ html, body, #map {
     font-weight: bold;
 }
 
+#range-picker-input, #date-picker-input {
+    justify-content: center;
+}
+
 .battery-full {
     color: green;
 }
@@ -73,4 +77,65 @@ div.form-group.reminder-multiselect {
 
 .reminder-multiselect-container {
   width: 100%;
+}
+
+.user-device-thumb-img {
+    width: 80px;
+    border-radius: 10px;
+}
+
+#show-user-devices div.modal-body {
+  height: 300px;
+  max-height: 300px;
+  width: 100%;
+  overflow-y: scroll;
+}
+
+#edit-device div.form-row {
+    justify-content: center;
+}
+
+.table th.user-device-thumb {
+    vertical-align: middle;
+}
+
+.table th.user-device-name {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table td.user-device-others {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table div.user-device-name-deviceid {
+    font-family: monospace;
+    color: gray;
+}
+
+.table span.user-device-other-user {
+    font-style: italic;
+    font-size: small;
+    color: gray;
+}
+
+#edit-device .thumb-placeholder {
+    background: center no-repeat url("data:image/svg+xml;utf8,<svg class='bi bi-person-fill' width='80' height='45' viewBox='0 0 16 16' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 100-6 3 3 0 000 6z' clip-rule='evenodd'/></svg>");
+    height: 200px;
+    width: 200px;
+    border: 1px solid lightgray;
+    margin-bottom: 30px;
+    border-radius: 10px;
+}
+
+#edit-device .thumb-img {
+    background: center no-repeat url("data:image/svg+xml;utf8,<svg class='bi bi-person-fill' width='80' height='45' viewBox='0 0 16 16' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 100-6 3 3 0 000 6z' clip-rule='evenodd'/></svg>");
+    width: 200px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+}
+
+#edit-device input {
+    text-align: center;
 }

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
@@ -21,7 +20,6 @@ import ru.mecotrade.kidtracker.model.ContactType;
 import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.device.DeviceManager;
-import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
 
 import java.util.Collection;
@@ -114,7 +112,7 @@ public class DeviceController {
                 log.error("[{}] {} is incorrect", deviceId, command);
                 return ResponseEntity.badRequest().build();
             }
-        } catch (KidTrackerConnectionException ex) {
+        } catch (Exception ex) {
             log.error("[{}] Unable to send {}", deviceId, command, ex);
             return ResponseEntity.unprocessableEntity().build();
         }
@@ -127,7 +125,7 @@ public class DeviceController {
         try {
             deviceManager.execute(deviceId, token);
             return ResponseEntity.noContent().build();
-        } catch (KidTrackerException ex) {
+        } catch (Exception ex) {
             log.error("[{}] Unable to execute token {}", deviceId, token, ex);
             return ResponseEntity.unprocessableEntity().build();
         }
@@ -151,7 +149,7 @@ public class DeviceController {
                 log.error("[{}] {} is incorrect", deviceId, contact);
                 return ResponseEntity.badRequest().build();
             }
-        } catch (KidTrackerConnectionException ex) {
+        } catch (Exception ex) {
             log.error("[{}] Unable to update {}", deviceId, contact, ex);
             return ResponseEntity.unprocessableEntity().build();
         }
@@ -164,7 +162,7 @@ public class DeviceController {
         try {
             deviceProcessor.removeContact(deviceId, type, index);
             return ResponseEntity.noContent().build();
-        } catch (KidTrackerConnectionException ex) {
+        } catch (Exception ex) {
             log.error("[{}] Unable to remove contact for type={}, index={}", deviceId, type, index, ex);
             return ResponseEntity.unprocessableEntity().build();
         }
@@ -188,7 +186,7 @@ public class DeviceController {
                 log.error("[{}] {} is incorrect", deviceId, config);
                 return ResponseEntity.badRequest().build();
             }
-        } catch (KidTrackerConnectionException ex) {
+        } catch (Exception ex) {
             log.error("[{}] Unable to update {}", deviceId, config, ex);
             return ResponseEntity.unprocessableEntity().build();
         }
@@ -211,7 +209,7 @@ public class DeviceController {
             String[] parts = command.split(",");
             deviceManager.send(deviceId, parts[0], Stream.of(parts).skip(1).collect(Collectors.joining(",")));
             return new ResponseEntity<>("Command '" + command + "' to device " + deviceId + " successfully sent", HttpStatus.NO_CONTENT);
-        } catch (KidTrackerConnectionException ex) {
+        } catch (Exception ex) {
             log.error("[{}] Unable to send payload '{}'", deviceId, command, ex);
             return new ResponseEntity<>("Fail sending command '" + command + "' to device " + deviceId, HttpStatus.CONFLICT);
         }

@@ -1,7 +1,7 @@
 'use strict';
 
 const i18n = require('./i18n.js');
-const {initNotification, showWarning, showError} = require('./notification.js');
+const {showWarning, showError} = require('./notification.js');
 const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 
 const TABS = {
@@ -129,7 +129,7 @@ async function showTab(deviceId) {
         for (let i=0; i < capacity[tab]; i++) {
             const contactId = `${tab}_${i}`
             $(`#${contactId}`).off('click');
-            $(`#${contactId}`).on('click', async function onIconClick() {
+            $(`#${contactId}`).on('click', async () => {
                 const reload = await editContact(deviceId, contactId);
                 if (reload) {
                     await showTab(deviceId, tab);
@@ -178,7 +178,7 @@ function editContact(deviceId, contactId) {
 
         $editModal.on('shown.bs.modal', async function onShow() {
             $editModal.off('shown.bs.modal', onShow);
-            $remove.click(async function () {
+            $remove.click(async () => {
                 const response = await fetchWithRedirect(`/api/device/${deviceId}/contact/${type}/${index}`, {
                   method: 'DELETE'
                 }, () => {
@@ -186,13 +186,13 @@ function editContact(deviceId, contactId) {
                 })
                 hide(true);
             });
-            $upload.click(async function () {
+            $upload.click(async () => {
                 if (!$name.val() && tab == PHONEBOOK) {
                     showError(i18n.translate('Name should not be empty.'))
                 } else if (!$phone.val()) {
                     showError(i18n.translate('Phone should not be empty.'))
                 } else {
-                    const response = await fetchWithRedirect(`/api/device/${deviceId}/contact`, {
+                    await fetchWithRedirect(`/api/device/${deviceId}/contact`, {
                       method: 'POST',
                       headers: {'Content-Type': 'application/json'},
                       body: JSON.stringify({type: type, index: index, phone: $phone.val(), name: $name.val()})
@@ -202,7 +202,7 @@ function editContact(deviceId, contactId) {
                     hide(true);
                 }
             });
-            $close.click(function () {
+            $close.click(() => {
                 hide(false);
             });
         });

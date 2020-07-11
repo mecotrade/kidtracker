@@ -5,7 +5,7 @@ require('./jquery-ui-custom.js')
 const moment = require('moment/min/moment-with-locales.min.js');
 const i18n = require('./i18n.js');
 require('chart.js/dist/Chart.min.js');
-const {initNotification, showWarning, showError} = require('./notification.js');
+const {showWarning, showError} = require('./notification.js');
 const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 
 const RANGE_PICKER_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
@@ -81,7 +81,6 @@ function initHistory() {
         $('#date-picker-input').hide();
         $('#date-picker-title').hide();
     });
-
 }
 
 async function showHistory(deviceId) {

@@ -23,6 +23,8 @@ import java.util.Date;
         @Index(columnList = "timestamp")})
 public class Message {
 
+    public static final int MAX_PAYLOAD_SIZE = 65535;
+
     public enum Source {
         DEVICE, PLATFORM;
     }
@@ -42,7 +44,7 @@ public class Message {
 
     private String type;
 
-    @Column(length=65535)
+    @Column(length=MAX_PAYLOAD_SIZE)
     private String payload;
 
     private Message(Source source, String manufacturer, String deviceId, String type, String payload) {
