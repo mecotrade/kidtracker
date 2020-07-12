@@ -16,11 +16,6 @@ html, body, #map {
     line-height: 1.4;
 }
 
-.kid-popup-thumb {
-    border-radius: 8px;
-    width: 80px;
-}
-
 .kid-popup-name {
     font-weight: bold;
 }
@@ -79,11 +74,6 @@ div.form-group.reminder-multiselect {
   width: 100%;
 }
 
-.user-device-thumb-img {
-    width: 80px;
-    border-radius: 10px;
-}
-
 #show-user-devices div.modal-body {
   height: 300px;
   max-height: 300px;
@@ -120,21 +110,31 @@ div.form-group.reminder-multiselect {
     color: gray;
 }
 
-#edit-device .thumb-placeholder {
-    background: center no-repeat url("data:image/svg+xml;utf8,<svg class='bi bi-person-fill' width='80' height='45' viewBox='0 0 16 16' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 100-6 3 3 0 000 6z' clip-rule='evenodd'/></svg>");
+.thumb-placeholder-lg {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg width="200" height="200" viewBox="0 0 16 16" class="bi bi-emoji-smile" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path fill-rule="evenodd" d="M4.285 9.567a.5.5 0 0 1 .683.183A3.498 3.498 0 0 0 8 11.5a3.498 3.498 0 0 0 3.032-1.75.5.5 0 1 1 .866.5A4.498 4.498 0 0 1 8 12.5a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .183-.683z"/><path d="M7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5zm4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5z"/></svg>');
     height: 200px;
     width: 200px;
-    border: 1px solid lightgray;
+    margin-bottom: 30px;
+}
+
+.thumb-placeholder {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg width="80" height="80" viewBox="0 0 16 16" class="bi bi-emoji-smile" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path fill-rule="evenodd" d="M4.285 9.567a.5.5 0 0 1 .683.183A3.498 3.498 0 0 0 8 11.5a3.498 3.498 0 0 0 3.032-1.75.5.5 0 1 1 .866.5A4.498 4.498 0 0 1 8 12.5a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .183-.683z"/><path d="M7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5zm4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5z"/></svg>');
+    height: 80px;
+    width: 80px;
+    margin-bottom: 7px;
+}
+
+.thumb-img-lg {
+    width: 200px;
     margin-bottom: 30px;
     border-radius: 10px;
 }
 
-#edit-device .thumb-img {
-    background: center no-repeat url("data:image/svg+xml;utf8,<svg class='bi bi-person-fill' width='80' height='45' viewBox='0 0 16 16' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' d='M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 100-6 3 3 0 000 6z' clip-rule='evenodd'/></svg>");
-    width: 200px;
-    margin-bottom: 30px;
-    border-radius: 10px;
+.thumb-img {
+    width: 80px;
+    border-radius: 8px;
 }
+
 
 #edit-device input {
     text-align: center;

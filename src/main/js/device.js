@@ -21,7 +21,7 @@ async function showDevice() {
         const $thThumb = $('<th>').addClass('user-device-thumb');
         const $thName = $('<th>').addClass('user-device-name');
         const $td = $('<td>').addClass('user-device-others');
-        const $thumb = $('<img>').attr('src', k.thumb).addClass('user-device-thumb-img');
+        const $thumb = k.thumb ? $('<img>').attr('src', k.thumb).addClass('thumb-img') : $('<div>').addClass('thumb-placeholder');
         $thThumb.append($thumb);
         const $divName = $('<div>').text(k.name);
         const $divDeviceId = $('<div>').text(k.deviceId).addClass('user-device-name-deviceid')
@@ -79,20 +79,19 @@ function editDevice(kid, create) {
 
     function render() {
 
-        const hasThumb = typeof kid.thumb !== 'undefined';
-        if (hasThumb) {
-            const $img = $('<img>').attr('src', kid.thumb).addClass('thumb-img');
+        if (kid.thumb) {
+            const $img = $('<img>').attr('src', kid.thumb).addClass('thumb-img-lg');
             $thumbRow.empty().append($img)
         } else {
             const $input = $('<input>').attr('type', 'file').prop('hidden', true);
-            const $label = $('<label>').addClass('thumb-placeholder').append($input);
+            const $label = $('<label>').addClass('thumb-placeholder-lg').append($input);
             $thumbRow.empty().append($label);
         }
-        $removeThumb.toggle(hasThumb);
-        $addThumb.toggle(!hasThumb);
+        $removeThumb.toggle(!!kid.thumb);
+        $addThumb.toggle(!kid.thumb);
         $('label > input', $editModal).each(function (i) {
             $(this).off('change');
-            if (!hasThumb) {
+            if (!kid.thumb) {
                 $(this).change(() => {
                     const reader = new FileReader();
                     reader.onload = function(e) {

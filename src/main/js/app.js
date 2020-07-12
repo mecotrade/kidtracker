@@ -84,7 +84,7 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
             + (position.takeOff ? WATCH_OFF_ICON : '')
             + (position.lowBattery ? LOW_BATTERY_ICON : '');
 
-    const $thumb = $('<img>').attr('src', kid.thumb).addClass('kid-popup-thumb');
+    const $thumb = kid.thumb ? $('<img>').attr('src', kid.thumb).addClass('thumb-img') : $('<div>').addClass('thumb-placeholder');
     const $name = $('<div>').addClass('kid-popup-name').append($('<b>').text(kid.name));
     const $time = $('<div>').addClass('kid-popup-time').text(datetime);
     const $info = $('<div>').append($('<span>').addClass('kid-popup-pedometer').text(pedometer))
