@@ -23,6 +23,10 @@ public class KidService {
         kidRepository.save(kidInfo);
     }
 
+    public void remove(KidInfo kidInfo) {
+        kidRepository.delete(kidInfo);
+    }
+
     public Collection<UserInfo> users(String deviceId) {
         return kidRepository.findUsersByDeviceId(deviceId);
     }

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.http.ResponseEntity;
+import ru.mecotrade.kidtracker.security.UserPrincipal;
 
 @Controller
 @Slf4j
@@ -98,12 +101,18 @@ public class DeviceController {
 
     @PostMapping("/command")
     @ResponseBody
-    public ResponseEntity<String> command(@PathVariable String deviceId, @RequestBody Command command) {
+    public ResponseEntity<String> command(@PathVariable String deviceId, @RequestBody Command command, Authentication authentication) {
         log.info("[{}] Received {}", deviceId, command);
         try {
             if (isValid(command)) {
                 if (isProtected(command)) {
-                    deviceManager.apply(deviceId, command);
+                    if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+                        UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
+                        deviceManager.apply(userInfo, deviceId, command);
+                    } else {
+                        log.warn("Unauthorized request to execute {} on device {}", command, deviceId);
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                    }
                 } else {
                     deviceManager.send(deviceId, command.getType(), String.join(",", command.getPayload()));
                 }
@@ -120,14 +129,20 @@ public class DeviceController {
 
     @GetMapping("/execute/{token}")
     @ResponseBody
-    public ResponseEntity<String> execute(@PathVariable String deviceId, @PathVariable String token) {
-        log.info("[{}] Received token {}", deviceId, token);
-        try {
-            deviceManager.execute(deviceId, token);
-            return ResponseEntity.noContent().build();
-        } catch (Exception ex) {
-            log.error("[{}] Unable to execute token {}", deviceId, token, ex);
-            return ResponseEntity.unprocessableEntity().build();
+    public ResponseEntity<String> execute(@PathVariable String deviceId, @PathVariable String token, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
+            try {
+                deviceManager.execute(userInfo, token, deviceId);
+                log.info("[{}] Token {} successfully executed by {}", deviceId, token, userInfo);
+                return ResponseEntity.noContent().build();
+            } catch (Exception ex) {
+                log.error("[{}] Unable to execute token {} by {}", deviceId, token, userInfo, ex);
+                return ResponseEntity.unprocessableEntity().build();
+            }
+        } else {
+            log.warn("[{}] Unauthorized request to execute token {}", deviceId, token);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 

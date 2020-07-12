@@ -2,7 +2,7 @@ package ru.mecotrade.kidtracker.device;
 
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 
-public interface DeviceJob {
+public interface Job {
 
     void execute() throws KidTrackerException;
 

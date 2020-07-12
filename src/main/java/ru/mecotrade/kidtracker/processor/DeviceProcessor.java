@@ -9,7 +9,6 @@ import ru.mecotrade.kidtracker.dao.model.ConfigRecord;
 import ru.mecotrade.kidtracker.dao.model.ContactRecord;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
-import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
 import ru.mecotrade.kidtracker.model.ContactType;
@@ -182,10 +181,6 @@ public class DeviceProcessor {
 
     public Collection<Config> configs(String deviceId) {
         return configService.get(deviceId).stream().map(ConfigRecord::toConfig).collect(Collectors.toList());
-    }
-
-    public void token(Command command) {
-
     }
 
     public void updateConfig(String deviceId, Config config) throws KidTrackerConnectionException {

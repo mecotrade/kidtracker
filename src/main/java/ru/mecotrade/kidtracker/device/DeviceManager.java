@@ -18,7 +18,6 @@ import ru.mecotrade.kidtracker.model.Command;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -83,28 +82,30 @@ public class DeviceManager implements MessageListener {
         return devices.entrySet().stream().filter(e -> deviceIds.contains(e.getKey())).map(Map.Entry::getValue).collect(Collectors.toList());
     }
 
-    public void apply(String deviceId, Command command) throws KidTrackerConnectionException {
+    public void apply(UserInfo userInfo, String deviceId, Command command) throws KidTrackerException {
         Device device = devices.get(deviceId);
         if (device != null) {
-            // TODO get user from security context
-            Optional<UserInfo> user = userService.get(1L);
-            if (user.isPresent()) {
-                String phone = user.get().getPhone();
-                String token = RandomStringUtils.randomNumeric(tokenLength);
-                device.apply(token, command);
-                device.send("SMS", String.join(",", phone, token));
-                log.info("[{}] Token {} for {} is sent to user's phone {}", deviceId, token, command, phone);
-            }
-        }
-    }
-
-    public void execute(String deviceId, String token) throws KidTrackerException {
-        Device device = devices.get(deviceId);
-        if (device != null) {
-            device.execute(token, tokenTtlMillis);
+            UserToken userToken = UserToken.of(userInfo.getId(), RandomStringUtils.randomNumeric(tokenLength));
+            device.apply(userToken, command);
+            device.send("SMS", String.join(",", userInfo.getPhone(), userToken.getToken()));
+            log.info("[{}] {} for {} is sent to user {}", deviceId, userToken, command, userInfo);
         } else {
             throw new KidTrackerUnknownDeviceException(deviceId);
         }
+    }
+
+    public void execute(UserInfo userInfo, String token, String deviceId) throws KidTrackerException {
+        Device device = devices.get(deviceId);
+        if (device != null) {
+            device.execute(UserToken.of(userInfo.getId(), token), tokenTtlMillis);
+        } else {
+            throw new KidTrackerUnknownDeviceException(deviceId);
+        }
+    }
+
+    public void remove(String deviceId) {
+        devices.remove(deviceId);
+        log.info("[{}] Device is removed from connected devices list", deviceId);
     }
 
     public void clean() {

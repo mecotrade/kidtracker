@@ -180,7 +180,7 @@ function editContact(deviceId, contactId) {
             $editModal.off('shown.bs.modal', onShow);
             $remove.click(async () => {
                 const response = await fetchWithRedirect(`/api/device/${deviceId}/contact/${type}/${index}`, {
-                  method: 'DELETE'
+                    method: 'DELETE'
                 }, () => {
                     showError(i18n.translate('Command is not completed.'))
                 })
@@ -193,9 +193,9 @@ function editContact(deviceId, contactId) {
                     showError(i18n.translate('Phone should not be empty.'))
                 } else {
                     await fetchWithRedirect(`/api/device/${deviceId}/contact`, {
-                      method: 'POST',
-                      headers: {'Content-Type': 'application/json'},
-                      body: JSON.stringify({type: type, index: index, phone: $phone.val(), name: $name.val()})
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({type: type, index: index, phone: $phone.val(), name: $name.val()})
                     }, () => {
                         showError(i18n.translate('Command is not completed.'))
                     });

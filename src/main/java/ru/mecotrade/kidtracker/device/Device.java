@@ -44,7 +44,7 @@ public class Device implements DeviceSender {
     @Setter
     private Temporal<Boolean> alarm = Temporal.of(false);
 
-    private final Map<String, Temporal<DeviceJob>> jobs = new HashMap<>();
+    private final Map<UserToken, Temporal<Job>> jobs = new HashMap<>();
 
     private MessageConnector messageConnector;
 
@@ -96,29 +96,29 @@ public class Device implements DeviceSender {
         }
     }
 
-    public void apply(String token, Command command) {
-        jobs.put(token, Temporal.of(() -> send(command.getType(), String.join(",", command.getPayload()))));
+    public void apply(UserToken userToken, Command command) {
+        jobs.put(userToken, Temporal.of(() -> send(command.getType(), String.join(",", command.getPayload()))));
     }
 
-    public void execute(String token, long ttl) throws KidTrackerException {
-        Temporal<DeviceJob> job = jobs.get(token);
+    public void execute(UserToken userToken, long ttl) throws KidTrackerException {
+        Temporal<Job> job = jobs.get(userToken);
         if (job != null && System.currentTimeMillis() - job.getTimestamp().getTime() < ttl) {
             job.getValue().execute();
-            jobs.remove(token);
+            jobs.remove(userToken);
         } else {
-            throw new KidTrackerInvalidTokenException(token);
+            throw new KidTrackerInvalidTokenException(userToken.getToken());
         }
     }
 
     public void clean(long ttl) {
         long millis = System.currentTimeMillis();
-        Collection<String> obsolete = jobs.entrySet().stream()
+        Collection<UserToken> obsolete = jobs.entrySet().stream()
                 .filter(e -> millis - e.getValue().getTimestamp().getTime() > ttl)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         obsolete.forEach(t -> {
             jobs.remove(t);
-            log.info("[{}] Obsolete token {} removed", id, t);
+            log.info("[{}] Obsolete {} removed", id, t);
         });
     }
 

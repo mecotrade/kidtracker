@@ -129,12 +129,12 @@ function editDevice(kid, create) {
         $editModal.on('shown.bs.modal', async function onShow() {
             $editModal.off('shown.bs.modal', onShow);
             $remove.click(async () => {
-//                const response = await fetchWithRedirect(`/api/device/${deviceId}/contact/${type}/${index}`, {
-//                  method: 'DELETE'
-//                }, () => {
-//                    showError(i18n.translate('Command is not completed.'))
-//                })
-//                hide();
+                await fetchWithRedirect(`/api/user/kid/${kid.deviceId}`, {
+                    method: 'DELETE'
+                }, () => {
+                    showError(i18n.translate('Command is not completed.'))
+                });
+                hide();
             });
             $removeThumb.click(async () => {
                 delete kid.thumb;
@@ -147,9 +147,9 @@ function editDevice(kid, create) {
                 } else {
                     kid.name = $name.val();
                     await fetchWithRedirect('/api/user/kid', {
-                      method: 'POST',
-                      headers: {'Content-Type': 'application/json'},
-                      body: JSON.stringify(kid)
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(kid)
                     }, () => {
                         showError(i18n.translate('Command is not completed.'))
                     });

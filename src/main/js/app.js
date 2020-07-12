@@ -414,7 +414,17 @@ async function showNavbar() {
             k.circle = L.circle(props ? props.latlng : [0, 0], props ? props.radius : 0, {weight: 0}).addTo(map);
             k.popupTimeFromNow = props ? props.fromNow :  true;
         });
+
+        $('ul.navbar-left button').each(function(i) {
+            $(this).prop('disabled', kids.length == 0);
+        });
+
+        if (kids.length == 0 && (view == 'kid' || view == 'kid-once')) {
+            view = 'none';
+        }
     }
+
+    updateViewIcons();
 
     // init pedometer to closest midnight
     await updateMidnightSnapshot();
