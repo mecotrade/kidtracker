@@ -1,18 +1,15 @@
 'use strict';
 
 const moment = require('moment/min/moment-with-locales.min.js');
-const createSliderControl = require('./slidercontrol.js');
 const i18n = require('./i18n.js');
-const {initHistory, showHistory} = require('./history.js');
+const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
+const createSliderControl = require('./slidercontrol.js');
 const {showWarning, showError} = require('./notification.js');
+const {initHistory, showHistory} = require('./history.js');
 const {initPhone, showPhone} = require('./phone.js');
 const {initContact, showContact} = require('./contact.js');
 const {initWatchSettings, showWatchSettings} = require('./watchsettings.js');
-const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 const showDevice = require('./device.js');
-
-const DEFAULT_ZOOM = 16;
-const KID_POSITION_QUERY_INTERVAL = 10000;
 
 const BATTERY_LOW_THRESHOLD = 20;
 const BATTERY_FULL_THRESHOLD = 70;
@@ -27,7 +24,23 @@ const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
 
 const LOST_INTERVAL = 15 * 60 * 1000;
 
-var map = L.map('map');
+const DEFAULT_ZOOM = 16;
+const KID_POSITION_QUERY_INTERVAL = 10000;
+
+const map = L.map('map');
+
+const $select = $('#kid-select');
+const $eye = $('#kid-watch');
+const $history = $('#kid-history');
+const $phone = $('#kid-phone');
+const $contacts = $('#kid-contacts');
+const $gps = $('#kid-locate');
+const $bell = $('#kid-find');
+const $watchSettings = $('#kid-settings');
+
+const $username = $('#user-name');
+const $cursor = $('#user-watch');
+const $devices = $('#user-devices');
 
 var user;
 var kids;
@@ -36,184 +49,13 @@ var midnight;
 var view = 'none';
 var path = null;
 
-$('#user-watch').on('click', function onLocateMe() {
-    if (view == 'user') {
-        $('#stop-user-watch-icon').show();
-        $('#user-watch-icon').hide();
-        view = 'none';
-    } else {
-        if (view == 'kid') {
-            $('#stop-kid-watch-icon').show();
-            $('#kid-watch-icon').hide();
-        }
-        $('#stop-user-watch-icon').hide();
-        $('#user-watch-icon').show();
-        view = 'user';
+function updateViewIcons() {
 
-        map.setView(user.marker.getLatLng(), map.getZoom());
-    }
-});
-
-$('#kid-watch').on('click', async function onLocateKid() {
-    if (view == 'kid') {
-        $('#stop-kid-watch-icon').show();
-        $('#kid-watch-icon').hide();
-        view = 'none';
-    } else {
-        if (view == 'user') {
-            $('#stop-user-watch-icon').show();
-            $('#user-watch-icon').hide();
-        }
-        $('#stop-kid-watch-icon').hide();
-        $('#kid-watch-icon').show();
-        view = 'kid';
-
-        if (path) {
-            path.move(path.slider.value());
-        } else {
-            locateKids();
-        }
-    }
-});
-
-$('#kid-history').on('click', async function onKidPath() {
-
-    if (!path) {
-
-        const deviceId = $('#kid-select').children('option:selected').val();
-        const pathRange = await showHistory(deviceId);
-
-        if (pathRange) {
-
-            let start = pathRange.start.getTime();
-            let end = pathRange.end.getTime();
-
-            $('#kid-path-switch-icon').hide();
-            $('#kid-geo-switch-icon').show();
-
-            const kid = kids.find(k => k.deviceId == deviceId);
-
-            // TODO if not found
-
-            const kidPath = await fetchWithRedirect(`/api/device/${deviceId}/path/${start}/${end}`);
-
-            if (kidPath.length > 0) {
-
-                const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
-
-                let snapshotDate = moment(start).startOf('day').toDate();
-                const pathMidnightSnapshot = await fetchWithRedirect(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`) || {
-                    deviceId: kidPath[0].deviceId,
-                    timestamp: kidPath[0].timestamp,
-                    pedometer: kidPath[0].pedometer,
-                    rolls: kidPath[0].rolls,
-                    battery: kidPath[0].battery
-                }
-
-                function move(i) {
-                    updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false);
-                    return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
-                }
-
-                const slider = createSliderControl({
-                    position: "topright",
-                    alwaysShowDate: true,
-                    length: kidPath.length,
-                    slide: move
-                });
-                map.addControl(slider);
-                slider.startSlider();
-
-                path = {track: track, slider: slider, move: move};
-
-            } else {
-
-                await showWarning(i18n.translate('No data'));
-
-                $('#kid-path-switch-icon').show();
-                $('#kid-geo-switch-icon').hide();
-            }
-        }
-    } else {
-        map.removeControl(path.slider);
-        map.removeLayer(path.track);
-        path = null;
-
-        $('#kid-path-switch-icon').show();
-        $('#kid-geo-switch-icon').hide();
-
-        locateKids();
-    }
-});
-
-$('#kid-phone').on('click', async function () {
-    const deviceId = $('#kid-select').children('option:selected').val();
-    await showPhone(user, deviceId);
-});
-
-$('#kid-contacts').on('click', async function () {
-    const deviceId = $('#kid-select').children('option:selected').val();
-    await showContact(deviceId);
-});
-
-$('#kid-locate').on('click', async function () {
-    const deviceId = $('#kid-select').children('option:selected').val();
-    const response = await fetchWithRedirect(`/api/device/${deviceId}/command`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({type: 'CR', payload: []})
-    }, () => {
-        showError(i18n.translate('Command is not completed.'))
-    });
-});
-
-$('#kid-find').on('click', async function () {
-    const deviceId = $('#kid-select').children('option:selected').val();
-    const response = await fetchWithRedirect(`/api/device/${deviceId}/command`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({type: 'FIND', payload: []})
-    }, () => {
-        showError(i18n.translate('Command is not completed.'))
-    });
-});
-
-$('#kid-settings').on('click', async function () {
-    const deviceId = $('#kid-select').children('option:selected').val();
-    await showWatchSettings(deviceId);
-})
-
-$('#user-devices').on('click', async function () {
-    await showDevice();
-})
-
-map.on('locationfound', function onLocationFound(e) {
-
-    user.marker.setLatLng(e.latlng);
-    user.circle.setLatLng(e.latlng).setRadius(e.accuracy);
-
-    if (view == 'user' || view == 'user-once') {
-        map.setView(e.latlng, map.getZoom());
-        if (view == 'user-once') {
-            view = 'none';
-        }
-    }
-
-    $('#user-watch').attr('disabled', false);
-});
-
-map.on('locationerror', function onLocationError(e) {
-    $('#user-watch').attr('disabled', true);
-    console.error(e.message);
-});
-
-map.on('drag', function onMouseDrag(e) {
-    $('#stop-user-watch-icon').show();
-    $('#user-watch-icon').hide();
-    $('#stop-kid-watch-icon').show();
-    $('#kid-watch-icon').hide();
-    view = 'none';
-});
+    $('.bi-cursor', $cursor).toggle(view != 'user');
+    $('.bi-cursor-fill', $cursor).toggle(view == 'user');
+    $('.bi-eye', $eye).toggle(view != 'kid');
+    $('.bi-eye-fill', $eye).toggle(view == 'kid');
+}
 
 function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, alarm) {
 
@@ -291,13 +133,28 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
     }
 }
 
+async function updateMidnightSnapshot() {
+
+    midnight = moment().startOf('day').toDate();
+
+    const snapshot = await fetchWithRedirect(`/api/user/kids/snapshot/${midnight.getTime()}`);
+    if (snapshot) {
+        kids.forEach(k => {
+            const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
+            if (kidSnapshot) {
+                k.snapshot = kidSnapshot;
+            }
+        });
+    }
+}
+
 async function locateKids() {
 
     if (new Date().toDateString() != midnight.toDateString()) {
         await updateMidnightSnapshot();
     }
 
-    const deviceId = $('#kid-select').children('option:selected').val();
+    const deviceId = $select.children('option:selected').val();
 
     const report = await fetchWithRedirect(`/api/user/kids/report`);
     if (report) {
@@ -317,66 +174,53 @@ async function locateKids() {
     }
 }
 
-async function updateMidnightSnapshot() {
+function initMap() {
 
-    midnight = moment().startOf('day').toDate();
-
-    const snapshot = await fetchWithRedirect(`/api/user/kids/snapshot/${midnight.getTime()}`);
-    if (snapshot) {
-        kids.forEach(k => {
-            const kidSnapshot = snapshot.find(s => s.deviceId == k.deviceId);
-            if (kidSnapshot) {
-                k.snapshot = kidSnapshot;
-            }
-        });
-    }
-}
-
-window.addEventListener('load', async function onload() {
-
-    const locale = navigator.language ? navigator.language.split('-')[0] : null;
-    if (locale) {
-        moment.locale(locale);
-        i18n.setLocale(locale);
-    }
-
+    // todo: add more geoservices
 	L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(map);
 
 	map.setZoom(DEFAULT_ZOOM);
 
-    // kids definition and location
-	kids = await fetchWithRedirect(`/api/user/kids/info`);
-	if (kids) {
-        $('#kid-select').html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
-        kids.forEach(k => {
-            k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng([0, 0]).addTo(map);
-            k.popupTimeFromNow = true;
-            k.circle = L.circle([0,0], 0, {weight: 0}).addTo(map);
-        });
-    }
+    map.off('locationfound');
+    map.on('locationfound', e => {
 
-    // init pedometer to closest midnight
-    await updateMidnightSnapshot();
+        if (user) {
+            user.marker.setLatLng(e.latlng);
+            user.circle.setLatLng(e.latlng).setRadius(e.accuracy);
+        }
 
-    locateKids();
-    setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);
+        if (view == 'user' || view == 'user-once') {
+            map.setView(e.latlng, map.getZoom());
+            if (view == 'user-once') {
+                view = 'none';
+            }
+        }
 
-    // user definition and location
-    user = await fetchWithRedirect(`/api/user/info`);
-    if (user) {
-        $('#user-name').text(user.name);
-        user.marker = L.marker([0,0]).addTo(map);
-        user.circle = L.circle([0, 0], 0, {weight: 0, color: 'green'}).addTo(map);
-    }
-
-    view = 'user-once';
-    map.locate({
-        watch: true,
-        setView: false,
-        enableHighAccuracy: true
+        $cursor.attr('disabled', false);
     });
+
+    map.off('locationerror');
+    map.on('locationerror', e => {
+        $cursor.attr('disabled', true);
+    });
+
+    map.off('drag');
+    map.on('drag', function (e) {
+        view = 'none';
+        updateViewIcons();
+    });
+}
+
+async function initNavbar() {
+
+    // init i18n
+    const locale = navigator.language ? navigator.language.split('-')[0] : null;
+    if (locale) {
+        moment.locale(locale);
+        i18n.setLocale(locale);
+    }
 
     $('h5.modal-title').each(function (i) {
         i18n.apply($(this));
@@ -399,8 +243,189 @@ window.addEventListener('load', async function onload() {
         i18n.apply($(this));
     });
 
+    initMap();
+
     initHistory();
     initPhone();
     initContact();
     initWatchSettings();
+
+    $eye.off('click');
+    $eye.click(() => {
+        view = view == 'kid' ? 'none' : 'kid';
+        updateViewIcons();
+        if (view == 'kid') {
+            if (path) {
+                path.move(path.slider.value());
+            } else {
+                locateKids();
+            }
+        }
+    });
+
+    $history.off('click');
+    $history.click(async () => {
+
+        if (!path) {
+
+            const deviceId = $select.children('option:selected').val();
+            const pathRange = await showHistory(deviceId);
+
+            if (pathRange) {
+
+                let start = pathRange.start.getTime();
+                let end = pathRange.end.getTime();
+
+                $('.bi-calendar2-week-fill', $history).hide();
+                $('.bi-geo-alt', $history).show();
+
+                const kid = kids.find(k => k.deviceId == deviceId);
+
+                // TODO if not found
+
+                const kidPath = await fetchWithRedirect(`/api/device/${deviceId}/path/${start}/${end}`);
+
+                if (kidPath.length > 0) {
+
+                    const track = L.polyline(kidPath.map(p => [p.latitude, p.longitude]), {dashArray: '4'}).addTo(map);
+
+                    let snapshotDate = moment(start).startOf('day').toDate();
+                    const pathMidnightSnapshot = await fetchWithRedirect(`/api/device/${deviceId}/snapshot/${snapshotDate.getTime()}`) || {
+                        deviceId: kidPath[0].deviceId,
+                        timestamp: kidPath[0].timestamp,
+                        pedometer: kidPath[0].pedometer,
+                        rolls: kidPath[0].rolls,
+                        battery: kidPath[0].battery
+                    }
+
+                    function move(i) {
+                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false);
+                        return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
+                    }
+
+                    const slider = createSliderControl({
+                        position: "topright",
+                        alwaysShowDate: true,
+                        length: kidPath.length,
+                        slide: move
+                    });
+                    map.addControl(slider);
+                    slider.startSlider();
+
+                    path = {track: track, slider: slider, move: move};
+
+                } else {
+
+                    await showWarning(i18n.translate('No data'));
+
+                    $('#kid-path-switch-icon').show();
+                    $('#kid-geo-switch-icon').hide();
+                }
+            }
+        } else {
+            map.removeControl(path.slider);
+            map.removeLayer(path.track);
+            path = null;
+
+            $('.bi-calendar2-week-fill', $history).show();
+            $('.bi-geo-alt', $history).hide();
+
+            locateKids();
+        }
+    });
+
+    $phone.off('click');
+    $phone.click(async () => {
+        const deviceId = $select.children('option:selected').val();
+        await showPhone(user, deviceId);
+    });
+
+    $contacts.off('click');
+    $contacts.click(async () => {
+        const deviceId = $select.children('option:selected').val();
+        await showContact(deviceId);
+    });
+
+    initCommand($gps, 'CR', null, {device: () => $select.children('option:selected').val()});
+    initCommand($bell, 'FIND', null, {device: () => $select.children('option:selected').val()});
+
+    $watchSettings.off('click');
+    $watchSettings.click(async () => {
+        const deviceId = $select.children('option:selected').val();
+        await showWatchSettings(deviceId);
+    });
+
+    $cursor.off('click');
+    $cursor.click(() => {
+        view = view == 'user' ? 'none' : 'user';
+        updateViewIcons();
+        if (view == 'user') {
+            map.setView(user.marker.getLatLng(), map.getZoom());
+        }
+    });
+
+    $devices.off('click');
+    $devices.click(async () => {
+        await showDevice();
+        await showNavbar();
+    });
+
+    view = 'user-once';
+    map.locate({
+        watch: true,
+        setView: false,
+        enableHighAccuracy: true
+    });
+}
+
+async function showNavbar() {
+
+    // user definition and location
+    let userProps;
+    if (user) {
+        userProps = {latlng: user.marker.getLatLng(), radius: user.circle.getRadius()};
+        user.marker.removeFrom(map);
+        user.circle.removeFrom(map);
+    }
+
+    user = await fetchWithRedirect(`/api/user/info`);
+    if (user) {
+        user.marker = L.marker(userProps ? userProps.latlng : [0,0]).addTo(map);
+        user.circle = L.circle(userProps ? userProps.latlng : [0,0], userProps ? userProps.radius : 0, {weight: 0, color: 'green'}).addTo(map);
+        $username.text(user.name);
+    }
+
+    // kids definition and location
+    const popupProps = {};
+    if (kids) {
+        kids.forEach(k => {
+            popupProps[k.deviceId] = {fromNow: k.popupTimeFromNow, latlng: k.popup.getLatLng(), radius: k.circle.getRadius()};
+            k.popup.removeFrom(map);
+            k.circle.removeFrom(map);
+        });
+    }
+
+	kids = await fetchWithRedirect(`/api/user/kids/info`);
+	if (kids) {
+        $select.html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
+        kids.forEach(k => {
+            const props = popupProps[k.deviceId];
+            k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng(props ? props.latlng : [0, 0]).addTo(map);
+            k.circle = L.circle(props ? props.latlng : [0, 0], props ? props.radius : 0, {weight: 0}).addTo(map);
+            k.popupTimeFromNow = props ? props.fromNow :  true;
+        });
+    }
+
+    // init pedometer to closest midnight
+    await updateMidnightSnapshot();
+
+    locateKids();
+}
+
+window.addEventListener('load', async function onload() {
+
+    await initNavbar();
+    await showNavbar();
+
+    setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);
 });

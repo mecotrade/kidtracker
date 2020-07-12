@@ -32,6 +32,9 @@ function initCommand($button, command, deviceId, options) {
         if (options.before) {
             options.before();
         }
+        if (options.device) {
+            deviceId = options.device();
+        }
         await fetchWithRedirect(`/api/device/${deviceId}/command`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
