@@ -444,112 +444,94 @@
                         <span>Reminders</span>
                     </div>
                     <ul class="list-group list-group-flush" style="display: none">
-                        <li class="list-group-item">
-                            <label for="kid-settings-reminder-1-time">Reminder 1</label>
+                        <li class="list-group-item" id="kid-settings-reminder-1">
+                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-toggle-off" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/>
+                            </svg>
+                            <svg width="20px" height="20px" style="display: none" viewBox="0 0 16 16" class="bi bi-toggle-on" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            </svg>
+                            <label>Reminder 1</label>
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <input id="kid-settings-reminder-1-time" type="text" disabled/>
+                                    <input type="text" disabled/>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <select class="custom-select" id="kid-settings-reminder-1-select">
+                                    <select class="custom-select">
                                         <option value="1">Once</option>
                                         <option value="2">Everyday</option>
                                         <option value="choice">Select days</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-row" id="kid-settings-reminder-1-days" style="display: none">
-                                <div class="form-group reminder-multiselect">
-                                    <select multiple>
-                                        <option value="1">Monday</option>
-                                        <option value="2">Tuesday</option>
-                                        <option value="3">Wednesday</option>
-                                        <option value="4">Thursday</option>
-                                        <option value="5">Friday</option>
-                                        <option value="6">Saturday</option>
-                                        <option value="0">Sunday</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group col-md-12">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="kid-settings-reminder-1-on">
-                                        <label class="custom-control-label" for="kid-settings-reminder-1-on">Active</label>
-                                    </div>
-                                </div>
+                            <div class="form-group col-md-12 day-select">
+                                <span class="btn btn-sm">Mo</span>
+                                <span class="btn btn-sm">Tu</span>
+                                <span class="btn btn-sm">We</span>
+                                <span class="btn btn-sm">Th</span>
+                                <span class="btn btn-sm">Fr</span>
+                                <span class="btn btn-sm">Sa</span>
+                                <span class="btn btn-sm">Su</span>
                             </div>
                         </li>
-                        <li class="list-group-item">
-                            <label for="kid-settings-reminder-2-time">Reminder 2</label>
+                        <li class="list-group-item" id="kid-settings-reminder-2">
+                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-toggle-off" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/>
+                            </svg>
+                            <svg width="20px" height="20px" style="display: none" viewBox="0 0 16 16" class="bi bi-toggle-on" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            </svg>
+                            <label>Reminder 2</label>
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <input id="kid-settings-reminder-2-time" type="text" disabled/>
+                                    <input type="text" disabled/>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <select class="custom-select" id="kid-settings-reminder-2-select">
+                                    <select class="custom-select">
                                         <option value="1">Once</option>
                                         <option value="2">Everyday</option>
                                         <option value="choice">Select days</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-row" id="kid-settings-reminder-2-days" style="display: none">
-                                <div class="form-group reminder-multiselect">
-                                    <select multiple>
-                                        <option value="1">Monday</option>
-                                        <option value="2">Tuesday</option>
-                                        <option value="3">Wednesday</option>
-                                        <option value="4">Thursday</option>
-                                        <option value="5">Friday</option>
-                                        <option value="6">Saturday</option>
-                                        <option value="0">Sunday</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group col-md-12">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="kid-settings-reminder-2-on">
-                                        <label class="custom-control-label" for="kid-settings-reminder-2-on">Active</label>
-                                    </div>
-                                </div>
+                            <div class="form-group col-md-12 day-select">
+                                <span class="btn btn-sm">Mo</span>
+                                <span class="btn btn-sm">Tu</span>
+                                <span class="btn btn-sm">We</span>
+                                <span class="btn btn-sm">Th</span>
+                                <span class="btn btn-sm">Fr</span>
+                                <span class="btn btn-sm">Sa</span>
+                                <span class="btn btn-sm">Su</span>
                             </div>
                         </li>
-                        <li class="list-group-item">
-                            <label for="kid-settings-reminder-1-time">Reminder 3</label>
+                        <li class="list-group-item" id="kid-settings-reminder-3">
+                            <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-toggle-off" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/>
+                            </svg>
+                            <svg width="20px" height="20px" style="display: none" viewBox="0 0 16 16" class="bi bi-toggle-on" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            </svg>
+                            <label>Reminder 3</label>
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <input id="kid-settings-reminder-3-time" type="text" disabled/>
+                                    <input type="text" disabled/>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <select class="custom-select" id="kid-settings-reminder-3-select">
+                                    <select class="custom-select">
                                         <option value="1">Once</option>
                                         <option value="2">Everyday</option>
                                         <option value="choice">Select days</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-row" id="kid-settings-reminder-3-days" style="display: none">
-                                <div class="form-group reminder-multiselect">
-                                    <select multiple>
-                                        <option value="1">Monday</option>
-                                        <option value="2">Tuesday</option>
-                                        <option value="3">Wednesday</option>
-                                        <option value="4">Thursday</option>
-                                        <option value="5">Friday</option>
-                                        <option value="6">Saturday</option>
-                                        <option value="0">Sunday</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group col-md-12">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="kid-settings-reminder-3-on">
-                                        <label class="custom-control-label" for="kid-settings-reminder-3-on">Active</label>
-                                    </div>
-                                </div>
+                            <div class="form-group col-md-12 day-select">
+                                <span class="btn btn-sm">Mo</span>
+                                <span class="btn btn-sm">Tu</span>
+                                <span class="btn btn-sm">We</span>
+                                <span class="btn btn-sm">Th</span>
+                                <span class="btn btn-sm">Fr</span>
+                                <span class="btn btn-sm">Sa</span>
+                                <span class="btn btn-sm">Su</span>
                             </div>
                         </li>
                         <li class="list-group-item">

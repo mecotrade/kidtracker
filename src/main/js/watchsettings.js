@@ -42,9 +42,9 @@ function initWatchSettings() {
         });
     });
 
-    initReminder('kid-settings-reminder-1');
-    initReminder('kid-settings-reminder-2');
-    initReminder('kid-settings-reminder-3');
+    initReminder($('#kid-settings-reminder-1'));
+    initReminder($('#kid-settings-reminder-2'));
+    initReminder($('#kid-settings-reminder-3'));
 
     $('#input-token-input').off('keydown');
     $('#input-token-input').on('keydown', function(e) {
@@ -55,12 +55,21 @@ function initWatchSettings() {
     });
 }
 
-function initReminder(prefix) {
+function initReminder($reminder) {
 
-    const $typeSelect = $(`#${prefix}-select`);
-    const $daysRow = $(`#${prefix}-days`);
+    const $time = $('input', $reminder);
+    const $type = $('select', $reminder);
+    const $days = $('.day-select', $reminder);
 
-    $(`#${prefix}-time`).timepicker({
+    $('.bi-toggle-off, .bi-toggle-on', $reminder).each(function(i) {
+        $(this).off('click');
+        $(this).click(() => {
+            $('.bi-toggle-off', $reminder).toggle();
+            $('.bi-toggle-on', $reminder).toggle();
+        })
+    })
+
+    $time.timepicker({
         locale: 'ru-ru',
         format: 'HH:MM',
         mode: '24hr',
@@ -70,65 +79,63 @@ function initReminder(prefix) {
         value: moment().format(WATCH_TIME_FORMAT)
     });
 
-    i18n.apply($(`#${prefix}-time-label`), $(`#${prefix}-on-label`));
-
-    $typeSelect.off('change');
-    $typeSelect.on('change', () => {
-        if ($typeSelect.val() == 'choice') {
-            $daysRow.show();
-        } else {
-            $daysRow.hide();
-        }
+    $type.off('change');
+    $type.on('change', () => {
+        $days.toggle($type.val() == 'choice');
     });
 
-    $('option', $typeSelect).each(function (i) {
-        i18n.apply($(this));
-    });
-
-    $('option', $daysRow).each(function(i) {
-        i18n.apply($(this));
-    });
-
-    $('select', $daysRow).multiSelect({
-        selectableHeader: i18n.translate('Available'),
-        selectionHeader: i18n.translate('Selected'),
-        cssClass: 'reminder-multiselect-container'
+    $days.children('span').each(function(i) {
+        $(this).off('click');
+        $(this).click(() => {
+            $(this).toggleClass('btn-primary');
+        });
     });
 }
 
-function reminderValue(prefix) {
+function reminderValue($reminder) {
 
-    const time = $(`#${prefix}-time`).val();
-    const active = $(`#${prefix}-on`)[0].checked ? '1' : '0';
-    let type = $(`#${prefix}-select`).children('option:selected').val();
+    const $time = $('input', $reminder);
+    const $type = $('select', $reminder);
+    const $days = $('.day-select', $reminder);
+
+    const time = $time.val();
+    const active = $('.bi-toggle-on', $reminder).is(':visible') ? '1' : '0';
+    let type = $type.children('option:selected').val();
     if (type == 'choice') {
         type = '0000000';
-        $(`#${prefix}-days select`).val().forEach(i => {
-            const index = parseInt(i);
-            type = type.substring(0, index) + '1' + type.substring(index + 1);
-        })
+        $days.children('span').each(function(i) {
+            if ($(this).hasClass('btn-primary')) {
+                const index = (i + 1) % 7;
+                type = type.substring(0, index) + '1' + type.substring(index + 1);
+            }
+        });
     }
 
     return `${time}-${active}-${type}`;
 }
 
-function reminderConfig(prefix, value) {
+function reminderConfig($reminder, value) {
+
+    const $time = $('input', $reminder);
+    const $type = $('select', $reminder);
+    const $days = $('.day-select', $reminder);
 
     const [time, active, type] = value.split('-');
-    $(`#${prefix}-time`).val(time);
-    $(`#${prefix}-on`)[0].checked = active == '1';
+    $time.val(time);
+
+    $('.bi-toggle-off', $reminder).toggle(active != '1');
+    $('.bi-toggle-on', $reminder).toggle(active == '1');
+
     if (type == '1' || type == '2') {
-        $(`#${prefix}-select`).val(type);
+        $type.val(type);
     } else {
-        $(`#${prefix}-select`).val('choice');
-        const value = [];
-        for(let i=0; i < type.length; i++) {
-            if (type[i] === '1') value.push(i.toString());
-        }
-        $(`#${prefix}-days select`).multiSelect('select', value);
+        $type.val('choice');
+        $days.children('span').each(function(i) {
+            $(this).toggleClass('btn-primary', type[(i + 1) % 7] === '1');
+        });
     }
 
-    $(`#${prefix}-select`)[0].dispatchEvent(new Event('change'));
+    $type[0].dispatchEvent(new Event('change'));
 }
 
 async function showWatchSettings(deviceId) {
@@ -219,13 +226,13 @@ async function showWatchSettings(deviceId) {
             init: () => {
                 config.filter(c => c.parameter == 'REMIND').forEach(function (c) {
                     const [reminder1, reminder2, reminder3] = c.value.split(',');
-                    reminderConfig('kid-settings-reminder-1', reminder1);
-                    reminderConfig('kid-settings-reminder-2', reminder2);
-                    reminderConfig('kid-settings-reminder-3', reminder3);
+                        reminderConfig($('#kid-settings-reminder-1'), reminder1);
+                        reminderConfig($('#kid-settings-reminder-2'), reminder2);
+                        reminderConfig($('#kid-settings-reminder-3'), reminder3);
                 });
             },
             value: () => {
-                return `${reminderValue('kid-settings-reminder-1')},${reminderValue('kid-settings-reminder-2')},${reminderValue('kid-settings-reminder-3')}`;
+                return `${reminderValue($('#kid-settings-reminder-1'))},${reminderValue($('#kid-settings-reminder-2'))},${reminderValue($('#kid-settings-reminder-3'))}`;
             }
         });
 
