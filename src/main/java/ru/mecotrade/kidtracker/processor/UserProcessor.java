@@ -131,7 +131,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
                 .thumb(kid.getThumb())
                 .build());
         update(userPrincipal);
-        
+
         log.info("{} successfully added to {}", kid, userPrincipal.getUserInfo());
     }
 

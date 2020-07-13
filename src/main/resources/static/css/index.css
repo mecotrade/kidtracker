@@ -135,7 +135,10 @@ div.form-group.reminder-multiselect {
     border-radius: 8px;
 }
 
-
 #edit-device input {
     text-align: center;
+}
+
+.bi-toggle-on {
+    color: #007bff;
 }

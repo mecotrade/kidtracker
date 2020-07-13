@@ -92,11 +92,10 @@ async function showTab(deviceId) {
 
     if (full) {
         for (let i=0; i < capacity[tab]; i++) {
-            const $tr = $('<tr>');
+            const $tr = $('<tr>').attr('id', `${tab}_${i}`);
             const $th = $('<th>');
             const $td = $('<td>');
             const $icon = $('<span>');
-            $icon.attr('id', `${tab}_${i}`);
             $icon.html(tabData.icons[i < tabData.icons.length ? i : tabData.icons.length  - 1]);
             const contact = contacts[tab][i];
             if (contact) {
@@ -110,11 +109,10 @@ async function showTab(deviceId) {
         }
     } else {
         data.forEach(c => {
-            const $tr = $('<tr>');
+            const $tr = $('<tr>').attr('id', `${c.type}_${c.index}`);
             const $th = $('<th>');
             const $td = $('<td>');
             const $icon = $('<span>');
-            $icon.attr('id', `${c.type}_${c.index}`);
             $icon.html(tabData.icons[c.index < tabData.icons.length ? c.index : tabData.icons.length  - 1]);
             $th.html(`${$icon[0].outerHTML} ${c.name}`)
             $td.text(c.phone);
