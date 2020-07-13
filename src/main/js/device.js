@@ -12,6 +12,7 @@ async function showDevice() {
     const kids = await fetchWithRedirect(`/api/user/kids/info`);
 
     const $modal = $('#show-user-devices');
+    const $add = $('#user-devices-add');
     const $close = $('#user-devices-close');
 
     const $tbody = $('<tbody>');
@@ -41,18 +42,30 @@ async function showDevice() {
         const kidDeviceId = `kid-device-${k.deviceId}`
         $(`#${kidDeviceId}`).off('click');
         $(`#${kidDeviceId}`).on('click', async () => {
-            await editDevice(k, false);
+            await editDevice(k);
             await showDevice();
         });
     });
 
     return new Promise(resolve => {
+
+        function hide() {
+
+            $close.off('click');
+            $add.off('click');
+
+            $modal.modal('hide');
+            resolve(null);
+        }
+
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
-            $close.click(function onClose() {
-                $close.off('click', onClose);
-                $modal.modal('hide');
-                resolve(null);
+            $add.click(async () => {
+                await editDevice();
+                await showDevice();
+            });
+            $close.click(() => {
+                hide();
             });
         });
 
@@ -65,17 +78,26 @@ async function showDevice() {
     });
 }
 
-function editDevice(kid, create) {
+function editDevice(kid) {
 
     const $remove = $('#edit-device-remove');
     const $removeThumb = $('#edit-device-remove-thumb');
     const $addThumb = $('#edit-device-add-thumb');
     const $upload = $('#edit-device-upload');
+    const $add = $('#edit-device-add');
     const $close = $('#edit-device-close');
 
     const $thumbRow = $('.thumb-row', $editModal);
-    const $deviceid = $('#device-deviceid');
+    const $deviceId = $('#device-deviceid');
     const $name = $('#device-name');
+
+    const create = !kid;
+    if (create) {
+        kid = {};
+    }
+    $remove.toggle(create == false);
+    $upload.toggle(create == false);
+    $add.toggle(create == true);
 
     function render() {
 
@@ -97,6 +119,7 @@ function editDevice(kid, create) {
                     reader.onload = function(e) {
                         kid.thumb = e.target.result;
                         kid.name = $name.val();
+                        kid.deviceId = $deviceId.val();
                         render();
                     };
                     reader.readAsDataURL($(this)[0].files[0]);
@@ -104,10 +127,10 @@ function editDevice(kid, create) {
             }
         })
 
-        $deviceid.val(kid.deviceId);
+        $deviceId.val(kid.deviceId);
         $name.val(kid.name);
 
-        $deviceid.prop('disabled', create == false);
+        $deviceId.prop('disabled', create == false);
     }
 
     render();
@@ -120,6 +143,7 @@ function editDevice(kid, create) {
             $removeThumb.off('click');
             $addThumb.off('click');
             $upload.off('click');
+            $add.off('click');
             $close.off('click');
 
             $editModal.modal('hide');
@@ -139,6 +163,7 @@ function editDevice(kid, create) {
             $removeThumb.click(async () => {
                 delete kid.thumb;
                 kid.name = $name.val();
+                kid.deviceId = $deviceId.val();
                 render();
             });
             $upload.click(async () => {
@@ -148,6 +173,24 @@ function editDevice(kid, create) {
                     kid.name = $name.val();
                     await fetchWithRedirect('/api/user/kid', {
                         method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(kid)
+                    }, () => {
+                        showError(i18n.translate('Command is not completed.'))
+                    });
+                    hide();
+                }
+            });
+            $add.click(async () => {
+                if (!$name.val()) {
+                    showError(i18n.translate('Name should not be empty.'))
+                } else if (!$deviceId.val()) {
+                    showError(i18n.translate('Device identifier should not be empty.'))
+                } else {
+                    kid.deviceId = $deviceId.val();
+                    kid.name = $name.val();
+                    await fetchWithRedirect('/api/user/kid', {
+                        method: 'PUT',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(kid)
                     }, () => {

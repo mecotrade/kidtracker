@@ -25,4 +25,10 @@ public class DeviceInfo {
 
     @OneToMany(mappedBy = "device")
     private Collection<KidInfo> kids;
+
+    public static DeviceInfo of(String id) {
+        DeviceInfo deviceInfo = new DeviceInfo();
+        deviceInfo.setId(id);
+        return deviceInfo;
+    }
 }

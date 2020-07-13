@@ -1,4 +1,4 @@
-package ru.mecotrade.kidtracker.device;
+package ru.mecotrade.kidtracker.task;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -237,8 +237,8 @@ async function showWatchSettings(deviceId) {
         });
 
         initCommand($('#kid-settings-restart'), 'RESET', deviceId);
-        initCommand($('#kid-settings-factory'), 'FACTORY', deviceId, {after: async () => await showInputToken(deviceId)});
-        initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId, {after: async () => await showInputToken(deviceId)});
+        initCommand($('#kid-settings-factory'), 'FACTORY', deviceId);
+        initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId);
     }
 
     return new Promise(resolve => {

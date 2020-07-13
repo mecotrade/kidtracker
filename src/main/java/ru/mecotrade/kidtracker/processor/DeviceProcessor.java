@@ -9,6 +9,7 @@ import ru.mecotrade.kidtracker.dao.model.ConfigRecord;
 import ru.mecotrade.kidtracker.dao.model.ContactRecord;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
+import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
 import ru.mecotrade.kidtracker.model.ContactType;
@@ -26,8 +27,6 @@ import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
-import javax.xml.bind.DatatypeConverter;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,7 +127,6 @@ public class DeviceProcessor {
     }
 
     public Collection<Snapshot> lastSnapshots(Long userId, Date timestamp) throws KidTrackerUnknownUserException {
-        // TODO use cache
         Optional<UserInfo> user = userService.get(userId);
         if (user.isPresent()) {
             Collection<String> deviceIds = user.get().getKids().stream()
@@ -189,8 +187,7 @@ public class DeviceProcessor {
     }
 
     private static String encodeContact(Contact contact) {
-        byte[] bytes = contact.getName().getBytes(StandardCharsets.UTF_16);
-        return contact.getPhone() + "," + DatatypeConverter.printHexBinary(Arrays.copyOfRange(bytes, 2, bytes.length));
+        return contact.getPhone() + "," + MessageUtils.toUtf16Hex(contact.getName());
     }
 
     private void syncContact(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
@@ -200,32 +197,32 @@ public class DeviceProcessor {
 
         switch (type) {
             case ADMIN: {
-                deviceManager.send(deviceId, index == 0 ? "CENTER" : "SLAVE",
-                        contacts.containsKey(index) ? contacts.get(index).getPhone() : "d");
+                deviceManager.send(deviceId, new Command(index == 0 ? "CENTER" : "SLAVE",
+                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "d")));
                 break;
             }
             case SOS: {
-                deviceManager.send(deviceId, index == 0 ? "SOS1" : (index == 1 ? "SOS2" : "SOS3"),
-                        contacts.containsKey(index) ? contacts.get(index).getPhone() : "");
+                deviceManager.send(deviceId, new Command(index == 0 ? "SOS1" : (index == 1 ? "SOS2" : "SOS3"),
+                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "")));
                 break;
             }
             case PHONEBOOK: {
                 int shift = index < 5 ? 0 : 5;
-                deviceManager.send(deviceId, index < 5 ? "PHB" : "PHB2", IntStream.range(shift, shift + 5)
+                deviceManager.send(deviceId, new Command(index < 5 ? "PHB" : "PHB2", IntStream.range(shift, shift + 5)
                         .mapToObj(i -> contacts.containsKey(i) ? encodeContact(contacts.get(i).toContact()) : "")
-                        .collect(Collectors.joining(",")));
+                        .collect(Collectors.toList())));
                 break;
             }
             case WHITELIST: {
                 int shift = index < 5 ? 0 : 5;
-                deviceManager.send(deviceId, index < 5 ? "WHITELIST1" : "WHITELIST2", IntStream.range(shift, shift + 5)
+                deviceManager.send(deviceId, new Command(index < 5 ? "WHITELIST1" : "WHITELIST2", IntStream.range(shift, shift + 5)
                         .mapToObj(i -> contacts.containsKey(i) ? contacts.get(i).getPhone() : "")
-                        .collect(Collectors.joining(",")));
+                        .collect(Collectors.toList())));
                 break;
             }
             case BUTTON: {
-                deviceManager.send(deviceId, index == 0 ? "TEL1" : "TEL2",
-                        contacts.containsKey(index) ? contacts.get(index).getPhone() : "");
+                deviceManager.send(deviceId, new Command(index == 0 ? "TEL1" : "TEL2",
+                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "")));
                 break;
             }
         }
@@ -234,7 +231,7 @@ public class DeviceProcessor {
     private void syncConfig(String deviceId, String parameter) throws KidTrackerConnectionException {
         Config config = configService.get(deviceId, parameter).map(ConfigRecord::toConfig).orElse(null);
         if (config != null) {
-            deviceManager.send(deviceId, config.getParameter(), config.getValue());
+            deviceManager.send(deviceId, Command.from(config));
         }
     }
 }

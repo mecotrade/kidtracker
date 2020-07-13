@@ -3,7 +3,7 @@
 const i18n = require('./i18n.js');
 const {showWarning, showError} = require('./notification.js');
 
-async function fetchWithRedirect(url, options, error, success) {
+async function fetchWithRedirect(url, options, error, success, deviceId) {
 
     const response = await fetch(url, options);
     if (response.redirected) {
@@ -11,6 +11,9 @@ async function fetchWithRedirect(url, options, error, success) {
     } else if (response.ok) {
         if (success) {
             success();
+        }
+        if (response.status == 202) {
+            await showInputToken(deviceId);
         }
         if (response.status != 204) {
             return await response.json();
@@ -48,7 +51,7 @@ function initCommand($button, command, deviceId, options) {
             if (options.after) {
                 options.after();
             }
-        });
+        }, deviceId);
     });
 }
 
@@ -136,7 +139,7 @@ async function showInputToken(deviceId) {
             });
             $executeToken.click(async function () {
                 const token = $('#input-token-input').val();
-                await fetchWithRedirect(`/api/device/${deviceId}/execute/${token}`, {}, () => {
+                await fetchWithRedirect(deviceId ? `/api/device/${deviceId}/execute/${token}` : `/api/user/token/${token}`, {}, () => {
                     showError(i18n.translate('Command is not completed.'));
                 });
                 hide();

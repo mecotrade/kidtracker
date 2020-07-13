@@ -1,6 +1,9 @@
 package ru.mecotrade.kidtracker.dao.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -14,6 +17,9 @@ import java.util.Date;
 
 @Data
 @ToString(exclude={"thumb"})
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name="kid")
 public class KidInfo {

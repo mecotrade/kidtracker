@@ -103,7 +103,7 @@ const i18n = {
             'Reminder 2': 'Будильник 2',
             'Reminder 3': 'Будильник 3',
             'Input token': 'Ввод кода',
-            'One-time SMS token': 'Одноразовый SMS-код',
+            'One-time token': 'Одноразовый код',
             'Once': 'Один раз',
             'Everyday': 'Ежедневно',
             'Select days': 'Выбрать дни',
@@ -122,7 +122,8 @@ const i18n = {
             'Sound': 'Звук вызова',
             'Vibro': 'Вибрация',
             'My kids': 'Мои дети',
-            'Device id': 'Идентификатор устройства'
+            'Device identifier': 'Идентификатор устройства',
+            'Device identifier should not be empty.': 'Идентификатор устройства должен быть заполнен'
         }
     },
 

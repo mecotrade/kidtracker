@@ -15,6 +15,10 @@ public class KidService {
     @Autowired
     private KidRepository kidRepository;
 
+    public boolean exists(Long userId, String deviceId) {
+        return kidRepository.existsById(new Assignment(userId, deviceId));
+    }
+
     public Optional<KidInfo> get(Long userId, String deviceId) {
         return kidRepository.findById(new Assignment(userId, deviceId));
     }

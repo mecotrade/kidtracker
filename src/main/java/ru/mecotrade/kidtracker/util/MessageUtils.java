@@ -16,6 +16,7 @@ import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.model.Temporal;
 
+import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,11 +37,13 @@ import java.util.stream.IntStream;
 @Slf4j
 public class MessageUtils {
 
-    public static final Set<String> BASE_64_TYPES = new HashSet<>(Collections.singletonList("TK"));
+    public static final Set<String> BASE_64_TYPES = new HashSet<>(Arrays.asList("TK", "RE"));
 
     public static final Set<String> GSM_TYPES = new HashSet<>(Collections.singletonList("SMS"));
 
     public static final Set<String> LOCATION_TYPES = new HashSet<>(Arrays.asList("UD", "UD2", "AL"));
+
+    public static final Set<String> UTF_16_HEX_TYPES = new HashSet<>(Collections.singletonList("MESSAGE"));
 
     public static final String LINK_TYPE = "LK";
 
@@ -116,6 +119,11 @@ public class MessageUtils {
         return result;
     }
 
+    public static String toUtf16Hex(String payload) {
+        byte[] bytes = payload.getBytes(StandardCharsets.UTF_16);
+        return DatatypeConverter.printHexBinary(Arrays.copyOfRange(bytes, 2, bytes.length));
+    }
+
     public static byte[] toBytes(Message message) {
 
         byte[] content = message.getType().getBytes(StandardCharsets.UTF_8);
@@ -125,6 +133,8 @@ public class MessageUtils {
                 payload = Base64.getDecoder().decode(payload);
             } else if (GSM_TYPES.contains(message.getType())) {
                 payload = toGsmBytes(payload);
+            } else if (UTF_16_HEX_TYPES.contains(message.getType())) {
+                payload = toUtf16Hex(message.getPayload()).getBytes(StandardCharsets.UTF_8);
             }
             content = Bytes.concat(content, PAYLOAD_SEPARATOR_CHAR, payload);
         }

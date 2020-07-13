@@ -20,6 +20,7 @@ import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
 import ru.mecotrade.kidtracker.model.ContactType;
 import ru.mecotrade.kidtracker.model.Position;
+import ru.mecotrade.kidtracker.model.Response;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
@@ -32,6 +33,7 @@ import java.util.stream.Stream;
 
 import org.springframework.http.ResponseEntity;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
+import ru.mecotrade.kidtracker.task.UserToken;
 
 @Controller
 @Slf4j
@@ -101,7 +103,7 @@ public class DeviceController {
 
     @PostMapping("/command")
     @ResponseBody
-    public ResponseEntity<String> command(@PathVariable String deviceId, @RequestBody Command command, Authentication authentication) {
+    public ResponseEntity<Response> command(@PathVariable String deviceId, @RequestBody Command command, Authentication authentication) {
         log.info("[{}] Received {}", deviceId, command);
         try {
             if (isValid(command)) {
@@ -109,14 +111,15 @@ public class DeviceController {
                     if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
                         UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
                         deviceManager.apply(userInfo, deviceId, command);
+                        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to user's phone"));
                     } else {
                         log.warn("Unauthorized request to execute {} on device {}", command, deviceId);
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
                     }
                 } else {
-                    deviceManager.send(deviceId, command.getType(), String.join(",", command.getPayload()));
+                    deviceManager.send(deviceId, command);
+                    return ResponseEntity.noContent().build();
                 }
-                return ResponseEntity.noContent().build();
             } else {
                 log.error("[{}] {} is incorrect", deviceId, command);
                 return ResponseEntity.badRequest().build();
@@ -129,11 +132,11 @@ public class DeviceController {
 
     @GetMapping("/execute/{token}")
     @ResponseBody
-    public ResponseEntity<String> execute(@PathVariable String deviceId, @PathVariable String token, Authentication authentication) {
+    public ResponseEntity<Response> execute(@PathVariable String deviceId, @PathVariable String token, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
             try {
-                deviceManager.execute(userInfo, token, deviceId);
+                deviceManager.execute(UserToken.of(userInfo.getId(), token), deviceId);
                 log.info("[{}] Token {} successfully executed by {}", deviceId, token, userInfo);
                 return ResponseEntity.noContent().build();
             } catch (Exception ex) {
@@ -154,7 +157,7 @@ public class DeviceController {
 
     @PostMapping("/contact")
     @ResponseBody
-    public ResponseEntity<String> updateContact(@PathVariable String deviceId, @RequestBody Contact contact) {
+    public ResponseEntity<Response> updateContact(@PathVariable String deviceId, @RequestBody Contact contact) {
         log.info("[{}] Received {}", deviceId, contact);
         try {
             if (isValid(contact)) {
@@ -172,7 +175,7 @@ public class DeviceController {
 
     @DeleteMapping("/contact/{type}/{index:\\d+}")
     @ResponseBody
-    public ResponseEntity<String> removeContact(@PathVariable String deviceId, @PathVariable ContactType type, @PathVariable Integer index) {
+    public ResponseEntity<Response> removeContact(@PathVariable String deviceId, @PathVariable ContactType type, @PathVariable Integer index) {
         log.info("[{}] Remove contact for type={}, index={}", deviceId, type, index);
         try {
             deviceProcessor.removeContact(deviceId, type, index);
@@ -191,7 +194,7 @@ public class DeviceController {
 
     @PostMapping("/config")
     @ResponseBody
-    public ResponseEntity<String> updateConfig(@PathVariable String deviceId, @RequestBody Config config) {
+    public ResponseEntity<Response> updateConfig(@PathVariable String deviceId, @RequestBody Config config) {
         log.info("[{}] Received {}", deviceId, config);
         try {
             if (isValid(config)) {
@@ -209,7 +212,7 @@ public class DeviceController {
 
     @GetMapping("/alarmoff")
     @ResponseBody
-    public ResponseEntity<String> alarmOff(@PathVariable String deviceId) {
+    public ResponseEntity<Response> alarmOff(@PathVariable String deviceId) {
         log.info("[{}] Received alarm off request", deviceId);
         deviceManager.alarmOff(deviceId);
         return ResponseEntity.noContent().build();
@@ -219,14 +222,14 @@ public class DeviceController {
     @Deprecated
     @GetMapping("/command/{command}")
     @ResponseBody
-    public ResponseEntity<String> command(@PathVariable String deviceId, @PathVariable String command) {
+    public ResponseEntity<Response> command(@PathVariable String deviceId, @PathVariable String command) {
         try {
             String[] parts = command.split(",");
-            deviceManager.send(deviceId, parts[0], Stream.of(parts).skip(1).collect(Collectors.joining(",")));
-            return new ResponseEntity<>("Command '" + command + "' to device " + deviceId + " successfully sent", HttpStatus.NO_CONTENT);
+            deviceManager.send(deviceId, new Command(parts[0], Stream.of(parts).skip(1).collect(Collectors.toList())));
+            return ResponseEntity.noContent().build();
         } catch (Exception ex) {
             log.error("[{}] Unable to send payload '{}'", deviceId, command, ex);
-            return new ResponseEntity<>("Fail sending command '" + command + "' to device " + deviceId, HttpStatus.CONFLICT);
+            return ResponseEntity.unprocessableEntity().build();
         }
     }
 

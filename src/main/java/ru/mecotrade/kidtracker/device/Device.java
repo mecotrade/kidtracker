@@ -3,7 +3,6 @@ package ru.mecotrade.kidtracker.device;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import ru.mecotrade.kidtracker.exception.KidTrackerInvalidTokenException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.model.Snapshot;
@@ -13,18 +12,16 @@ import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.model.Link;
 import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.model.Temporal;
+import ru.mecotrade.kidtracker.task.JobExecutor;
 import ru.mecotrade.kidtracker.util.MessageUtils;
+import ru.mecotrade.kidtracker.task.UserToken;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
-public class Device implements DeviceSender {
+public class Device extends JobExecutor implements DeviceSender {
 
     @Getter
     private final String id;
@@ -43,8 +40,6 @@ public class Device implements DeviceSender {
     @Getter
     @Setter
     private Temporal<Boolean> alarm = Temporal.of(false);
-
-    private final Map<UserToken, Temporal<Job>> jobs = new HashMap<>();
 
     private MessageConnector messageConnector;
 
@@ -97,29 +92,7 @@ public class Device implements DeviceSender {
     }
 
     public void apply(UserToken userToken, Command command) {
-        jobs.put(userToken, Temporal.of(() -> send(command.getType(), String.join(",", command.getPayload()))));
-    }
-
-    public void execute(UserToken userToken, long ttl) throws KidTrackerException {
-        Temporal<Job> job = jobs.get(userToken);
-        if (job != null && System.currentTimeMillis() - job.getTimestamp().getTime() < ttl) {
-            job.getValue().execute();
-            jobs.remove(userToken);
-        } else {
-            throw new KidTrackerInvalidTokenException(userToken.getToken());
-        }
-    }
-
-    public void clean(long ttl) {
-        long millis = System.currentTimeMillis();
-        Collection<UserToken> obsolete = jobs.entrySet().stream()
-                .filter(e -> millis - e.getValue().getTimestamp().getTime() > ttl)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
-        obsolete.forEach(t -> {
-            jobs.remove(t);
-            log.info("[{}] Obsolete {} removed", id, t);
-        });
+        apply(userToken, () -> send(command.getType(), String.join(",", command.getPayload())));
     }
 
     public Position position() {
@@ -132,5 +105,9 @@ public class Device implements DeviceSender {
 
     public void alarmOff() {
         alarm = Temporal.of(false);
+    }
+
+    public boolean isClosed() {
+        return messageConnector.isClosed();
     }
 }
