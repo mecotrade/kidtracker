@@ -13,12 +13,14 @@ import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownDeviceException;
 import ru.mecotrade.kidtracker.model.Command;
+import ru.mecotrade.kidtracker.model.Link;
 import ru.mecotrade.kidtracker.model.Temporal;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.Job;
 import ru.mecotrade.kidtracker.task.UserToken;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,6 +90,15 @@ public class DeviceManager implements MessageListener, Cleanable {
 
     public Collection<Device> select(Collection<String> deviceIds) {
         return devices.entrySet().stream().filter(e -> deviceIds.contains(e.getKey())).map(Map.Entry::getValue).collect(Collectors.toList());
+    }
+
+    public Date last(String deviceId) {
+        Device device = devices.get(deviceId);
+        return device != null ? device.getLast() : null;
+    }
+
+    public boolean isConnected(String deviceId) {
+        return devices.containsKey(deviceId);
     }
 
     public void sendOrApply(String deviceId, Command command) throws KidTrackerException {

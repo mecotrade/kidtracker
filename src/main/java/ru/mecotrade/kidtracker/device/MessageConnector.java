@@ -9,6 +9,7 @@ import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;

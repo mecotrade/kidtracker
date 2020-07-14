@@ -15,6 +15,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     Message findFirstByDeviceIdAndTypeInAndSourceOrderByIdDesc(String deviceId, Collection<String> types, Message.Source source);
 
+    @Query("select message from Message message where message.id in (select max(id) from Message where deviceId in (:deviceIds) and source = :source group by deviceId)")
+    Collection<Message> lastMessages(Collection<String> deviceIds, Message.Source source);
+
     @Query("select message from Message message where message.id in (select max(id) from Message where deviceId in (:deviceIds) and type in (:types) and source = :source and timestamp < :timestamp group by deviceId)")
     Collection<Message> lastMessages(Collection<String> deviceIds, Collection<String> types, Message.Source source, Date timestamp);
 }

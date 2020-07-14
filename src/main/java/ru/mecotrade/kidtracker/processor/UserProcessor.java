@@ -8,10 +8,12 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.dao.DeviceService;
 import ru.mecotrade.kidtracker.dao.KidService;
+import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.UserService;
 import ru.mecotrade.kidtracker.dao.model.Assignment;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
+import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.task.Cleanable;
@@ -23,8 +25,11 @@ import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.JobExecutor;
 
 import javax.transaction.Transactional;
+import java.util.Date;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -40,6 +45,9 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     private DeviceService deviceService;
 
     @Autowired
+    private MessageService messageService;
+
+    @Autowired
     private DeviceManager deviceManager;
 
     @Value("${kidtracker.token.length}")
@@ -47,6 +55,9 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
     @Value("${kidtracker.token.ttl.millis}")
     private long tokenTtlMillis;
+
+    @Value("${kidtracker.remove.without.token.millis}")
+    private long removeWithoutTokenMillis;
 
     public void updateKid(UserPrincipal userPrincipal, Kid kid) {
 
@@ -61,15 +72,19 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     }
 
     public boolean removeKid(UserPrincipal userPrincipal, String deviceId) throws KidTrackerException {
-        // todo: if device was last seen a time ago, simply remove it, otherwise send a token
-        boolean done = false;
-        if (done) {
+
+        boolean now = messageService.last(Collections.singleton(deviceId), Message.Source.DEVICE).stream()
+                .map(m -> System.currentTimeMillis() - m.getTimestamp().getTime() > removeWithoutTokenMillis)
+                .findFirst()
+                .orElse(true);
+
+        if (now) {
             doRemoveKid(userPrincipal, deviceId);
         } else {
             applyRemoveKid(userPrincipal, deviceId);
         }
 
-        return done;
+        return now;
     }
 
     public void applyAddKid(UserPrincipal userPrincipal, Kid kid) throws KidTrackerException {

@@ -14,11 +14,6 @@ const showDevice = require('./device.js');
 const BATTERY_LOW_THRESHOLD = 20;
 const BATTERY_FULL_THRESHOLD = 70;
 
-const WATCH_OFF_ICON = '<svg width="20px" height="16px" viewBox="0 0 16 16" class="bi bi-smartwatch" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14 5h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H14V5z"/><path fill-rule="evenodd" d="M8.5 4.5A.5.5 0 0 1 9 5v3.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h2V5a.5.5 0 0 1 .5-.5z"/><path fill-rule="evenodd" d="M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2zm0 1A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7z"/><path d="M4 2.05v-.383C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v.383a2.512 2.512 0 0 0-.5-.05h-7c-.171 0-.338.017-.5.05zm0 11.9c.162.033.329.05.5.05h7c.171 0 .338-.017.5-.05v.383c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333v-.383z"/></svg>'
-const LOW_BATTERY_ICON = '<svg class="bi bi-battery" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 5H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zM2 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H2z"/><path d="M14.5 9.5a1.5 1.5 0 0 0 0-3v3z"/></svg>';
-const SOS_ICON = '<svg class="bi bi-exclamation-octagon-fill" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>';
-const LOST_ICON = '<svg class="bi bi-x-circle" width="20px" height="16px" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"></path><path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"></path></svg>'
-
 const KID_POPUP_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
 const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
 
@@ -57,7 +52,7 @@ function updateViewIcons() {
     $('.bi-eye-fill', $eye).toggle(view == 'kid');
 }
 
-function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, alarm) {
+function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, alarm, lastMsg) {
 
     const now = new Date();
 
@@ -79,50 +74,59 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
     const datetime = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
     const batteryClass = battery < BATTERY_LOW_THRESHOLD ? 'battery-low' : (battery < BATTERY_FULL_THRESHOLD ? 'battery-half' : 'battery-full');
 
-    let alert = (position.sos ? SOS_ICON : '')
-            + (online && (!snapshot || (now.getTime() - snapshotDate.getTime() > LOST_INTERVAL)) ? LOST_ICON : '')
-            + (position.takeOff ? WATCH_OFF_ICON : '')
-            + (position.lowBattery ? LOW_BATTERY_ICON : '');
-
     const $thumb = kid.thumb ? $('<img>').attr('src', kid.thumb).addClass('thumb-img') : $('<div>').addClass('thumb-placeholder');
     const $name = $('<div>').addClass('kid-popup-name').append($('<b>').text(kid.name));
     const $time = $('<div>').addClass('kid-popup-time').text(datetime);
     const $info = $('<div>').append($('<span>').addClass('kid-popup-pedometer').text(pedometer))
-            .append($('<span>').addClass(batteryClass).text(`${battery}%`))
-            .append($('<div>').addClass('kid-popup-alert').html(alert));
+            .append($('<span>').addClass(batteryClass).text(`${battery}%`));
+
+    const $alert = $('<div>').addClass('kid-popup-alert');
+    if (position.sos) {
+        $alert.append($('<div>').addClass('kid-popup-alert-sos').toggleClass('alarm', alarm));
+    }
+    if (online && (!lastMsg || (now.getTime() - lastMsg > LOST_INTERVAL))) {
+        $alert.append($('<div>').addClass('kid-popup-alert-lost').toggleClass('alarm', alarm));
+    }
+    if (position.takeOff) {
+        $alert.append($('<div>').addClass('kid-popup-alert-removed').toggleClass('alarm', alarm));
+    }
+    if (position.lowBattery) {
+        $alert.append($('<div>').addClass('kid-popup-alert-battery').toggleClass('alarm', alarm));
+    }
+
     const $content = $('<div>').attr('id', `kid-popup-${kid.deviceId}`)
-            .append($('<center>').append($thumb).append($name).append($time).append($info));
+            .append($('<center>').append($thumb).append($name).append($time).append($info).append($alert));
 
     kid.popup.setContent($content[0].outerHTML).setLatLng([position.latitude, position.longitude]);
     kid.circle.setLatLng([position.latitude, position.longitude]).setRadius(position.accuracy);
 
     if (alarm == true) {
 
-        const $parent = $(`#kid-popup-${kid.deviceId}`).parent().parent();
+        const $popup = $(`#kid-popup-${kid.deviceId}`)
+        const $parent = $popup.parent().parent();
         $parent.attr('style', 'background: red');
-        $('div.leaflet-popup-tip', $parent.parent()).attr('style', 'background: red');
-        $(`#kid-popup-${kid.deviceId} span.${batteryClass}`).attr('style', 'color: white');
-        $(`#kid-popup-${kid.deviceId} div.kid-popup-alert`).attr('style', 'color: white');
+        $('div.leaflet-popup-tip', $parent.parent()).addClass('alarm');
+        $(`span.${batteryClass}`, $popup).addClass('alarm');
+        $('div.kid-popup-alert', $popup).children().each(function(i) {
+            $(this).addClass('alarm');
+        });
 
-        $(`#kid-popup-${kid.deviceId}`).off('click');
-        $(`#kid-popup-${kid.deviceId}`).click(async function () {
-            const $parent = $(`#kid-popup-${kid.deviceId}`).parent().parent();
+        $popup.off('click');
+        $popup.click(async function () {
             $parent.removeAttr('style');
-            $('div.leaflet-popup-tip', $parent.parent()).removeAttr('style');
-            $(`#kid-popup-${kid.deviceId} span.${batteryClass}`).removeAttr('style');
-            $(`#kid-popup-${kid.deviceId} div.kid-popup-alert`).removeAttr('style');
+            $('div.leaflet-popup-tip', $parent.parent()).removeClass('alarm');
+            $(`span.${batteryClass}`, $popup).removeClass('alarm');
+            $('div.kid-popup-alert', $popup).children().each(function(i) {
+                $(this).removeClass('alarm');
+            });
             await fetchWithRedirect(`/api/device/${kid.deviceId}/alarmoff`);
         });
     }
 
     $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).click(function () {
-        if (kid.popupTimeFromNow) {
-            $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).text(moment(date).format(KID_POPUP_TIME_FORMAT));
-            kid.popupTimeFromNow = false;
-        } else {
-            $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).text(moment(date).fromNow());
-            kid.popupTimeFromNow = true;
-        }
+        kid.popupTimeFromNow = !kid.popupTimeFromNow;
+        const time = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
+        $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).text(time);
     });
 
     if (setView && (view == 'kid' || view == 'kid-once')) {
@@ -165,7 +169,8 @@ async function locateKids() {
                     const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
                     const setView = !path && kid.deviceId == deviceId
                     const alarm = report.alarms.includes(p.deviceId);
-                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm);
+                    const lastMsg = report.last[p.deviceId];
+                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm, lastMsg);
                 } else {
                     // TODO if not found
                 }
@@ -299,7 +304,7 @@ async function initNavbar() {
                     }
 
                     function move(i) {
-                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false);
+                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false, null);
                         return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
                     }
 

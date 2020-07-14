@@ -1,12 +1,15 @@
 package ru.mecotrade.kidtracker.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
 
 @Data
-@AllArgsConstructor
+@Builder
 public class Report {
 
     private Collection<Position> positions;
@@ -15,7 +18,5 @@ public class Report {
 
     private Collection<String> alarms;
 
-    public static Report of(Collection<Position> positions, Collection<Snapshot> snapshots, Collection<String> alarms) {
-        return new Report(positions, snapshots, alarms);
-    }
+    private Map<String, Date> last;
 }

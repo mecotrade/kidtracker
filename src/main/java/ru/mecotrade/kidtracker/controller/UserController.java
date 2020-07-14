@@ -21,6 +21,7 @@ import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Response;
 import ru.mecotrade.kidtracker.model.Snapshot;
+import ru.mecotrade.kidtracker.model.Status;
 import ru.mecotrade.kidtracker.model.User;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
@@ -77,13 +78,25 @@ public class UserController {
         }
     }
 
+    @GetMapping("/kids/status")
+    @ResponseBody
+    public ResponseEntity<Collection<Status>> status(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
+            return ResponseEntity.ok(deviceProcessor.status(userInfo));
+        } else {
+            log.warn("Unauthorized request for kids report");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
     @GetMapping("/kids/report")
     @ResponseBody
-    public ResponseEntity<Report> report(Authentication authentication) throws KidTrackerUnknownUserException {
+    public ResponseEntity<Report> report(Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(deviceProcessor.report(userInfo.getId()));
+            return ResponseEntity.ok(deviceProcessor.report(userInfo));
         } else {
             log.warn("Unauthorized request for kids report");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

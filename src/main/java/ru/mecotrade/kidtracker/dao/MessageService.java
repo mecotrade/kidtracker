@@ -25,6 +25,10 @@ public class MessageService {
         return messageRepository.findFirstByDeviceIdAndTypeInAndSourceOrderByIdDesc(deviceId, types, source);
     }
 
+    public Collection<Message> last(Collection<String> deviceIds, Message.Source source) {
+        return messageRepository.lastMessages(deviceIds, source);
+    }
+
     public Collection<Message> last(Collection<String> deviceIds, Collection<String> types, Message.Source source, Date timestamp) {
         return messageRepository.lastMessages(deviceIds, types, source, timestamp);
     }

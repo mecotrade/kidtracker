@@ -1,11 +1,31 @@
 'use strict';
 
+const moment = require('moment/min/moment-with-locales.min.js');
 const i18n = require('./i18n.js');
 const {showWarning, showError} = require('./notification.js');
 const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
 
 const $modal = $('#show-user-devices');
 const $editModal = $('#edit-device');
+
+const DEVICE_STATUS_QUERY_INTERVAL = 60000;
+const LAST_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
+
+var timerId = null;
+var absoluteTime = {};
+
+async function updateStatus() {
+    const status = await fetchWithRedirect(`/api/user/kids/status`);
+    status.forEach(s => {
+        console.log(s);
+        const $tr = $(`#kid-device-${s.deviceId}`).parent();
+        $('div.user-device-name-deviceid', $tr).toggleClass('online', s.online).toggleClass('offline', !s.online);
+        if (s.date) {
+            const time = absoluteTime[s.deviceId] ? moment(s.date).format(LAST_MESSAGE_TIME_FORMAT) : moment(s.date).fromNow();
+            $('div.user-device-name-time', $tr).text(time);
+        }
+    });
+}
 
 async function showDevice() {
 
@@ -23,29 +43,41 @@ async function showDevice() {
         const $thName = $('<th>').addClass('user-device-name');
         const $td = $('<td>').addClass('user-device-others');
         const $thumb = k.thumb ? $('<img>').attr('src', k.thumb).addClass('thumb-img') : $('<div>').addClass('thumb-placeholder');
-        $thThumb.append($thumb);
+        $thThumb.append($thumb).attr('id', `kid-device-${k.deviceId}`);
         const $divName = $('<div>').text(k.name);
-        const $divDeviceId = $('<div>').text(k.deviceId).addClass('user-device-name-deviceid')
-        $thName.append($divName).append($divDeviceId);
+        const $divDeviceId = $('<div>').text(k.deviceId).addClass('user-device-name-deviceid');
+        const $divTime = $('<div>').addClass('user-device-name-time');
+        $thName.append($divName).append($divDeviceId).append($divTime);
         const $spanName = $('<span>').addClass('user-device-other-user-name').text();
         k.users.forEach(u => {
             $td.append($('<div>').append($('<span>').addClass('user-device-other-user').append($('<b>').text(u.name)).append(` ${u.phone}`)));
         })
         $tr.append($thThumb).append($thName).append($td);
-        $tr.attr('id', `kid-device-${k.deviceId}`);
         $tbody.append($tr);
     });
 
     $('table.table', $modal).empty().append($tbody);
 
     kids.forEach(k => {
-        const kidDeviceId = `kid-device-${k.deviceId}`
-        $(`#${kidDeviceId}`).off('click');
-        $(`#${kidDeviceId}`).on('click', async () => {
+        const $thThumb = $(`#kid-device-${k.deviceId}`);
+        $thThumb.off('click');
+        $thThumb.on('click', async () => {
             await editDevice(k);
             await showDevice();
         });
+        const $divTime = $('div.user-device-name-time', $thThumb.parent());
+        $divTime.off('click');
+        $divTime.click(() => {
+            absoluteTime[k.deviceId] = !absoluteTime[k.deviceId];
+            updateStatus();
+        });
     });
+
+    updateStatus();
+
+    if (!timerId) {
+        timerId = setInterval(updateStatus, DEVICE_STATUS_QUERY_INTERVAL);
+    }
 
     return new Promise(resolve => {
 
@@ -53,6 +85,9 @@ async function showDevice() {
 
             $close.off('click');
             $add.off('click');
+
+            clearInterval(timerId);
+            timerId = null;
 
             $modal.modal('hide');
             resolve(null);

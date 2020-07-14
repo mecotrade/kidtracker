@@ -19,6 +19,7 @@ import ru.mecotrade.kidtracker.task.UserToken;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Date;
 
 @Slf4j
 public class Device extends JobExecutor implements DeviceSender {
@@ -40,6 +41,9 @@ public class Device extends JobExecutor implements DeviceSender {
     @Getter
     @Setter
     private Temporal<Boolean> alarm = Temporal.of(false);
+
+    @Getter
+    private Date last;
 
     private MessageConnector messageConnector;
 
@@ -67,6 +71,8 @@ public class Device extends JobExecutor implements DeviceSender {
     }
 
     public synchronized void process(Message message) throws KidTrackerException {
+
+        last = message.getTimestamp();
 
         String type = message.getType();
 
