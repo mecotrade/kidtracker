@@ -17,10 +17,10 @@ const BATTERY_FULL_THRESHOLD = 70;
 const KID_POPUP_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
 const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
 
-const LOST_INTERVAL = 15 * 60 * 1000;
+const LOST_INTERVAL = 15 * 60 * 1000;       /* 15 min */
 
 const DEFAULT_ZOOM = 16;
-const KID_POSITION_QUERY_INTERVAL = 10000;
+const KID_POSITION_QUERY_INTERVAL = 10 * 1000;      /* 10 sec */
 
 const map = L.map('map');
 
@@ -82,16 +82,16 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
 
     const $alert = $('<div>').addClass('kid-popup-alert');
     if (position.sos) {
-        $alert.append($('<div>').addClass('kid-popup-alert-sos').toggleClass('alarm', alarm));
+        $alert.append($('<div>').addClass('kid-popup-alert-sos'));
     }
-    if (online && (!lastMsg || (now.getTime() - lastMsg > LOST_INTERVAL))) {
-        $alert.append($('<div>').addClass('kid-popup-alert-lost').toggleClass('alarm', alarm));
+    if (online && (!lastMsg || (now.getTime() - lastMsg.getTime() > LOST_INTERVAL))) {
+        $alert.append($('<div>').addClass('kid-popup-alert-lost'));
     }
     if (position.takeOff) {
-        $alert.append($('<div>').addClass('kid-popup-alert-removed').toggleClass('alarm', alarm));
+        $alert.append($('<div>').addClass('kid-popup-alert-removed'));
     }
     if (position.lowBattery) {
-        $alert.append($('<div>').addClass('kid-popup-alert-battery').toggleClass('alarm', alarm));
+        $alert.append($('<div>').addClass('kid-popup-alert-battery'));
     }
 
     const $content = $('<div>').attr('id', `kid-popup-${kid.deviceId}`)
@@ -169,7 +169,7 @@ async function locateKids() {
                     const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
                     const setView = !path && kid.deviceId == deviceId
                     const alarm = report.alarms.includes(p.deviceId);
-                    const lastMsg = report.last[p.deviceId];
+                    const lastMsg = p.deviceId in report.last ? moment(report.last[p.deviceId]).toDate() : null;
                     updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm, lastMsg);
                 } else {
                     // TODO if not found
@@ -351,7 +351,14 @@ async function initNavbar() {
         await showContact(deviceId);
     });
 
-    initCommand($gps, 'CR', null, {device: () => $select.children('option:selected').val()});
+    initCommand($gps, 'CR', null, {
+        device: () => $select.children('option:selected').val(),
+        after: () => {
+            view = 'kid';
+            updateViewIcons();
+            locateKids();
+        }
+    });
     initCommand($bell, 'FIND', null, {device: () => $select.children('option:selected').val()});
 
     $watchSettings.off('click');

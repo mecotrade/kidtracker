@@ -18,7 +18,7 @@ const i18n = {
             'Battery {}%': 'Заряд {}%',
             'Pedometer': 'Шагомер',
             '{} steps': '{} шагов',
-            'Call control': 'Упарвление вызовами',
+            'Call control': 'Управление вызовами',
             'Phone': 'Телефон',
             'Message': 'Сообщение',
             "Kid's watch will call or send a text message to provided phone number. Some characters might be sent incorrectly.": 'Часы ребенка совершат вызов или отправят SMS на указанный номер. Некоторые символы могут быть отправлены некорректно.',

@@ -17,7 +17,6 @@ var absoluteTime = {};
 async function updateStatus() {
     const status = await fetchWithRedirect(`/api/user/kids/status`);
     status.forEach(s => {
-        console.log(s);
         const $tr = $(`#kid-device-${s.deviceId}`).parent();
         $('div.user-device-name-deviceid', $tr).toggleClass('online', s.online).toggleClass('offline', !s.online);
         if (s.date) {
