@@ -95,8 +95,12 @@ html, body, #map {
     background: center no-repeat url('data:image/svg+xml;utf8,<svg class="bi bi-battery" width="20px" height="16px" viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 5H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zM2 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H2z"/><path d="M14.5 9.5a1.5 1.5 0 0 0 0-3v3z"/></svg>');
 }
 
-dev.leaflet-popup.leaflet-zoom-animated.alarm, div.leaflet-popup-tip.alarm {
+div.leaflet-popup-content-wrapper.alarm, div.leaflet-popup-tip.alarm {
     background: red;
+}
+
+div.leaflet-popup.leaflet-zoom-animated.on-top {
+    z-index: 1000;
 }
 
 #contacts div.modal-body {

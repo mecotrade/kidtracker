@@ -43,6 +43,8 @@ var midnight;
 
 var view = 'none';
 var path = null;
+var top = null;
+var selected = null;
 
 function updateViewIcons() {
 
@@ -52,7 +54,7 @@ function updateViewIcons() {
     $('.bi-eye-fill', $eye).toggle(view == 'kid');
 }
 
-function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, alarm, lastMsg) {
+function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, alarm, lastMsg, onTop) {
 
     const now = new Date();
 
@@ -100,33 +102,33 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
     kid.popup.setContent($content[0].outerHTML).setLatLng([position.latitude, position.longitude]);
     kid.circle.setLatLng([position.latitude, position.longitude]).setRadius(position.accuracy);
 
-    if (alarm == true) {
+    const $popup = $(`#kid-popup-${kid.deviceId}`)
+    const $parent = $popup.parent().parent();
+    const $tip = $('div.leaflet-popup-tip', $parent.parent());
+    const $divTime = $('div.kid-popup-time', $popup);
 
-        const $popup = $(`#kid-popup-${kid.deviceId}`)
-        const $parent = $popup.parent().parent();
-        $parent.attr('style', 'background: red');
-        $('div.leaflet-popup-tip', $parent.parent()).addClass('alarm');
-        $(`span.${batteryClass}`, $popup).addClass('alarm');
-        $('div.kid-popup-alert', $popup).children().each(function(i) {
-            $(this).addClass('alarm');
-        });
-
-        $popup.off('click');
-        $popup.click(async function () {
-            $parent.removeAttr('style');
-            $('div.leaflet-popup-tip', $parent.parent()).removeClass('alarm');
-            $(`span.${batteryClass}`, $popup).removeClass('alarm');
-            $('div.kid-popup-alert', $popup).children().each(function(i) {
-                $(this).removeClass('alarm');
-            });
+    $parent.off('click');
+    $parent.click(async () => {
+        top = kid.deviceId;
+        $('div.leaflet-popup.leaflet-zoom-animated').removeClass('on-top');
+        if (alarm) {
             await fetchWithRedirect(`/api/device/${kid.deviceId}/alarmoff`);
-        });
-    }
+        }
+        updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, false, lastMsg, true);
+    });
 
-    $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).click(function () {
+    $parent.parent().toggleClass('on-top', onTop || alarm)
+    $parent.toggleClass('alarm', alarm);
+    $tip.toggleClass('alarm', alarm);
+    $(`span.${batteryClass}`, $popup).toggleClass('alarm', alarm);
+    $('div.kid-popup-alert', $popup).children().each(function(i) {
+        $(this).toggleClass('alarm', alarm);
+    });
+
+    $divTime.click(() => {
         kid.popupTimeFromNow = !kid.popupTimeFromNow;
         const time = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
-        $(`#kid-popup-${kid.deviceId} div.kid-popup-time`).text(time);
+        $divTime.text(time);
     });
 
     if (setView && (view == 'kid' || view == 'kid-once')) {
@@ -170,7 +172,7 @@ async function locateKids() {
                     const setView = !path && kid.deviceId == deviceId
                     const alarm = report.alarms.includes(p.deviceId);
                     const lastMsg = p.deviceId in report.last ? moment(report.last[p.deviceId]).toDate() : null;
-                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm, lastMsg);
+                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm, lastMsg, kid.deviceId == top);
                 } else {
                     // TODO if not found
                 }
@@ -299,7 +301,7 @@ async function initNavbar() {
                     }
 
                     function move(i) {
-                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false, null);
+                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false, null, true);
                         return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
                     }
 
@@ -318,8 +320,8 @@ async function initNavbar() {
 
                     await showWarning(i18n.translate('No data'));
 
-                    $('#kid-path-switch-icon').show();
-                    $('#kid-geo-switch-icon').hide();
+                    $('.bi-calendar2-week-fill', $history).show();
+                    $('.bi-geo-alt', $history).hide();
                 }
             }
         } else {
@@ -415,6 +417,15 @@ async function showNavbar() {
 	kids = await fetchWithRedirect(`/api/user/kids/info`);
 	if (kids) {
         $select.html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
+        if (selected) {
+            $select.val(selected);
+        }
+        top = $select.children('option:selected').val();
+        $select.off('change');
+        $select.change(() => {
+            selected = top = $select.children('option:selected').val();
+            locateKids();
+        });
         kids.forEach(k => {
             const props = popupProps[k.deviceId];
             k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng(props ? props.latlng : [0, 0]).addTo(map);
