@@ -20,8 +20,11 @@ const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
 
 function initHistory() {
 
+    console.log(i18n.locale);
+    console.log(i18n.lang);
+
     $('#history-start').datetimepicker({
-        locale: 'ru-ru',
+        locale: i18n.locale.toLowerCase(),
         format: 'dd/mm/yyyy HH:MM',
         footer: true,
         modal: true,
@@ -40,7 +43,7 @@ function initHistory() {
     });
 
     $('#history-end').datetimepicker({
-        locale: 'ru-ru',
+        locale: i18n.locale.toLowerCase(),
         format: 'dd/mm/yyyy HH:MM',
         footer: true,
         modal: true,

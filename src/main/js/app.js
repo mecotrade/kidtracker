@@ -220,12 +220,7 @@ function initMap() {
 
 async function initNavbar() {
 
-    // init i18n
-    const locale = navigator.language ? navigator.language.split('-')[0] : null;
-    if (locale) {
-        moment.locale(locale);
-        i18n.setLocale(locale);
-    }
+    moment.locale(i18n.lang);
 
     $('h5.modal-title').each(function (i) {
         i18n.apply($(this));

@@ -12,6 +12,18 @@ const WATCH_TIME_FORMAT = 'HH:mm';
 const WATCH_COMMAND_TIME_FORMAT = 'HH.mm.ss';
 const WATCH_COMMAND_DATE_FORMAT = 'YYYY.MM.DD';
 
+const WATCH_LOCALES = {
+    'en': 0,
+    'cn': 1,
+    'pt': 3,
+    'es': 4,
+    'de': 5,
+    'tr': 7,
+    'vi': 8,
+    'ru': 9,
+    'fr': 10
+};
+
 const $modal = $('#show-kid-settings');
 
 function initWatchSettings() {
@@ -20,7 +32,7 @@ function initWatchSettings() {
     $('#kid-settings-worktime-input').inputSpinner();
 
     $('#kid-settings-datetime').datetimepicker({
-        locale: 'ru-ru',
+        locale: i18n.locale.toLowerCase(),
         format: 'dd/mm/yyyy HH:MM',
         footer: true,
         modal: true,
@@ -70,7 +82,7 @@ function initReminder($reminder) {
     })
 
     $time.timepicker({
-        locale: 'ru-ru',
+        locale: i18n.locale.toLowerCase(),
         format: 'HH:MM',
         mode: '24hr',
         footer: true,
@@ -120,19 +132,20 @@ function reminderConfig($reminder, value) {
     const $type = $('select', $reminder);
     const $days = $('.day-select', $reminder);
 
-    const [time, active, type] = value.split('-');
+    const [time, active, type] = value ? value.split('-') : [moment().format('HH:mm'), '0', '1']
     $time.val(time);
 
     $('.bi-toggle-off', $reminder).toggle(active != '1');
     $('.bi-toggle-on', $reminder).toggle(active == '1');
 
-    if (type == '1' || type == '2') {
-        $type.val(type);
-    } else {
+
+    if (type == 'choice') {
         $type.val('choice');
         $days.children('span').each(function(i) {
             $(this).toggleClass('btn-primary', type[(i + 1) % 7] === '1');
         });
+    } else {
+        $type.val(type);
     }
 
     $type[0].dispatchEvent(new Event('change'));
@@ -213,6 +226,8 @@ async function showWatchSettings(deviceId) {
 
                 if (!done) {
                     $('#kid-settings-tz-select').val(-Number(Math.round(((new Date()).getTimezoneOffset() / 60) + "e2") + "e-2"));
+                    const lang = WATCH_LOCALES[i18n.lang] || 0;
+                    $('#kid-settings-lang-select').val(lang);
                 }
             },
             value: function() {
@@ -224,12 +239,19 @@ async function showWatchSettings(deviceId) {
 
         initConfig(null, $('#kid-settings-reminder'), 'REMIND', config, deviceId, {
             init: () => {
+                let done = false;
                 config.filter(c => c.parameter == 'REMIND').forEach(function (c) {
                     const [reminder1, reminder2, reminder3] = c.value.split(',');
-                        reminderConfig($('#kid-settings-reminder-1'), reminder1);
-                        reminderConfig($('#kid-settings-reminder-2'), reminder2);
-                        reminderConfig($('#kid-settings-reminder-3'), reminder3);
+                    reminderConfig($('#kid-settings-reminder-1'), reminder1);
+                    reminderConfig($('#kid-settings-reminder-2'), reminder2);
+                    reminderConfig($('#kid-settings-reminder-3'), reminder3);
+                    done = true;
                 });
+                if (done == false) {
+                    reminderConfig($('#kid-settings-reminder-1'));
+                    reminderConfig($('#kid-settings-reminder-2'));
+                    reminderConfig($('#kid-settings-reminder-3'));
+                }
             },
             value: () => {
                 return `${reminderValue($('#kid-settings-reminder-1'))},${reminderValue($('#kid-settings-reminder-2'))},${reminderValue($('#kid-settings-reminder-3'))}`;

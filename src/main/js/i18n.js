@@ -4,6 +4,8 @@ const i18n = {
 
     locale: null,
 
+    lang: null,
+
     tokens: {
         ru: {
             'History': 'История',
@@ -129,7 +131,7 @@ const i18n = {
 
     translate: function(token) {
 
-        const translations = this.locale ? this.tokens[this.locale] : null;
+        const translations = this.lang ? this.tokens[this.lang] : null;
         if (translations) {
             const translation = translations[token];
             return translation ? translation : token;
@@ -150,9 +152,16 @@ const i18n = {
         }
     },
 
+    setBrowserLocale(defaultLocale) {
+        this.setLocale(navigator.language ? navigator.language : defaultLocale);
+    },
+
     setLocale: function(locale) {
         this.locale = locale;
+        this.lang = navigator.language.split('-')[0]
     }
 }
+
+i18n.setBrowserLocale('en-US');
 
 module.exports = i18n;

@@ -68,8 +68,8 @@ function initConfig($input, $elements, parameter, config, deviceId, options) {
                 $input.val(c.value);
                 done = true;
             });
-            if (done == false && options.defaultValue) {
-                $input.val(options.defaultValue());
+            if (done == false) {
+                $input.val(options.defaultValue ? options.defaultValue() : '');
             }
         }
     }
@@ -100,8 +100,15 @@ function initConfig($input, $elements, parameter, config, deviceId, options) {
     });
 }
 
-function initCheck($check, parameter, config, deviceId) {
-    config.filter(c => c.parameter == parameter).forEach(c => $check[0].checked = c.value == '1');
+function initCheck($check, parameter, config, deviceId, defaultValue) {
+    let done = false;
+    config.filter(c => c.parameter == parameter).forEach(c => {
+        $check[0].checked = c.value == '1';
+        done = true;
+    });
+    if (done == false) {
+        $check[0].checked = !!defaultValue;
+    }
     $check.off('change');
     $check.click(async () => {
         const value = $check[0].checked == true ? '1' : '0';
@@ -120,30 +127,34 @@ async function showInputToken(deviceId) {
 
     const $modalToken = $('#input-token');
 
+    const $inputToken = $('#input-token-input');
     const $closeToken = $('#input-token-close');
     const $executeToken = $('#input-token-execute');
 
-    function hide() {
-        $closeToken.off('click');
-        $executeToken.off('click');
-        $modalToken.modal('hide');
-    }
+    $inputToken.val('');
 
     return new Promise(resolve => {
 
+        function hide() {
+
+            $closeToken.off('click');
+            $executeToken.off('click');
+            $modalToken.modal('hide');
+
+            resolve(null);
+        }
+
         $modalToken.on('shown.bs.modal', function onShow() {
             $modalToken.off('shown.bs.modal', onShow);
-            $closeToken.click(function () {
+            $closeToken.click(() => {
                 hide();
-                resolve(null);
             });
-            $executeToken.click(async function () {
-                const token = $('#input-token-input').val();
+            $executeToken.click(async () => {
+                const token = $inputToken.val();
                 await fetchWithRedirect(deviceId ? `/api/device/${deviceId}/execute/${token}` : `/api/user/token/${token}`, {}, () => {
                     showError(i18n.translate('Command is not completed.'));
                 });
                 hide();
-                resolve(null);
             });
         });
 
@@ -155,6 +166,5 @@ async function showInputToken(deviceId) {
         });
     });
 }
-
 
 module.exports = {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck};
