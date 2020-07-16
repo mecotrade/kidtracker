@@ -43,7 +43,6 @@ var midnight;
 
 var view = 'none';
 var path = null;
-var top = null;
 var selected = null;
 
 function updateViewIcons() {
@@ -109,7 +108,8 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
 
     $parent.off('click');
     $parent.click(async () => {
-        top = kid.deviceId;
+        selected = kid.deviceId;
+        $select.val(selected);
         $('div.leaflet-popup.leaflet-zoom-animated').removeClass('on-top');
         if (alarm) {
             await fetchWithRedirect(`/api/device/${kid.deviceId}/alarmoff`);
@@ -172,7 +172,7 @@ async function locateKids() {
                     const setView = !path && kid.deviceId == deviceId
                     const alarm = report.alarms.includes(p.deviceId);
                     const lastMsg = p.deviceId in report.last ? moment(report.last[p.deviceId]).toDate() : null;
-                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm, lastMsg, kid.deviceId == top);
+                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm, lastMsg, kid.deviceId == deviceId);
                 } else {
                     // TODO if not found
                 }
@@ -420,10 +420,10 @@ async function showNavbar() {
         if (selected) {
             $select.val(selected);
         }
-        top = $select.children('option:selected').val();
+        selected = $select.children('option:selected').val();
         $select.off('change');
         $select.change(() => {
-            selected = top = $select.children('option:selected').val();
+            selected = $select.children('option:selected').val();
             locateKids();
         });
         kids.forEach(k => {
