@@ -53,7 +53,7 @@ function updateViewIcons() {
     $('.bi-eye-fill', $eye).toggle(view == 'kid');
 }
 
-function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, alarm, lastMsg, onTop) {
+function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm, lastMsg, onTop) {
 
     const now = new Date();
 
@@ -114,7 +114,10 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
         if (alarm) {
             await fetchWithRedirect(`/api/device/${kid.deviceId}/alarmoff`);
         }
-        updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setView, false, lastMsg, true);
+        updateKidPopup(kid, position, snapshot, midnightSnapshot, online, false, lastMsg, true);
+        if (!path) {
+            setView(kid);
+        }
     });
 
     $parent.parent().toggleClass('on-top', onTop || alarm)
@@ -130,9 +133,13 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, setVi
         const time = kid.popupTimeFromNow ? moment(date).fromNow() : moment(date).format(KID_POPUP_TIME_FORMAT);
         $divTime.text(time);
     });
+}
 
-    if (setView && (view == 'kid' || view == 'kid-once')) {
-        map.setView(kid.popup.getLatLng());
+function setView(kid) {
+    if (view == 'kid' || view == 'kid-once') {
+        if (kid.popup) {
+            map.setView(kid.popup.getLatLng());
+        }
         if (view == 'kid-once') {
             view = 'none';
         }
@@ -169,10 +176,12 @@ async function locateKids() {
                 const kid = kids.find(k => k.deviceId == p.deviceId);
                 if (kid) {
                     const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
-                    const setView = !path && kid.deviceId == deviceId
                     const alarm = report.alarms.includes(p.deviceId);
                     const lastMsg = p.deviceId in report.last ? moment(report.last[p.deviceId]).toDate() : null;
-                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, setView, alarm, lastMsg, kid.deviceId == deviceId);
+                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, alarm, lastMsg, kid.deviceId == deviceId);
+                    if (!path && kid.deviceId == deviceId) {
+                        setView(kid);
+                    }
                 } else {
                     // TODO if not found
                 }
@@ -301,7 +310,8 @@ async function initNavbar() {
                     }
 
                     function move(i) {
-                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, true, false, null, true);
+                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, false, null, true);
+                        setView(kid);
                         return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
                     }
 
@@ -314,7 +324,7 @@ async function initNavbar() {
                     map.addControl(slider);
                     slider.startSlider();
 
-                    path = {track: track, slider: slider, move: move};
+                    path = {deviceId: kid.deviceId, track: track, slider: slider, move: move};
 
                 } else {
 
@@ -325,13 +335,8 @@ async function initNavbar() {
                 }
             }
         } else {
-            map.removeControl(path.slider);
-            map.removeLayer(path.track);
-            path = null;
 
-            $('.bi-calendar2-week-fill', $history).show();
-            $('.bi-geo-alt', $history).hide();
-
+            removePath();
             locateKids();
         }
     });
@@ -387,6 +392,19 @@ async function initNavbar() {
     });
 }
 
+function removePath() {
+
+    if (path) {
+        map.removeControl(path.slider);
+        map.removeLayer(path.track);
+    }
+
+    path = null;
+
+    $('.bi-calendar2-week-fill', $history).show();
+    $('.bi-geo-alt', $history).hide();
+}
+
 async function showNavbar() {
 
     // user definition and location
@@ -424,6 +442,10 @@ async function showNavbar() {
         $select.off('change');
         $select.change(() => {
             selected = $select.children('option:selected').val();
+            kids.filter(k => k.deviceId == selected).forEach(k => setView(k));
+            if (path && path.deviceId != selected) {
+                removePath();
+            }
             locateKids();
         });
         kids.forEach(k => {

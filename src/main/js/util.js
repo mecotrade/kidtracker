@@ -109,7 +109,7 @@ function initCheck($check, parameter, config, deviceId, defaultValue) {
     if (done == false) {
         $check[0].checked = !!defaultValue;
     }
-    $check.off('change');
+    $check.off('click');
     $check.click(async () => {
         const value = $check[0].checked == true ? '1' : '0';
         await fetchWithRedirect(`/api/device/${deviceId}/config`, {

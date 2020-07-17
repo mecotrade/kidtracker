@@ -138,14 +138,13 @@ function reminderConfig($reminder, value) {
     $('.bi-toggle-off', $reminder).toggle(active != '1');
     $('.bi-toggle-on', $reminder).toggle(active == '1');
 
-
-    if (type == 'choice') {
+    if (type == '1' || type == '2') {
+        $type.val(type);
+    } else {
         $type.val('choice');
         $days.children('span').each(function(i) {
             $(this).toggleClass('btn-primary', type[(i + 1) % 7] === '1');
         });
-    } else {
-        $type.val(type);
     }
 
     $type[0].dispatchEvent(new Event('change'));
