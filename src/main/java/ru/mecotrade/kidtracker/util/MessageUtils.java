@@ -69,6 +69,10 @@ public class MessageUtils {
 
     private static final Map<Byte, Map<Byte, byte[]>> CYRILLIC_GMS_MAPPING = new HashMap<>();
 
+    private static final byte AUDIO_ESCAPE = 0x7d;
+
+    private static final Map<Byte, byte[]> AUDIO_MAPPING = new HashMap<>();
+
     static {
 
         byte[] utf8 = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя".getBytes(StandardCharsets.UTF_8);
@@ -82,6 +86,12 @@ public class MessageUtils {
             // skip leading FEFF in UTF_16 encoding
             prefixMap.put(utf8[i+1], Arrays.copyOfRange(gms, i+2, i+4));
         }
+
+        AUDIO_MAPPING.put((byte) 0x01, new byte[]{0x7d});
+        AUDIO_MAPPING.put((byte) 0x02, new byte[]{0x5b});
+        AUDIO_MAPPING.put((byte) 0x03, new byte[]{0x5d});
+        AUDIO_MAPPING.put((byte) 0x04, new byte[]{0x2c});
+        AUDIO_MAPPING.put((byte) 0x05, new byte[]{0x2a});
     }
 
     public static int indexOfPayloadSeparator(byte[] data, int offset) {
@@ -100,6 +110,34 @@ public class MessageUtils {
             }
         }
         throw new KidTrackerParseException("Message separator char '*' not found after offset " + offset + " in message \"" + new String(data) + "\"");
+    }
+
+    public static byte[] toAmrBytes(byte[] payload) {
+
+        byte[] result = new byte[0];
+
+        int left = 0;
+        boolean escaped = false;
+        for (int i = 0; i < payload.length; i++) {
+            if (escaped) {
+                byte[] replacement = AUDIO_MAPPING.get(payload[i]);
+                if (replacement != null) {
+                    result = Bytes.concat(result, Arrays.copyOfRange(payload, left, i - 1), replacement);
+                    left = i + 1;
+                }
+                escaped = false;
+            } else {
+                if (payload[i] == AUDIO_ESCAPE) {
+                    escaped = true;
+                }
+            }
+        }
+
+        if (left < payload.length) {
+            result = Bytes.concat(result, Arrays.copyOfRange(payload, left, payload.length));
+        }
+
+        return result;
     }
 
     public static byte[] toGsmBytes(byte[] payload) {

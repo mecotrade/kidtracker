@@ -86,8 +86,7 @@ public class Device extends JobExecutor implements DeviceSender {
             }
             send(type);
         } else if (MessageUtils.BASE_64_TYPES.contains(type)) {
-            // TODO: work with audio files, learn proper play rate
-            byte[] data = Base64.getDecoder().decode(message.getPayload().getBytes());
+            byte[] data = MessageUtils.toAmrBytes(Base64.getDecoder().decode(message.getPayload().getBytes()));
             try (FileOutputStream fos = new FileOutputStream(message.getId() + ".amr")) {
                 fos.write(data);
             } catch (IOException ex) {
