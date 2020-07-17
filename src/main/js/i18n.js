@@ -137,7 +137,8 @@ const i18n = {
             'Username should not be empty.': 'Логин должен быть заполнен',
             'Username is not unique.': 'Пользователь с таким логином уже существует.',
             'Incorrect credentials.': 'Пароль указан неверно.',
-            'Kid list is not empty.': 'Список детей не пуст.'
+            'Kid list is not empty.': 'Список детей не пуст.',
+            'Last admin can\'t be removed.': 'Последний администратор не может быть удалён.'
         }
     },
 

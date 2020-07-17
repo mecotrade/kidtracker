@@ -15,8 +15,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name="contact",
-        uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"deviceId", "type", "index"})})
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"deviceId", "type", "index"})})
 public class ContactRecord {
 
     @Id

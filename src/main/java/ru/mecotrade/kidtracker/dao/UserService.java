@@ -18,6 +18,10 @@ public class UserService {
         return userRepository.count();
     }
 
+    public long count(boolean admin) {
+        return userRepository.countByAdmin(admin);
+    }
+
     public Optional<UserInfo> get(Long id) {
         return userRepository.findById(id);
     }

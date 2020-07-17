@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -25,8 +26,8 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 @Table(name="user",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"username"})})
+        indexes = {@Index(columnList = "admin")},
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
 public class UserInfo {
 
     @Id

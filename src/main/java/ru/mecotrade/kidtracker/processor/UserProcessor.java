@@ -165,7 +165,13 @@ public class UserProcessor extends JobExecutor implements Cleanable {
         UserInfo userInfo = userService.get(userPrincipal.getUserInfo().getId())
                 .orElseThrow(() -> new InsufficientAuthenticationException(String.valueOf(userPrincipal.getUserInfo().getId())));
 
-        if (userInfo.getKids().isEmpty()) {
+        if (userInfo.isAdmin() && userService.count(true) == 1) {
+            log.warn("{} fails to remove account since this is the last admin account", userInfo);
+            throw new KidTrackerInvalidOperationException("Last admin can't be removed.");
+        } else if (!userInfo.getKids().isEmpty()) {
+            log.warn("{} fails to remove account since kid list is not empty", userInfo);
+            throw new KidTrackerInvalidOperationException("Kid list is not empty.");
+        } else {
             Credentials credentials = user.getCredentials();
             if (userInfo.getKids().isEmpty() && credentials != null && passwordEncoder.matches(credentials.getPassword(), userInfo.getPassword())) {
                 userService.remove(userInfo);
@@ -174,10 +180,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
                 log.warn("{} fails to remove account due to incorrect credentials", userInfo);
                 throw new KidTrackerInvalidOperationException("Incorrect credentials");
             }
-        } else {
-            log.warn("{} fails to remove account since kid list is not empty", userInfo);
-            throw new KidTrackerInvalidOperationException("Kid list is not empty.");
-        }
+        } 
     }
 
     @Override
