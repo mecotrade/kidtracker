@@ -137,6 +137,14 @@ div.form-group.reminder-multiselect {
     justify-content: center;
 }
 
+#user-profile div.form-row {
+    justify-content: center;
+}
+
+#create-user div.form-row {
+    justify-content: center;
+}
+
 .table th.user-device-thumb {
     vertical-align: middle;
 }

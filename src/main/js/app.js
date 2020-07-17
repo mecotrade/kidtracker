@@ -10,6 +10,8 @@ const {initPhone, showPhone} = require('./phone.js');
 const {initContact, showContact} = require('./contact.js');
 const {initWatchSettings, showWatchSettings} = require('./watchsettings.js');
 const showDevice = require('./device.js');
+const showAccount = require('./account.js');
+const showRegister = require('./register.js');
 
 const BATTERY_LOW_THRESHOLD = 20;
 const BATTERY_FULL_THRESHOLD = 70;
@@ -36,6 +38,8 @@ const $watchSettings = $('#kid-settings');
 const $username = $('#user-name');
 const $cursor = $('#user-watch');
 const $devices = $('#user-devices');
+const $profile = $('#user-settings');
+const $register = $('#register-user');
 
 var user;
 var kids;
@@ -384,6 +388,17 @@ async function initNavbar() {
         await showNavbar();
     });
 
+    $profile.off('click');
+    $profile.click(async () => {
+        await showAccount();
+        await showNavbar();
+    });
+
+    $register.off('click');
+    $register.click(async () => {
+        await showRegister();
+    })
+
     view = 'user-once';
     map.locate({
         watch: true,
@@ -420,6 +435,10 @@ async function showNavbar() {
         user.marker = L.marker(userProps ? userProps.latlng : [0,0]).addTo(map);
         user.circle = L.circle(userProps ? userProps.latlng : [0,0], userProps ? userProps.radius : 0, {weight: 0, color: 'green'}).addTo(map);
         $username.text(user.name);
+        $register.toggle(user.admin);
+        if (!user.admin) {
+            $register.off('click');
+        }
     }
 
     // kids definition and location

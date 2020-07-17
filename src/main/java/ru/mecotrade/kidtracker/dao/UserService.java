@@ -14,6 +14,10 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    public long count() {
+        return userRepository.count();
+    }
+
     public Optional<UserInfo> get(Long id) {
         return userRepository.findById(id);
     }
@@ -28,5 +32,9 @@ public class UserService {
 
     public Collection<Message> lastMessages(Long userId, Collection<String> types, Message.Source source) {
         return userRepository.findUserKidsLastMessages(userId, types, source);
+    }
+
+    public void remove(UserInfo userInfo) {
+        userRepository.delete(userInfo);
     }
 }

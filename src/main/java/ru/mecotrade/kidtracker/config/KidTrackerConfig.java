@@ -2,8 +2,10 @@ package ru.mecotrade.kidtracker.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.mecotrade.kidtracker.device.DebugConnectorFactory;
 import ru.mecotrade.kidtracker.device.DeviceServer;
 import ru.mecotrade.kidtracker.device.MessageConnectorFactory;
@@ -12,6 +14,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 @Configuration
+@EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 public class KidTrackerConfig {
 
     @Autowired

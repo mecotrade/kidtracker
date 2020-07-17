@@ -19,8 +19,9 @@ async function fetchWithRedirect(url, options, error, success, deviceId) {
             return await response.json();
         }
     } else {
+        const body = await response.json();
         if (error) {
-            error();
+            error(body.message);
         }
     }
 }

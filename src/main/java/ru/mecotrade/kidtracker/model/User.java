@@ -7,7 +7,11 @@ import lombok.Data;
 @AllArgsConstructor
 public class User {
 
+    private Credentials credentials;
+
     private String name;
 
     private String phone;
+
+    private boolean admin;
 }

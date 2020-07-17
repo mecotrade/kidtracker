@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
+import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Response;
@@ -50,9 +51,48 @@ public class UserController {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(new User(userInfo.getName(), userInfo.getPhone()));
+            return ResponseEntity.ok(new User(null, userInfo.getName(), userInfo.getPhone(), userInfo.isAdmin()));
         } else {
             log.warn("Unauthorized request for user info");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @PutMapping("/info")
+    @ResponseBody
+    public ResponseEntity<Response> update(@RequestBody User user, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            try {
+                userProcessor.updateUser(userPrincipal, user);
+            } catch (KidTrackerInvalidOperationException ex) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(ex.getMessage()));
+            } catch (Exception ex) {
+                log.warn("{} fails to update account", userPrincipal.getUserInfo(), ex);
+                return ResponseEntity.badRequest().build();
+            }            return ResponseEntity.noContent().build();
+        } else {
+            log.warn("Unauthorized request for account update");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @DeleteMapping("/info")
+    @ResponseBody
+    public ResponseEntity<Response> remove(@RequestBody User user, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            try {
+                userProcessor.removeUser(userPrincipal, user);
+            } catch (KidTrackerInvalidOperationException ex) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(ex.getMessage()));
+            } catch (Exception ex) {
+                log.warn("{} fails to remove account", userPrincipal.getUserInfo(), ex);
+                return ResponseEntity.badRequest().build();
+            }
+            throw new InsufficientAuthenticationException(userPrincipal.getUsername());
+        } else {
+            log.warn("Unauthorized request for account remove");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
@@ -69,7 +109,7 @@ public class UserController {
                             k.getThumb(),
                             k.getDevice().getKids().stream()
                                     .map(KidInfo::getUser)
-                                    .map(u -> new User(u.getName(), u.getPhone()))
+                                    .map(u -> new User(null, u.getName(), u.getPhone(), u.isAdmin()))
                                     .collect(Collectors.toList())))
                     .collect(Collectors.toList()));
         } else {
@@ -116,7 +156,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/kid")
+    @PutMapping("/kid")
     @ResponseBody
     public ResponseEntity<Response> update(@RequestBody Kid kid, Authentication authentication) {
 
@@ -138,29 +178,29 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/kid/{deviceId}")
+    @DeleteMapping("/kid")
     @ResponseBody
-    public ResponseEntity<Response> remove(@PathVariable String deviceId, Authentication authentication) {
+    public ResponseEntity<Response> remove(@RequestBody Kid kid, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             try {
-                return userProcessor.removeKid(userPrincipal, deviceId)
+                return userProcessor.removeKid(userPrincipal, kid.getDeviceId())
                         ? ResponseEntity.noContent().build()
                         : ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to device"));
             } catch (InsufficientAuthenticationException ex) {
                 throw ex;
             } catch (Exception ex) {
-                log.warn("{} fails to remove kid with device {}", userPrincipal.getUserInfo(), deviceId, ex);
+                log.warn("{} fails to remove {}", userPrincipal.getUserInfo(), kid, ex);
                 return ResponseEntity.badRequest().build();
             }
         } else {
-            log.warn("Unauthorized request to remove kid with device {}", deviceId);
+            log.warn("Unauthorized request to remove {}", kid);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
-    @PutMapping("/kid")
+    @PostMapping("/kid")
     @ResponseBody
     public ResponseEntity<Response> create(@RequestBody Kid kid, Authentication authentication) {
 

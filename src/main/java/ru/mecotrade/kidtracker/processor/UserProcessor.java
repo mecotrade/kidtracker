@@ -2,9 +2,11 @@ package ru.mecotrade.kidtracker.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.dao.DeviceService;
 import ru.mecotrade.kidtracker.dao.KidService;
@@ -16,6 +18,9 @@ import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.device.DeviceManager;
+import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
+import ru.mecotrade.kidtracker.model.Credentials;
+import ru.mecotrade.kidtracker.model.User;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.UserToken;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
@@ -25,11 +30,9 @@ import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.JobExecutor;
 
 import javax.transaction.Transactional;
-import java.util.Date;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -49,6 +52,9 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
     @Autowired
     private DeviceManager deviceManager;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Value("${kidtracker.token.length}")
     private int tokenLength;
@@ -96,6 +102,82 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
     public void execute(UserToken userToken) throws KidTrackerException {
         execute(userToken, tokenTtlMillis);
+    }
+
+    @Transactional
+    public void addAdminIfNoUsers(String username, String password) {
+
+        if (userService.count() == 0) {
+            UserInfo admin = UserInfo.builder()
+                    .username(username)
+                    .password(passwordEncoder.encode(password))
+                    .name(StringUtils.capitalize(username))
+                    .admin(true).build();
+            userService.save(admin);
+
+            log.info("New Admin {} successfully created by system", admin);
+        }
+    }
+
+    @Transactional
+    public void addUser(UserPrincipal userPrincipal, User user) throws KidTrackerInvalidOperationException {
+
+        if (userService.getByUsername(user.getCredentials().getUsername()).isPresent()) {
+            log.info("{} can't be created since username is not unique", user);
+            throw new KidTrackerInvalidOperationException("Username is not unique.");
+        }
+
+        UserInfo userInfo = UserInfo.builder()
+                .createdBy(userPrincipal.getUserInfo())
+                .username(user.getCredentials().getUsername())
+                .password(passwordEncoder.encode(user.getCredentials().getPassword()))
+                .name(user.getName())
+                .phone(user.getPhone())
+                .admin(user.isAdmin()).build();
+        userService.save(userInfo);
+        user.setCredentials(null);
+
+        log.info("{} successfully created by {}", userInfo, userPrincipal.getUserInfo());
+    }
+
+    public void updateUser(UserPrincipal userPrincipal, User user) throws KidTrackerException {
+
+        UserInfo userInfo = userService.get(userPrincipal.getUserInfo().getId())
+                .orElseThrow(() -> new InsufficientAuthenticationException(String.valueOf(userPrincipal.getUserInfo().getId())));
+        userInfo.setName(user.getName());
+        Credentials credentials = user.getCredentials();
+        if (credentials != null && StringUtils.isNoneBlank(credentials.getNewPassword())) {
+            if (passwordEncoder.matches(credentials.getPassword(), userInfo.getPassword())) {
+                userInfo.setPassword(passwordEncoder.encode(credentials.getNewPassword()));
+            } else {
+                log.warn("{} fails to update account due to incorrect credentials", userInfo);
+                throw new KidTrackerInvalidOperationException("Incorrect credentials.");
+            }
+        }
+        userService.save(userInfo);
+        log.info("{} successfully updated", userInfo);
+
+        update(userPrincipal);
+    }
+
+    public void removeUser(UserPrincipal userPrincipal, User user) throws KidTrackerException {
+
+        UserInfo userInfo = userService.get(userPrincipal.getUserInfo().getId())
+                .orElseThrow(() -> new InsufficientAuthenticationException(String.valueOf(userPrincipal.getUserInfo().getId())));
+
+        if (userInfo.getKids().isEmpty()) {
+            Credentials credentials = user.getCredentials();
+            if (userInfo.getKids().isEmpty() && credentials != null && passwordEncoder.matches(credentials.getPassword(), userInfo.getPassword())) {
+                userService.remove(userInfo);
+                log.info("{} successfully removed", userInfo);
+            } else {
+                log.warn("{} fails to remove account due to incorrect credentials", userInfo);
+                throw new KidTrackerInvalidOperationException("Incorrect credentials");
+            }
+        } else {
+            log.warn("{} fails to remove account since kid list is not empty", userInfo);
+            throw new KidTrackerInvalidOperationException("Kid list is not empty.");
+        }
     }
 
     @Override

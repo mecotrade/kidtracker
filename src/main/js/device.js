@@ -187,8 +187,10 @@ function editDevice(kid) {
         $editModal.on('shown.bs.modal', async function onShow() {
             $editModal.off('shown.bs.modal', onShow);
             $remove.click(async () => {
-                await fetchWithRedirect(`/api/user/kid/${kid.deviceId}`, {
-                    method: 'DELETE'
+                await fetchWithRedirect('/api/user/kid', {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(kid)
                 }, () => {
                     showError(i18n.translate('Command is not completed.'))
                 });
@@ -206,7 +208,7 @@ function editDevice(kid) {
                 } else {
                     kid.name = $name.val();
                     await fetchWithRedirect('/api/user/kid', {
-                        method: 'POST',
+                        method: 'PUT',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(kid)
                     }, () => {
@@ -224,7 +226,7 @@ function editDevice(kid) {
                     kid.deviceId = $deviceId.val();
                     kid.name = $name.val();
                     await fetchWithRedirect('/api/user/kid', {
-                        method: 'PUT',
+                        method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(kid)
                     }, () => {

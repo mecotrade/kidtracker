@@ -28,7 +28,6 @@ const i18n = {
             'Contacts': 'Контакты',
             'Edit': 'Редактирование',
             'Name': 'Имя',
-            'Phone': 'Телефон',
             'Name should not be empty.': 'Имя должно быть заполнено.',
             'Phone should not be empty.': 'Телефон должен быть заполнен.',
             "Admin's phones, primary {} and secondary {}, which can manage kid's watch configuration through text messages": 'Телефоны администраторов, основного {} и дополнительного {}, имеющих возможность управлять телефоном ребенка при помощи SMS',
@@ -125,7 +124,20 @@ const i18n = {
             'Vibro': 'Вибрация',
             'My kids': 'Мои дети',
             'Device identifier': 'Идентификатор устройства',
-            'Device identifier should not be empty.': 'Идентификатор устройства должен быть заполнен'
+            'Device identifier should not be empty.': 'Идентификатор устройства должен быть заполнен',
+            'Account settings': 'Настройки аккаунта',
+            'Password': 'Пароль',
+            'New password': 'Новый пароль',
+            'Please enter current password.': 'Пожалуйста введите текущий пароль.',
+            'New user': 'Новый пользователь',
+            'Username': 'Логин',
+            'Admin': 'Администратор',
+            'Repeat password': 'Повторите пароль',
+            'Passwords do not match.': 'Пароли не совпадают',
+            'Username should not be empty.': 'Логин должен быть заполнен',
+            'Username is not unique.': 'Пользователь с таким логином уже существует.',
+            'Incorrect credentials.': 'Пароль указан неверно.',
+            'Kid list is not empty.': 'Список детей не пуст.'
         }
     },
 
