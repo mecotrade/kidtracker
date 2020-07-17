@@ -110,8 +110,13 @@ public class DeviceController {
                 if (isProtected(command)) {
                     if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
                         UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-                        deviceManager.apply(userInfo, deviceId, command);
-                        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to user's phone"));
+                        if (userInfo.getPhone() != null && userInfo.getPhone().matches(PHONE_NUMBER_REGEX)) {
+                            deviceManager.apply(userInfo, deviceId, command);
+                            return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to user's phone"));
+                        } else {
+                            log.warn("{} has invalid phone number", userInfo);
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Invalid phone number."));
+                        }
                     } else {
                         log.warn("Unauthorized request to execute {} on device {}", command, deviceId);
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

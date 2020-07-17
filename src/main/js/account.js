@@ -46,7 +46,7 @@ async function showAccount() {
                 user.credentials = {password: $password.val(), newPassword: $newPassword.val()};
                 user.name = $name.val();
                 if (!user.credentials.password) {
-                    await showError(i18n.translate('Please enter current password.'));
+                    await showError(i18n.translate('Enter current password.'));
                 } else {
                     await fetchWithRedirect('/api/user/info', {
                         method: 'DELETE',
@@ -72,7 +72,7 @@ async function showAccount() {
                         body: JSON.stringify(user)
                     }, message => {
                         clear();
-                        showError(i18n.translate(message));
+                        showError(i18n.translate(message || 'Command is not completed.'));
                     }, () => {
                         hide();
                     });

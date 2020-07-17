@@ -34,7 +34,11 @@ function initCommand($button, command, deviceId, options) {
     $button.off('click');
     $button.click(async () => {
         if (options.before) {
-            options.before();
+            const message = options.before();
+            if (message) {
+                showError(i18n.translate(message));
+                return;
+            }
         }
         if (options.device) {
             deviceId = options.device();
@@ -43,10 +47,10 @@ function initCommand($button, command, deviceId, options) {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({type: command, payload: options.payload ? options.payload() : []})
-        }, () => {
-            showError(i18n.translate('Command is not completed.'));
+        }, message => {
+            showError(i18n.translate(message || 'Command is not completed.'));
             if (options.error) {
-                options.error();
+                options.error(message);
             }
         }, () => {
             if (options.after) {
@@ -87,10 +91,10 @@ function initConfig($input, $elements, parameter, config, deviceId, options) {
               method: 'POST',
               headers: {'Content-Type': 'application/json'},
               body: JSON.stringify({parameter: parameter, value: options.value ? options.value() : $input.val()})
-            }, () => {
-                showError(i18n.translate('Command is not completed.'));
+            }, message => {
+                showError(i18n.translate(message || 'Command is not completed.'));
                 if (options.error) {
-                    options.error();
+                    options.error(message);
                 }
             }, () => {
                 if (options.after) {

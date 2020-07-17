@@ -180,7 +180,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
                 log.warn("{} fails to remove account due to incorrect credentials", userInfo);
                 throw new KidTrackerInvalidOperationException("Incorrect credentials");
             }
-        } 
+        }
     }
 
     @Override

@@ -107,7 +107,7 @@ public class MessageUtils {
         int idx = 0;
         while (idx < payload.length) {
             byte b = payload[idx++];
-            Map<Byte, byte[]> mapping = MessageUtils.CYRILLIC_GMS_MAPPING.get(b);
+            Map<Byte, byte[]> mapping = CYRILLIC_GMS_MAPPING.get(b);
             if (mapping != null) {
                 byte bb = payload[idx++];
                 byte[] bs = mapping.get(bb);

@@ -11,9 +11,9 @@ import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
+import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownDeviceException;
 import ru.mecotrade.kidtracker.model.Command;
-import ru.mecotrade.kidtracker.model.Link;
 import ru.mecotrade.kidtracker.model.Temporal;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.Job;
@@ -112,6 +112,7 @@ public class DeviceManager implements MessageListener, Cleanable {
     }
 
     public void apply(UserInfo userInfo, String deviceId, Command command) throws KidTrackerException {
+
         Device device = devices.get(deviceId);
         if (device != null) {
             UserToken userToken = UserToken.of(userInfo.getId(), RandomStringUtils.randomNumeric(tokenLength));

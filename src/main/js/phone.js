@@ -31,6 +31,11 @@ async function showPhone(user, deviceId) {
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
             initCommand($monitor, 'MONITOR', deviceId, {
+                before: () => {
+                    if (!$phone.val()) {
+                        return 'Phone should not be empty.';
+                    }
+                },
                 payload: () => [$phone.val()],
                 after: () => {
                     $monitor.off('click');
@@ -39,6 +44,11 @@ async function showPhone(user, deviceId) {
                 }
             });
             initCommand($call, 'CALL', deviceId, {
+                before: () => {
+                    if (!$phone.val()) {
+                        return 'Phone should not be empty.';
+                    }
+                },
                 payload: () => [$phone.val()],
                 after: () => {
                     $call.off('click');
@@ -47,6 +57,13 @@ async function showPhone(user, deviceId) {
                 }
             })
             initCommand($sms, 'SMS', deviceId, {
+                before: () => {
+                    if (!$phone.val()) {
+                        return 'Phone should not be empty.';
+                    } else if (!$text.val()) {
+                        return 'Text message should not be empty.';
+                    }
+                },
                 payload: () => [$phone.val(), $text.val()],
                 after: () => {
                     $sms.off('click');
