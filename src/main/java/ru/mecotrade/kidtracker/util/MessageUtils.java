@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
 import lombok.extern.slf4j.Slf4j;
+import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
@@ -15,8 +16,15 @@ import ru.mecotrade.kidtracker.model.Link;
 import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.model.Temporal;
+import ws.schild.jave.AudioAttributes;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.EncodingAttributes;
+import ws.schild.jave.MultimediaObject;
 
 import javax.xml.bind.DatatypeConverter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,7 +45,9 @@ import java.util.stream.IntStream;
 @Slf4j
 public class MessageUtils {
 
-    public static final Set<String> BASE_64_TYPES = new HashSet<>(Arrays.asList("TK", "RE"));
+    public static final Set<String> AUDIO_TYPES = new HashSet<>(Arrays.asList("TK", "RE"));
+
+    public static final Set<String> BASE_64_TYPES = new HashSet<>(AUDIO_TYPES);
 
     public static final Set<String> GSM_TYPES = new HashSet<>(Collections.singletonList("SMS"));
 

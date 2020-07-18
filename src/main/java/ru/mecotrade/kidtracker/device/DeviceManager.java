@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.dao.DeviceService;
+import ru.mecotrade.kidtracker.dao.MediaService;
 import ru.mecotrade.kidtracker.dao.MessageService;
+import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
@@ -14,10 +16,14 @@ import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownDeviceException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Temporal;
+import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.Job;
 import ru.mecotrade.kidtracker.task.UserToken;
+import ru.mecotrade.kidtracker.util.MessageUtils;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,7 +38,13 @@ public class DeviceManager implements MessageListener, Cleanable {
     private MessageService messageService;
 
     @Autowired
+    private MediaService mediaService;
+
+    @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private MediaProcessor mediaProcessor;
 
     @Value("${kidtracker.token.length}")
     private int tokenLength;
@@ -84,6 +96,7 @@ public class DeviceManager implements MessageListener, Cleanable {
         messageService.save(message);
         log.debug("[{}] >>> {}", messageConnector.getId(), message);
 
+        mediaProcessor.process(message);
         device.process(message);
     }
 

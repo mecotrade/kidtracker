@@ -15,6 +15,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <commons-lang3.version>3.10</commons-lang3.version>
         <guava.version>29.0-jre</guava.version>
         <lombok.version>1.18.8</lombok.version>
+        <jave.version>2.7.3</jave.version>
     </properties>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -49,6 +50,11 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-all-deps</artifactId>
+            <version>${jave.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

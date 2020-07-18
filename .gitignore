@@ -4,6 +4,7 @@ target/
 docs/
 logs/
 data/
+audio/
 src/main/resources/static/js/index.js
 package-lock.json
 node_modules/

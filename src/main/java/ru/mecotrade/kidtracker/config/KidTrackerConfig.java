@@ -35,6 +35,11 @@ public class KidTrackerConfig {
     }
 
     @Bean
+    public Executor mediaProcessorExecutor() {
+        return Executors.newCachedThreadPool();
+    }
+
+    @Bean
     public DeviceServer messageServer() {
         return new DeviceServer(messageServerPort, messageListenerFactory);
     }
@@ -43,4 +48,5 @@ public class KidTrackerConfig {
     public DeviceServer debugServer() {
         return new DeviceServer(debugServerPort, debugListenerFactory);
     }
+
 }
