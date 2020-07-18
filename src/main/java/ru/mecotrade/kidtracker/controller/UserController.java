@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
+import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.model.Report;
@@ -33,6 +34,8 @@ import ru.mecotrade.kidtracker.task.UserToken;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
+
+import static ru.mecotrade.kidtracker.util.ValidationUtils.isValidPhone;
 
 @Controller
 @Slf4j
@@ -185,9 +188,14 @@ public class UserController {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             try {
-                return userProcessor.removeKid(userPrincipal, kid.getDeviceId())
-                        ? ResponseEntity.noContent().build()
-                        : ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to device"));
+                if (isValidPhone(userPrincipal.getUserInfo().getPhone())) {
+                    return userProcessor.removeKid(userPrincipal, kid.getDeviceId())
+                            ? ResponseEntity.noContent().build()
+                            : ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to device"));
+                } else {
+                    log.warn("{} has invalid number and not allowed to remove {}", userPrincipal.getUserInfo(), kid);
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user phone number is incorrect."));
+                }
             } catch (InsufficientAuthenticationException ex) {
                 throw ex;
             } catch (Exception ex) {
@@ -206,14 +214,19 @@ public class UserController {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-            try {
-                userProcessor.applyAddKid(userPrincipal, kid);
-                return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to device"));
-            } catch (InsufficientAuthenticationException ex) {
-                throw ex;
-            } catch (Exception ex) {
-                log.warn("{} fails to add {}", userPrincipal.getUserInfo(), kid, ex);
-                return ResponseEntity.badRequest().build();
+            if (isValidPhone(userPrincipal.getUserInfo().getPhone())) {
+                try {
+                    userProcessor.applyAddKid(userPrincipal, kid);
+                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to device"));
+                } catch (InsufficientAuthenticationException ex) {
+                    throw ex;
+                } catch (Exception ex) {
+                    log.warn("{} fails to add {}", userPrincipal.getUserInfo(), kid, ex);
+                    return ResponseEntity.badRequest().build();
+                }
+            } else {
+                log.warn("{} has invalid number and not allowed to add {}", userPrincipal.getUserInfo(), kid);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user phone number is incorrect."));
             }
         } else {
             log.warn("Unauthorized request to add {}", kid);

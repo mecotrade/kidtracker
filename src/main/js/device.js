@@ -191,8 +191,8 @@ function editDevice(kid) {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(kid)
-                }, () => {
-                    showError(i18n.translate('Command is not completed.'))
+                }, message => {
+                    showError(i18n.translate(message || 'Command is not completed.'))
                 });
                 hide();
             });
@@ -211,8 +211,8 @@ function editDevice(kid) {
                         method: 'PUT',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(kid)
-                    }, () => {
-                        showError(i18n.translate('Command is not completed.'))
+                    }, message => {
+                        showError(i18n.translate(message || 'Command is not completed.'))
                     });
                     hide();
                 }
@@ -229,8 +229,8 @@ function editDevice(kid) {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(kid)
-                    }, () => {
-                        showError(i18n.translate('Command is not completed.'))
+                    }, message => {
+                        showError(i18n.translate(message || 'Command is not completed.'))
                     });
                     hide();
                 }

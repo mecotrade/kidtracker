@@ -35,40 +35,12 @@ import org.springframework.http.ResponseEntity;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.UserToken;
 
+import static ru.mecotrade.kidtracker.util.ValidationUtils.*;
+
 @Controller
 @Slf4j
 @RequestMapping("/api/device/{deviceId}")
 public class DeviceController {
-
-    private final static String PHONE_NUMBER_REGEX = "^(\\+\\d{1,3}( )?)?((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$";
-
-    private final static String TIME_REGEX = "^([0-1]?[0-9]|2[0-3])\\.[0-5][0-9]\\.[0-5][0-9]$";
-
-    private final static String TIME2_REGEX = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$";
-
-    private final static String DATE_REGEX = "^\\d{4}\\.(0[1-9]|1[0-2])\\.(0[1-9]|[1-2][0-9]|3[0-1])$";
-
-    private final static String NUMBER_REGEX = "^[0-9]+$";
-
-    private final static String SWITCH_REGEX = "^[01]$";
-
-    private final static String REMINDER_TYPE_REGEX = "^([12]|[01]{7})$";
-
-    private final static String PROFILE_REGEX = "^([1234])$";
-
-    // only acceptable languages:
-    //  0:English,
-    //  1:Chinese,
-    //  3:Portuguese
-    //  4:Spanish
-    //  5:Deutsch
-    //  7:Turkiye
-    //  8:Vietnam
-    //  9:Russian
-    //  10:Francais
-    private final static String LANGUAGE_CODE_REGEX = "^(0|1|3|4|5|7|8|9|10)$";
-
-    private final static String TIMEZONE_REGEX = "^(-12|-11|-10|-9|-8|-7|-6|-5|-4|-3\\.50|-3|-2|-1|0|1|2|3|3\\.50|4|4\\.30|5|5\\.50|5\\.75|6|6\\.50|7|8|9|9\\.50|10|11|12|13)$";
 
     @Value("${kidtracker.device.controller.min.upload.interval}")
     private int minUploadInterval;
@@ -110,12 +82,12 @@ public class DeviceController {
                 if (isProtected(command)) {
                     if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
                         UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-                        if (userInfo.getPhone() != null && userInfo.getPhone().matches(PHONE_NUMBER_REGEX)) {
+                        if (isValidPhone(userInfo.getPhone())) {
                             deviceManager.apply(userInfo, deviceId, command);
                             return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to user's phone"));
                         } else {
                             log.warn("{} has invalid phone number", userInfo);
-                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Invalid phone number."));
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user has incorrect phone number."));
                         }
                     } else {
                         log.warn("Unauthorized request to execute {} on device {}", command, deviceId);
@@ -243,9 +215,9 @@ public class DeviceController {
             switch (contact.getType()) {
                 case PHONEBOOK:
                     return !StringUtils.isBlank(contact.getName())
-                            && !StringUtils.isBlank(contact.getPhone()) && contact.getPhone().matches(PHONE_NUMBER_REGEX);
+                            && isValidPhone(contact.getPhone());
                 default:
-                    return !StringUtils.isBlank(contact.getPhone()) && contact.getPhone().matches(PHONE_NUMBER_REGEX);
+                    return isValidPhone(contact.getPhone());
             }
         }
 
@@ -256,17 +228,17 @@ public class DeviceController {
         if (config.getParameter() != null) {
             switch (config.getParameter()) {
                 case "UPLOAD":
-                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(NUMBER_REGEX)
+                    return isValidNumber(config.getValue())
                             && Integer.parseInt(config.getValue()) >= minUploadInterval;
                 case "WORKTIME":
-                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(NUMBER_REGEX)
+                    return isValidNumber(config.getValue())
                             && Integer.parseInt(config.getValue()) >= minWorktime;
                 case "LZ":
                     if (StringUtils.isNoneBlank(config.getValue())) {
                         String[] payload = config.getValue().split(",");
                         return payload.length == 2
-                                && payload[0].matches(LANGUAGE_CODE_REGEX)
-                                && payload[1].matches(TIMEZONE_REGEX);
+                                && isValidLanguageCode(payload[0])
+                                && isValidTimezone(payload[1]);
                     } else {
                         return false;
                     }
@@ -277,9 +249,9 @@ public class DeviceController {
                             for (String p : payload) {
                                 String[] reminder = p.split("-");
                                 if (reminder.length != 3
-                                        || !reminder[0].matches(TIME2_REGEX)
-                                        || !reminder[1].matches(SWITCH_REGEX)
-                                        || !reminder[2].matches(REMINDER_TYPE_REGEX)) {
+                                        || !isValidTime(reminder[0])
+                                        || !isValidSwitch(reminder[1])
+                                        || !isValidReminderType(reminder[2])) {
                                     return false;
                                 }
                             }
@@ -293,7 +265,7 @@ public class DeviceController {
                 case "BTNAME":
                     return StringUtils.isNoneBlank(config.getValue());
                 case "PROFILE":
-                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(PROFILE_REGEX);
+                    return isValidProfile(config.getValue());
                 case "SOSSMS":
                 case "REMOVESMS":
                 case "LOWBAT":
@@ -304,7 +276,7 @@ public class DeviceController {
                 case "BT":
                 case "BIGTIME":
                 case "PHBONOFF":
-                    return StringUtils.isNoneBlank(config.getValue()) && config.getValue().matches(SWITCH_REGEX);
+                    return isValidSwitch(config.getValue());
             }
         }
 
@@ -339,15 +311,15 @@ public class DeviceController {
                 case "MONITOR":
                 case "CALL":
                     return payload != null && payload.size() == 1
-                            && payload.get(0) != null && payload.get(0).matches(PHONE_NUMBER_REGEX);
+                            && isValidPhone(payload.get(0));
                 case "SMS":
                     return payload != null && payload.size() == 2
-                            && payload.get(0) != null && payload.get(0).matches(PHONE_NUMBER_REGEX);
+                            && isValidPhone(payload.get(0));
                 case "TIME":
                     return payload != null && payload.size() == 3
-                            && payload.get(0) != null && payload.get(0).matches(TIME_REGEX)
+                            && isValidDotTime(payload.get(0))
                             && "DATE".equals(payload.get(1))
-                            && payload.get(2) != null && payload.get(2).matches(DATE_REGEX);
+                            && isValidDate(payload.get(2));
             }
         }
 

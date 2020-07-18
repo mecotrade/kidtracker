@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+import static ru.mecotrade.kidtracker.util.ValidationUtils.isValidPhone;
+
 @Component
 @Slf4j
 public class UserProcessor extends JobExecutor implements Cleanable {
@@ -191,10 +193,14 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     private void applyRemoveKid(UserPrincipal userPrincipal, String deviceId) throws KidTrackerException {
 
         if (kidService.exists(userPrincipal.getUserInfo().getId(), deviceId)) {
-            UserToken userToken = UserToken.of(userPrincipal.getUserInfo().getId(), RandomStringUtils.randomNumeric(tokenLength));
-            apply(userToken, () -> doRemoveKid(userPrincipal, deviceId));
-            log.info("{} created for remove kid with device {} by user {}", userToken, deviceId, userPrincipal.getUsername());
-            deviceManager.sendOrApply(deviceId, Command.of("SMS", userPrincipal.getUserInfo().getPhone(), userToken.getToken()));
+            if (isValidPhone(userPrincipal.getUserInfo().getPhone())) {
+                UserToken userToken = UserToken.of(userPrincipal.getUserInfo().getId(), RandomStringUtils.randomNumeric(tokenLength));
+                apply(userToken, () -> doRemoveKid(userPrincipal, deviceId));
+                log.info("{} created for remove kid with device {} by user {}", userToken, deviceId, userPrincipal.getUsername());
+                deviceManager.sendOrApply(deviceId, Command.of("SMS", userPrincipal.getUserInfo().getPhone(), userToken.getToken()));
+            } else {
+                throw new KidTrackerInvalidOperationException(String.format("%s has incorrect phone number", userPrincipal.getUserInfo()));
+            }
         } else {
             throw new InsufficientAuthenticationException(deviceId);
         }

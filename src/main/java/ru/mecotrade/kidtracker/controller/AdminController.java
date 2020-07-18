@@ -17,13 +17,12 @@ import ru.mecotrade.kidtracker.model.Response;
 import ru.mecotrade.kidtracker.model.User;
 import ru.mecotrade.kidtracker.processor.UserProcessor;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
+import ru.mecotrade.kidtracker.util.ValidationUtils;
 
 @Controller
 @Slf4j
 @RequestMapping("/api/admin")
 public class AdminController {
-
-    private final static String PHONE_NUMBER_REGEX = "^(\\+\\d{1,3}( )?)?((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$";
 
     @Autowired
     private UserProcessor userProcessor;
@@ -51,8 +50,7 @@ public class AdminController {
     }
 
     private boolean isValid(User user) {
-        return StringUtils.isNotBlank(user.getPhone())
-                && user.getPhone().matches(PHONE_NUMBER_REGEX)
+        return ValidationUtils.isValidPhone(user.getPhone())
                 && user.getCredentials() != null
                 && StringUtils.isNotBlank(user.getCredentials().getUsername())
                 && StringUtils.isNotBlank(user.getCredentials().getPassword())
