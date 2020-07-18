@@ -20,14 +20,12 @@ import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.Job;
 import ru.mecotrade.kidtracker.task.UserToken;
-import ru.mecotrade.kidtracker.util.MessageUtils;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
@@ -55,11 +53,11 @@ public class DeviceManager implements MessageListener, Cleanable {
     @Value("${kidtracker.device.job.ttl.millis}")
     private long deviceJobTtlMillis;
 
-    private final Map<String, Device> devices = new HashMap<>();
+    private final Map<String, Device> devices = new ConcurrentHashMap<>();
 
-    private final Map<String, Temporal<DeviceJob>> deviceJobs = new HashMap<>();
+    private final Map<String, Temporal<DeviceJob>> deviceJobs = new ConcurrentHashMap<>();
 
-    private final Map<UserToken, Temporal<Job>> jobs = new HashMap<>();
+    private final Map<UserToken, Temporal<Job>> jobs = new ConcurrentHashMap<>();
 
     public void send(String deviceId, Command command) throws KidTrackerConnectionException {
         Device device = devices.get(deviceId);
@@ -96,7 +94,12 @@ public class DeviceManager implements MessageListener, Cleanable {
         messageService.save(message);
         log.debug("[{}] >>> {}", messageConnector.getId(), message);
 
-        mediaProcessor.process(message);
+        Media media = mediaProcessor.process(message);
+        if (media != null) {
+            mediaService.save(media);
+            log.debug("Created {}", media);
+        }
+
         device.process(message);
     }
 

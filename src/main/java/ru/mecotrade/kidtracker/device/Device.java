@@ -16,9 +16,6 @@ import ru.mecotrade.kidtracker.task.JobExecutor;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 import ru.mecotrade.kidtracker.task.UserToken;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Base64;
 import java.util.Date;
 
 @Slf4j
@@ -85,7 +82,7 @@ public class Device extends JobExecutor implements DeviceSender {
                 alarm = Temporal.of(true);
             }
             send(type);
-        } else if (MessageUtils.BASE_64_TYPES.contains(type)) {
+        } else if (MessageUtils.MEDIA_TYPES.contains(type)) {
             send(type);
         }
     }

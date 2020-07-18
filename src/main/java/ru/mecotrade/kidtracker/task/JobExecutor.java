@@ -7,11 +7,12 @@ import ru.mecotrade.kidtracker.model.Temporal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class JobExecutor {
 
-    private final Map<UserToken, Temporal<Job>> jobs = new HashMap<>();
+    private final Map<UserToken, Temporal<Job>> jobs = new ConcurrentHashMap<>();
 
     public void apply(UserToken token, Job job) {
         jobs.put(token, Temporal.of(job));

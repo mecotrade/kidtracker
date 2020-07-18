@@ -9,7 +9,6 @@ import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
@@ -70,7 +69,7 @@ public class MessageConnector extends DeviceConnector {
                 offset += length;
 
                 int typeIndex = MessageUtils.indexOfPayloadSeparator(content, 0);
-                String type = typeIndex > 0 ? new String(content, 0, typeIndex) : new String(content);
+                String type = typeIndex > 0 ? new String(content, 0, typeIndex).toUpperCase() : new String(content).toUpperCase();
 
                 byte[] payloadBytes = typeIndex > 0 && typeIndex < content.length - 1 ? new byte[content.length - typeIndex - 1] : null;
                 if (payloadBytes != null) {
@@ -79,7 +78,7 @@ public class MessageConnector extends DeviceConnector {
 
                 String payload = null;
                 if (payloadBytes != null) {
-                    payload = MessageUtils.BASE_64_TYPES.contains(type) ? Base64.getEncoder().encodeToString(payloadBytes) : new String(payloadBytes);
+                    payload = MessageUtils.MEDIA_TYPES.contains(type) ? Base64.getEncoder().encodeToString(payloadBytes) : new String(payloadBytes);
                 }
 
                 if (messageBuffer[offset] != MessageUtils.MESSAGE_TRAILING_CHAR[0]) {

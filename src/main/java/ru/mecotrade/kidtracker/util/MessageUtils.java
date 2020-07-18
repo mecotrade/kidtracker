@@ -2,10 +2,10 @@ package ru.mecotrade.kidtracker.util;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
 import lombok.extern.slf4j.Slf4j;
-import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
@@ -16,15 +16,8 @@ import ru.mecotrade.kidtracker.model.Link;
 import ru.mecotrade.kidtracker.model.Location;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.model.Temporal;
-import ws.schild.jave.AudioAttributes;
-import ws.schild.jave.Encoder;
-import ws.schild.jave.EncodingAttributes;
-import ws.schild.jave.MultimediaObject;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -47,7 +40,9 @@ public class MessageUtils {
 
     public static final Set<String> AUDIO_TYPES = new HashSet<>(Arrays.asList("TK", "RE"));
 
-    public static final Set<String> BASE_64_TYPES = new HashSet<>(AUDIO_TYPES);
+    public static final Set<String> IMAGE_TYPES = new HashSet<>(Collections.singletonList("IMG"));
+
+    public static final Set<String> MEDIA_TYPES = Streams.concat(AUDIO_TYPES.stream(), IMAGE_TYPES.stream()).collect(Collectors.toSet());
 
     public static final Set<String> GSM_TYPES = new HashSet<>(Collections.singletonList("SMS"));
 
@@ -79,10 +74,6 @@ public class MessageUtils {
 
     private static final Map<Byte, Map<Byte, byte[]>> CYRILLIC_GMS_MAPPING = new HashMap<>();
 
-    private static final byte AUDIO_ESCAPE = 0x7d;
-
-    private static final Map<Byte, byte[]> AUDIO_MAPPING = new HashMap<>();
-
     static {
 
         byte[] utf8 = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя".getBytes(StandardCharsets.UTF_8);
@@ -96,12 +87,6 @@ public class MessageUtils {
             // skip leading FEFF in UTF_16 encoding
             prefixMap.put(utf8[i+1], Arrays.copyOfRange(gms, i+2, i+4));
         }
-
-        AUDIO_MAPPING.put((byte) 0x01, new byte[]{0x7d});
-        AUDIO_MAPPING.put((byte) 0x02, new byte[]{0x5b});
-        AUDIO_MAPPING.put((byte) 0x03, new byte[]{0x5d});
-        AUDIO_MAPPING.put((byte) 0x04, new byte[]{0x2c});
-        AUDIO_MAPPING.put((byte) 0x05, new byte[]{0x2a});
     }
 
     public static int indexOfPayloadSeparator(byte[] data, int offset) {
@@ -120,34 +105,6 @@ public class MessageUtils {
             }
         }
         throw new KidTrackerParseException("Message separator char '*' not found after offset " + offset + " in message \"" + new String(data) + "\"");
-    }
-
-    public static byte[] toAmrBytes(byte[] payload) {
-
-        byte[] result = new byte[0];
-
-        int left = 0;
-        boolean escaped = false;
-        for (int i = 0; i < payload.length; i++) {
-            if (escaped) {
-                byte[] replacement = AUDIO_MAPPING.get(payload[i]);
-                if (replacement != null) {
-                    result = Bytes.concat(result, Arrays.copyOfRange(payload, left, i - 1), replacement);
-                    left = i + 1;
-                }
-                escaped = false;
-            } else {
-                if (payload[i] == AUDIO_ESCAPE) {
-                    escaped = true;
-                }
-            }
-        }
-
-        if (left < payload.length) {
-            result = Bytes.concat(result, Arrays.copyOfRange(payload, left, payload.length));
-        }
-
-        return result;
     }
 
     public static byte[] toGsmBytes(byte[] payload) {
@@ -177,7 +134,7 @@ public class MessageUtils {
         byte[] content = message.getType().getBytes(StandardCharsets.UTF_8);
         if (message.getPayload() != null) {
             byte[] payload = message.getPayload().getBytes(StandardCharsets.UTF_8);
-            if (BASE_64_TYPES.contains(message.getType())) {
+            if (MEDIA_TYPES.contains(message.getType())) {
                 payload = Base64.getDecoder().decode(payload);
             } else if (GSM_TYPES.contains(message.getType())) {
                 payload = toGsmBytes(payload);
