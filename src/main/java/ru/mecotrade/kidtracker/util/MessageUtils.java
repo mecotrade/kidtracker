@@ -42,7 +42,9 @@ public class MessageUtils {
 
     public static final Set<String> IMAGE_TYPES = new HashSet<>(Collections.singletonList("IMG"));
 
-    public static final Set<String> MEDIA_TYPES = Streams.concat(AUDIO_TYPES.stream(), IMAGE_TYPES.stream()).collect(Collectors.toSet());
+    public static final Set<String> TEXT_TYPES = new HashSet<>(Collections.singletonList("MESSAGE"));
+
+    public static final Set<String> BASE64_TYPES = Streams.concat(AUDIO_TYPES.stream(), IMAGE_TYPES.stream()).collect(Collectors.toSet());
 
     public static final Set<String> GSM_TYPES = new HashSet<>(Collections.singletonList("SMS"));
 
@@ -134,7 +136,7 @@ public class MessageUtils {
         byte[] content = message.getType().getBytes(StandardCharsets.UTF_8);
         if (message.getPayload() != null) {
             byte[] payload = message.getPayload().getBytes(StandardCharsets.UTF_8);
-            if (MEDIA_TYPES.contains(message.getType())) {
+            if (BASE64_TYPES.contains(message.getType())) {
                 payload = Base64.getDecoder().decode(payload);
             } else if (GSM_TYPES.contains(message.getType())) {
                 payload = toGsmBytes(payload);

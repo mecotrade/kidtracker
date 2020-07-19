@@ -25,6 +25,10 @@ import java.util.Date;
 @Table
 public class Media {
 
+    public enum Type {
+        AUDIO, IMAGE, TEXT
+    }
+
     @Id
     @GeneratedValue
     private Long id;
@@ -36,7 +40,9 @@ public class Media {
     @JoinColumn(name="messageId", unique=true)
     private Message message;
 
-    private String type;
+    private Type type;
+
+    private String contentType;
 
     @Lob
     private byte[] content;

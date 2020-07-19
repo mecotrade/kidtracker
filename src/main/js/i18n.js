@@ -141,7 +141,8 @@ const i18n = {
             'Incorrect credentials.': 'Пароль указан неверно.',
             'Kid list is not empty.': 'Список детей не пуст.',
             'Last admin can\'t be removed.': 'Последний администратор не может быть удалён.',
-            'Not allowed since user phone number is incorrect.': 'Не разрешено поскольку неверно указан номер телефона пользователя.'
+            'Not allowed since user phone number is incorrect.': 'Не разрешено поскольку неверно указан номер телефона пользователя.',
+            'Chat': 'Чат'
         }
     },
 

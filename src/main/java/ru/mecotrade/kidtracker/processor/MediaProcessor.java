@@ -15,6 +15,7 @@ import ws.schild.jave.MultimediaObject;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Base64;
@@ -33,7 +34,7 @@ public class MediaProcessor {
 
     private static final Map<Byte, byte[]> MEDIA_MAPPING = new HashMap<>();
 
-    private static final Map<String, String> IMAGE_CONTENT_TYPES = new HashMap<>();
+    private static final byte[] UTF_16_LEADING_BYTES = "".getBytes(StandardCharsets.UTF_16);
 
     static {
 
@@ -42,13 +43,6 @@ public class MediaProcessor {
         MEDIA_MAPPING.put((byte) 0x03, new byte[]{0x5d});
         MEDIA_MAPPING.put((byte) 0x04, new byte[]{0x2c});
         MEDIA_MAPPING.put((byte) 0x05, new byte[]{0x2a});
-
-        IMAGE_CONTENT_TYPES.put("89504e47", "image/png");
-        IMAGE_CONTENT_TYPES.put("47494638", "image/gif");
-        IMAGE_CONTENT_TYPES.put("ffd8ffe0", "image/jpeg");
-        IMAGE_CONTENT_TYPES.put("ffd8ffe1", "image/jpeg");
-        IMAGE_CONTENT_TYPES.put("ffd8ffdb", "image/jpeg");
-        IMAGE_CONTENT_TYPES.put("ffd8ffe2", "image/jpeg");
     }
 
     private final File workspace;
@@ -85,6 +79,22 @@ public class MediaProcessor {
         return result;
     }
 
+    public static String toContentType(String magic) {
+        switch (magic) {
+            case "89504e47":
+                return "image/png";
+            case "47494638":
+                return "image/gif";
+            case "ffd8ffe0":
+            case "ffd8ffe1":
+            case "ffd8ffdb":
+            case "ffd8ffe2":
+                return "image/jpeg";
+            default:
+                return null;
+        }
+    }
+
     public MediaProcessor(@Value("${kidtracker.media.workspace}") String workspace,
                           @Value("${kidtracker.media.audio.codec}") String codec,
                           @Value("${kidtracker.media.audio.bitrate}") int bitrate,
@@ -110,7 +120,6 @@ public class MediaProcessor {
         this.audioContentType = audioContentType;
     }
 
-
     public Media process(Message message) {
 
         if (MessageUtils.AUDIO_TYPES.contains(message.getType())) {
@@ -127,7 +136,8 @@ public class MediaProcessor {
 
                 Media media = Media.builder()
                         .message(message)
-                        .type(audioContentType)
+                        .type(Media.Type.AUDIO)
+                        .contentType(audioContentType)
                         .content(Files.readAllBytes(target.toPath())).build();
 
                 if (!source.delete()) {
@@ -148,12 +158,15 @@ public class MediaProcessor {
 
             byte[] payload = Base64.getDecoder().decode(message.getPayload().getBytes());
             byte[] image = toMediaBytes(Arrays.copyOfRange(payload, IMG_SKIP_BYTES, payload.length));
-            String magic = DatatypeConverter.printHexBinary(Arrays.copyOfRange(image, 0, 4)).toLowerCase();
 
-            if (IMAGE_CONTENT_TYPES.containsKey(magic)) {
+            String magic = DatatypeConverter.printHexBinary(Arrays.copyOfRange(image, 0, 4)).toLowerCase();
+            String contentType = toContentType(magic);
+
+            if (contentType != null) {
                 Media media = Media.builder()
                         .message(message)
-                        .type(IMAGE_CONTENT_TYPES.get(magic))
+                        .type(Media.Type.IMAGE)
+                        .contentType(contentType)
                         .content(image)
                         .build();
 
@@ -169,8 +182,19 @@ public class MediaProcessor {
             } else {
                 log.warn("Unrecognized media type for magic {} message {}", magic, message);
             }
+        } else if (MessageUtils.TEXT_TYPES.contains(message.getType())) {
+
+            String text = new String(Bytes.concat(UTF_16_LEADING_BYTES, DatatypeConverter.parseHexBinary(message.getPayload())), StandardCharsets.UTF_16);
+            return Media.builder()
+                    .message(message)
+                    .type(Media.Type.TEXT)
+                    .contentType("text/plain;charset=utf-8")
+                    .content(text.getBytes(StandardCharsets.UTF_8))
+                    .build();
         }
 
         return null;
     }
+
+
 }

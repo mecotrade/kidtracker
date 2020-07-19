@@ -78,7 +78,7 @@ public class MessageConnector extends DeviceConnector {
 
                 String payload = null;
                 if (payloadBytes != null) {
-                    payload = MessageUtils.MEDIA_TYPES.contains(type) ? Base64.getEncoder().encodeToString(payloadBytes) : new String(payloadBytes);
+                    payload = MessageUtils.BASE64_TYPES.contains(type) ? Base64.getEncoder().encodeToString(payloadBytes) : new String(payloadBytes);
                 }
 
                 if (messageBuffer[offset] != MessageUtils.MESSAGE_TRAILING_CHAR[0]) {

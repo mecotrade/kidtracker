@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -14,7 +15,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import ru.mecotrade.kidtracker.dao.MediaService;
+import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
+import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
@@ -35,6 +39,8 @@ import org.springframework.http.ResponseEntity;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.UserToken;
 
+import javax.servlet.http.HttpServletResponse;
+
 import static ru.mecotrade.kidtracker.util.ValidationUtils.*;
 
 @Controller
@@ -53,6 +59,9 @@ public class DeviceController {
 
     @Autowired
     private DeviceManager deviceManager;
+
+    @Autowired
+    private MediaService mediaService;
 
     @GetMapping("/path/{start:\\d+}/{end:\\d+}")
     @ResponseBody
@@ -193,6 +202,21 @@ public class DeviceController {
         log.info("[{}] Received alarm off request", deviceId);
         deviceManager.alarmOff(deviceId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/chat")
+    @ResponseBody
+    public Collection<ChatMessage> chat(@PathVariable String deviceId) {
+        return mediaService.getByDeviceId(deviceId).stream().map(ChatMessage::of).collect(Collectors.toList());
+    }
+
+    @GetMapping("/media/{mediaId}")
+    @ResponseBody
+    public ResponseEntity<byte[]> media(@PathVariable String deviceId, @PathVariable Long mediaId) {
+        return mediaService.get(mediaId)
+                .filter(m -> m.getMessage().getDeviceId().equals(deviceId))
+                .map(m -> ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, m.getContentType()).body(m.getContent()))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // TODO: remove

@@ -82,7 +82,7 @@ public class Device extends JobExecutor implements DeviceSender {
                 alarm = Temporal.of(true);
             }
             send(type);
-        } else if (MessageUtils.MEDIA_TYPES.contains(type)) {
+        } else if (MessageUtils.BASE64_TYPES.contains(type)) {
             send(type);
         }
     }

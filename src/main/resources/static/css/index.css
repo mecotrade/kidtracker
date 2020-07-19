@@ -216,3 +216,27 @@ div.form-group.reminder-multiselect {
 .bi-toggle-on {
     color: #007bff;
 }
+
+#chat div.modal-body {
+    height: 500px;
+    max-height: 500px;
+    width: 100%;
+    overflow-y: scroll;
+}
+
+#chat div.incoming-message {
+    padding: 10px 0 0 0;
+}
+
+#chat div.incoming-message div.message-timestamp {
+    font-size: small;
+}
+
+#chat img {
+    border-radius: 10px;
+}
+
+#chat div.modal-footer textarea {
+  max-height: 62px;
+  min-height: 62px;
+}
