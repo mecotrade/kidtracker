@@ -59,7 +59,7 @@ async function showChat(deviceId) {
             if (onBottom) {
                 $body[0].scrollTop = $body[0].scrollHeight - $body[0].clientHeight;
             } else {
-                $last.addClass('btn-primary').removeClass('btn-outline-primary');
+                $last.addClass('btn-info').removeClass('btn-outline-info');
             }
         }
     }
@@ -76,24 +76,24 @@ async function showChat(deviceId) {
 
     $last.off('click');
     $last.click(() => {
-        $last.removeClass('btn-primary').addClass('btn-outline-primary');
+        $last.removeClass('btn-info').addClass('btn-outline-info');
         $body[0].scrollTop = $body[0].scrollHeight - $body[0].clientHeight;
     });
 
     $body.off('scroll');
     $body.scroll(async () => {
         if ($body.scrollTop() == 0) {
-            const msgs = await fetchWithRedirect(`/api/device/${deviceId}/chat/before/${messages[0].mediaId}`);
-            if (msgs.length > 0) {
-                msgs.reverse().forEach(async message => await addMessage(message, deviceId, $body, true));
-                messages = msgs.reverse().concat(messages);
+            if (messages && messages.length > 0) {
+                const msgs = await fetchWithRedirect(`/api/device/${deviceId}/chat/before/${messages[0].mediaId}`);
+                if (msgs.length > 0) {
+                    msgs.reverse().forEach(async message => await addMessage(message, deviceId, $body, true));
+                    messages = msgs.reverse().concat(messages);
+                }
             }
         } else if (($body[0].scrollTop + $body[0].clientHeight)== $body[0].scrollHeight) {
-            $last.removeClass('btn-primary').addClass('btn-outline-primary');
+            $last.removeClass('btn-info').addClass('btn-outline-info');
         }
     });
-
-    timerId = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
 
     return new Promise(resolve => {
 
@@ -115,6 +115,7 @@ async function showChat(deviceId) {
             $modal.off('shown.bs.modal', onShow);
 
             $body.html('');
+            messages = [];
 
             const start = moment().startOf('day').toDate().getTime();
             const end = moment().endOf('day').toDate().getTime();
@@ -133,6 +134,8 @@ async function showChat(deviceId) {
             }
 
             $body[0].scrollTop = $body[0].scrollHeight;
+
+            timerId = setInterval(updateChat, CHAT_UPDATE_INTERVAL);
 
             $close.click(() => {
                 hide();

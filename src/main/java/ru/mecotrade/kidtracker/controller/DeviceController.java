@@ -303,6 +303,10 @@ public class DeviceController {
                     }
                 case "BTNAME":
                     return StringUtils.isNoneBlank(config.getValue());
+                case "FLOWER":
+                    return isValidNumber(config.getValue())
+                            && Integer.parseInt(config.getValue()) >= 0
+                            && Integer.parseInt(config.getValue()) < 100;
                 case "PROFILE":
                     return isValidProfile(config.getValue());
                 case "SOSSMS":

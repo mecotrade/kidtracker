@@ -35,6 +35,10 @@ html, body, #map {
     justify-content: center;
 }
 
+#hearts div.form-row {
+    justify-content: center;
+}
+
 .battery-full {
     color: green;
 }

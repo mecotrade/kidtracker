@@ -13,6 +13,7 @@ const showDevice = require('./device.js');
 const showAccount = require('./account.js');
 const showRegister = require('./register.js');
 const showChat = require('./chat.js');
+const {initHearts, showHearts} = require('./hearts.js');
 
 const BATTERY_LOW_THRESHOLD = 20;
 const BATTERY_FULL_THRESHOLD = 70;
@@ -29,6 +30,7 @@ const map = L.map('map');
 
 const $select = $('#kid-select');
 const $eye = $('#kid-watch');
+const $hearts = $('#kid-hearts');
 const $chat = $('#kid-chat');
 const $history = $('#kid-history');
 const $phone = $('#kid-phone');
@@ -266,6 +268,7 @@ async function initNavbar() {
     initPhone();
     initContact();
     initWatchSettings();
+    initHearts();
 
     $eye.off('click');
     $eye.click(() => {
@@ -278,6 +281,11 @@ async function initNavbar() {
                 locateKids();
             }
         }
+    });
+
+    $hearts.off('click');
+    $hearts.click(async () => {
+        await showHearts($select.children('option:selected').val());
     });
 
     $chat.off('click');

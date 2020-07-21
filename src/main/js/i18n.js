@@ -142,7 +142,9 @@ const i18n = {
             'Kid list is not empty.': 'Список детей не пуст.',
             'Last admin can\'t be removed.': 'Последний администратор не может быть удалён.',
             'Not allowed since user phone number is incorrect.': 'Не разрешено поскольку неверно указан номер телефона пользователя.',
-            'Chat': 'Чат'
+            'Chat': 'Чат',
+            'Hearts': 'Сердечки',
+            'Hearts amount': 'Количество сердечек'
         }
     },
 
