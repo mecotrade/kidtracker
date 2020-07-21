@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import ru.mecotrade.kidtracker.dao.MediaService;
-import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.model.Command;
@@ -36,10 +34,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.http.ResponseEntity;
+import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.UserToken;
-
-import javax.servlet.http.HttpServletResponse;
 
 import static ru.mecotrade.kidtracker.util.ValidationUtils.*;
 
@@ -47,6 +44,8 @@ import static ru.mecotrade.kidtracker.util.ValidationUtils.*;
 @Slf4j
 @RequestMapping("/api/device/{deviceId}")
 public class DeviceController {
+
+    private final static int MAX_MESSAGE_LENGTH = 95;
 
     @Value("${kidtracker.device.controller.min.upload.interval}")
     private int minUploadInterval;
@@ -61,7 +60,7 @@ public class DeviceController {
     private DeviceManager deviceManager;
 
     @Autowired
-    private MediaService mediaService;
+    private MediaProcessor mediaProcessor;
 
     @GetMapping("/path/{start:\\d+}/{end:\\d+}")
     @ResponseBody
@@ -74,6 +73,37 @@ public class DeviceController {
     public Collection<Snapshot> snapshots(@PathVariable String deviceId, @PathVariable Long start, @PathVariable Long end) {
         return deviceProcessor.snapshots(deviceId, start, end);
     }
+
+    @GetMapping("/chat/{start:\\d+}/{end:\\d+}")
+    @ResponseBody
+    public Collection<ChatMessage> chat(@PathVariable String deviceId, @PathVariable Long start, @PathVariable Long end) {
+        return mediaProcessor.chat(deviceId, start, end);
+    }
+
+    @GetMapping("/chat/last")
+    @ResponseBody
+    public Collection<ChatMessage> chatLast(@PathVariable String deviceId) {
+        return mediaProcessor.chatLast(deviceId);
+    }
+
+    @GetMapping("/chat/after/{mediaId}")
+    @ResponseBody
+    public Collection<ChatMessage> chatAfter(@PathVariable String deviceId, @PathVariable Long mediaId) {
+        return mediaProcessor.chatAfter(deviceId, mediaId);
+    }
+
+    @GetMapping("/chat/before/{mediaId}")
+    @ResponseBody
+    public Collection<ChatMessage> chatBefore(@PathVariable String deviceId, @PathVariable Long mediaId) {
+        return mediaProcessor.chatBefore(deviceId, mediaId);
+    }
+
+    @GetMapping("/media/{mediaId}")
+    @ResponseBody
+    public ResponseEntity<byte[]> media(@PathVariable String deviceId, @PathVariable Long mediaId) {
+        return mediaProcessor.media(deviceId, mediaId)
+                .map(m -> ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, m.getContentType()).body(m.getContent()))
+                .orElse(ResponseEntity.notFound().build());    }
 
     @GetMapping("/snapshot/{timestamp:\\d+}")
     @ResponseBody
@@ -204,21 +234,6 @@ public class DeviceController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/chat")
-    @ResponseBody
-    public Collection<ChatMessage> chat(@PathVariable String deviceId) {
-        return mediaService.getByDeviceId(deviceId).stream().map(ChatMessage::of).collect(Collectors.toList());
-    }
-
-    @GetMapping("/media/{mediaId}")
-    @ResponseBody
-    public ResponseEntity<byte[]> media(@PathVariable String deviceId, @PathVariable Long mediaId) {
-        return mediaService.get(mediaId)
-                .filter(m -> m.getMessage().getDeviceId().equals(deviceId))
-                .map(m -> ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, m.getContentType()).body(m.getContent()))
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     // TODO: remove
     @Deprecated
     @GetMapping("/command/{command}")
@@ -331,6 +346,8 @@ public class DeviceController {
                 case "RESET":
                 case "POWEROFF":
                 case "FACTORY":
+                case "RCAPTURE":
+                case "RECORD":
                     return payload == null || payload.isEmpty();
                 case "MONITOR":
                 case "CALL":
@@ -339,6 +356,9 @@ public class DeviceController {
                 case "SMS":
                     return payload != null && payload.size() == 2
                             && isValidPhone(payload.get(0));
+                case "MESSAGE":
+                    return payload != null && payload.size() == 1
+                            && payload.get(0).length() < MAX_MESSAGE_LENGTH;
                 case "TIME":
                     return payload != null && payload.size() == 3
                             && isValidDotTime(payload.get(0))

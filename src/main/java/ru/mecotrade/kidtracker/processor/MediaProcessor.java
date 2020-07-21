@@ -2,10 +2,13 @@ package ru.mecotrade.kidtracker.processor;
 
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.mecotrade.kidtracker.dao.MediaService;
 import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.model.Message;
+import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 import ws.schild.jave.AudioAttributes;
 import ws.schild.jave.Encoder;
@@ -14,13 +17,18 @@ import ws.schild.jave.MultimediaObject;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -34,8 +42,6 @@ public class MediaProcessor {
 
     private static final Map<Byte, byte[]> MEDIA_MAPPING = new HashMap<>();
 
-    private static final byte[] UTF_16_LEADING_BYTES = "".getBytes(StandardCharsets.UTF_16);
-
     static {
 
         MEDIA_MAPPING.put((byte) 0x01, new byte[]{0x7d});
@@ -44,6 +50,12 @@ public class MediaProcessor {
         MEDIA_MAPPING.put((byte) 0x04, new byte[]{0x2c});
         MEDIA_MAPPING.put((byte) 0x05, new byte[]{0x2a});
     }
+
+    @Autowired
+    private MediaService mediaService;
+
+    @Value("${kidtracker.chat.scrollUp.count}")
+    private int scrollUpCount;
 
     private final File workspace;
 
@@ -120,81 +132,98 @@ public class MediaProcessor {
         this.audioContentType = audioContentType;
     }
 
-    public Media process(Message message) {
+    public void process(Message message) {
 
-        if (MessageUtils.AUDIO_TYPES.contains(message.getType())) {
+        if (message.getPayload() != null) {
 
-            try {
-                File source = new File(workspace, message.getId() + ".amr");
-                File target = new File(workspace, message.getId() + ".mp3");
+            if (MessageUtils.AUDIO_TYPES.contains(message.getType())) {
 
-                Files.write(source.toPath(), toMediaBytes(Base64.getDecoder().decode(message.getPayload().getBytes())));
-
-                //Encode
-                Encoder encoder = new Encoder();
-                encoder.encode(new MultimediaObject(source), target, encodingAttributes);
-
-                Media media = Media.builder()
-                        .message(message)
-                        .type(Media.Type.AUDIO)
-                        .contentType(audioContentType)
-                        .content(Files.readAllBytes(target.toPath())).build();
-
-                if (!source.delete()) {
-                    log.warn("Temporary file {} was not deleted", source.getAbsolutePath());
-                }
-
-//                if (!target.delete()) {
-//                    log.warn("Temporary file {} was not deleted", target.getAbsolutePath());
-//                }
-
-                return media;
-
-            } catch (Exception ex) {
-                log.warn("Unable to create audio media record for message {}", message, ex);
-            }
-
-        } else if (MessageUtils.IMAGE_TYPES.contains(message.getType())) {
-
-            byte[] payload = Base64.getDecoder().decode(message.getPayload().getBytes());
-            byte[] image = toMediaBytes(Arrays.copyOfRange(payload, IMG_SKIP_BYTES, payload.length));
-
-            String magic = DatatypeConverter.printHexBinary(Arrays.copyOfRange(image, 0, 4)).toLowerCase();
-            String contentType = toContentType(magic);
-
-            if (contentType != null) {
-                Media media = Media.builder()
-                        .message(message)
-                        .type(Media.Type.IMAGE)
-                        .contentType(contentType)
-                        .content(image)
-                        .build();
-
-                // TODO: to be removed
                 try {
-                    Files.write(new File(workspace, message.getId() + ".jpg").toPath(), image);
-                } catch (IOException ex) {
-                    log.error("Unable to write image media for message {}", message, ex);
+                    File source = new File(workspace, message.getId() + ".amr");
+                    File target = new File(workspace, message.getId() + ".mp3");
+
+                    Files.write(source.toPath(), toMediaBytes(Base64.getDecoder().decode(message.getPayload().getBytes())));
+
+                    //Encode
+                    Encoder encoder = new Encoder();
+                    encoder.encode(new MultimediaObject(source), target, encodingAttributes);
+
+                    Media media = mediaService.save(Media.builder()
+                            .message(message)
+                            .type(Media.Type.AUDIO)
+                            .contentType(audioContentType)
+                            .content(Files.readAllBytes(target.toPath())).build());
+                    log.debug("Audio content is saved as {}", media);
+
+                    if (!source.delete()) {
+                        log.warn("Temporary file {} was not deleted", source.getAbsolutePath());
+                    }
+
+                    if (!target.delete()) {
+                        log.warn("Temporary file {} was not deleted", target.getAbsolutePath());
+                    }
+
+                } catch (Exception ex) {
+                    log.warn("Unable to create audio media record for message {}", message, ex);
                 }
 
-                return media;
+            } else if (MessageUtils.IMAGE_TYPES.contains(message.getType())) {
 
-            } else {
-                log.warn("Unrecognized media type for magic {} message {}", magic, message);
+                byte[] payload = Base64.getDecoder().decode(message.getPayload().getBytes());
+                byte[] image = toMediaBytes(Arrays.copyOfRange(payload, IMG_SKIP_BYTES, payload.length));
+
+                String magic = DatatypeConverter.printHexBinary(Arrays.copyOfRange(image, 0, 4)).toLowerCase();
+                String contentType = toContentType(magic);
+
+                if (contentType != null) {
+                    Media media = mediaService.save(Media.builder()
+                            .message(message)
+                            .type(Media.Type.IMAGE)
+                            .contentType(contentType)
+                            .content(image)
+                            .build());
+                    log.debug("Image content is saved as {}", media);
+
+                } else {
+                    log.warn("Unrecognized media type for magic {} message {}", magic, message);
+                }
+            } else if (MessageUtils.TEXT_TYPES.contains(message.getType())) {
+
+                Media media = mediaService.save(Media.builder()
+                        .message(message)
+                        .type(Media.Type.TEXT)
+                        .contentType("text/plain;charset=utf-8")
+                        .content(message.getPayload().getBytes(StandardCharsets.UTF_8))
+                        .build());
+                log.debug("Text message saved as {}", media);
             }
-        } else if (MessageUtils.TEXT_TYPES.contains(message.getType())) {
-
-            String text = new String(Bytes.concat(UTF_16_LEADING_BYTES, DatatypeConverter.parseHexBinary(message.getPayload())), StandardCharsets.UTF_16);
-            return Media.builder()
-                    .message(message)
-                    .type(Media.Type.TEXT)
-                    .contentType("text/plain;charset=utf-8")
-                    .content(text.getBytes(StandardCharsets.UTF_8))
-                    .build();
         }
-
-        return null;
     }
 
+    public Optional<Media> media(String deviceId, Long mediaId) {
+        return mediaService.getBetween(mediaId).filter(m -> m.getMessage().getDeviceId().equals(deviceId));
+    }
 
+    public Collection<ChatMessage> chat(String deviceId, Long start, Long end) {
+        return mediaService.getBetween(deviceId, new Date(start), new Date(end)).stream()
+                .map(ChatMessage::of)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<ChatMessage> chatAfter(String deviceId, Long mediaId) {
+        return mediaService.getAfter(deviceId, mediaId).stream()
+                .map(ChatMessage::of)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<ChatMessage> chatBefore(String deviceId, Long mediaId) {
+        return mediaService.getBefore(deviceId, mediaId, scrollUpCount).stream()
+                .map(ChatMessage::of)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<ChatMessage> chatLast(String deviceId) {
+        return mediaService.getLast(deviceId, scrollUpCount).stream()
+                .map(ChatMessage::of).collect(Collectors.toList());
+    }
 }
