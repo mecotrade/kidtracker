@@ -87,8 +87,6 @@ async function showChat(deviceId) {
             if (msgs.length > 0) {
                 msgs.reverse().forEach(async message => await addMessage(message, deviceId, $body, true));
                 messages = msgs.reverse().concat(messages);
-            } else {
-                $body.off('scroll');
             }
         } else if (($body[0].scrollTop + $body[0].clientHeight)== $body[0].scrollHeight) {
             $last.removeClass('btn-primary').addClass('btn-outline-primary');
