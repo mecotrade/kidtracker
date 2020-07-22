@@ -7,6 +7,7 @@ const i18n = require('./i18n.js');
 require('chart.js/dist/Chart.min.js');
 const {showWarning, showError} = require('./notification.js');
 const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = require('./util.js');
+const {showChat, addMessage} = require('./chat.js');
 
 const RANGE_PICKER_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
 const RANGE_PICKER_DATE_FORMAT = 'DD/MM/YYYY';
@@ -86,9 +87,15 @@ function initHistory() {
 async function showHistory(deviceId) {
 
     const $modal = $('#history');
+
+    const $chart = $('#history-chart');
+    const $messages = $('#history-chat-messages');
+
     const $show = $('#history-path');
     const $close = $('#history-close');
-    const $chart = $('#history-chart');
+    const $chat = $('#history-chat')
+    const $draw = $('#history-draw')
+    const $today = $('#history-today')
 
     var chart = null;
 
@@ -101,7 +108,6 @@ async function showHistory(deviceId) {
     async function drawHistoryData() {
 
         const range = await getRange();
-
         if (range) {
 
             const history = await fetchWithRedirect(`/api/device/${deviceId}/history/${range.start.getTime()}/${range.end.getTime()}`);
@@ -184,6 +190,23 @@ async function showHistory(deviceId) {
                     }
                 });
                 $chart.show();
+                $messages.hide();
+            } else {
+                await showWarning(i18n.format('No data'));
+            }
+        }
+    }
+
+    async function showChatHistory() {
+
+        const range = await getRange();
+        if (range) {
+            $messages.html('');
+            const messages = await fetchWithRedirect(`/api/device/${deviceId}/chat/${range.start.getTime()}/${range.end.getTime()}`);
+            if (messages && messages.length) {
+                messages.forEach(async message => await addMessage(message, deviceId, $messages));
+                $chart.hide();
+                $messages.show()
             } else {
                 await showWarning(i18n.format('No data'));
             }
@@ -205,27 +228,45 @@ async function showHistory(deviceId) {
         return {start: start, end: end};
     }
 
-    $('#history-draw').off('click');
-    $('#history-draw').on('click', function () {
+    $draw.off('click');
+    $draw.on('click', () => {
         drawHistoryData();
     });
 
+    $chat.off('click');
+    $chat.click(() => {
+        showChatHistory();
+    });
+
+    $today.off('click');
+    $today.click(() => {
+        $('#history-date').val(moment().format(RANGE_PICKER_DATE_FORMAT));
+        $('#history-start').val(moment().startOf('day').format(RANGE_PICKER_DATETIME_FORMAT));
+        $('#history-end').val(moment().endOf('day').format(RANGE_PICKER_DATETIME_FORMAT));
+    });
+
     return new Promise(resolve => {
+
+        function hide(range) {
+            $close.off('click');
+            $show.off('click');
+
+            destroyChart();
+            $chart.hide();
+            $messages.hide();
+
+            $modal.modal('hide');
+
+            resolve(range);
+        }
+
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
-            $show.click(async function onShow() {
-                $show.off('click', onShow);
-                destroyChart();
-                $chart.hide();
-                $modal.modal('hide');
-                resolve(await getRange());
+            $show.click(async () => {
+                hide(await getRange());
             });
-            $close.click(function onCancel() {
-                $close.off('click', onCancel);
-                destroyChart();
-                $chart.hide();
-                $modal.modal('hide');
-                resolve(null);
+            $close.click(() => {
+                hide(null);
             });
         });
 

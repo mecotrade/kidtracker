@@ -158,4 +158,4 @@ async function showChat(deviceId) {
     });
 }
 
-module.exports = showChat;
+module.exports = {showChat, addMessage};

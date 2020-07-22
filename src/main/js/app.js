@@ -12,7 +12,7 @@ const {initWatchSettings, showWatchSettings} = require('./watchsettings.js');
 const showDevice = require('./device.js');
 const showAccount = require('./account.js');
 const showRegister = require('./register.js');
-const showChat = require('./chat.js');
+const {showChat, addMessage} = require('./chat.js');
 const {initHearts, showHearts} = require('./hearts.js');
 
 const BATTERY_LOW_THRESHOLD = 20;

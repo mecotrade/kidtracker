@@ -229,35 +229,43 @@ div.form-group.reminder-multiselect {
     overflow-wrap: anywhere;
 }
 
-#chat div.incoming-message {
+div.incoming-message {
     padding: 10px 0 0 0;
 }
 
-#chat div.outgoing-message {
+div.outgoing-message {
     padding: 10px 0 0 0;
     text-align: right;
 }
 
-#chat div.outgoing-message div.message-text {
+div.outgoing-message div.message-text {
     background-color: #cce5ff;
     padding: 2px 20px 2px 20px;
     border-radius: 10px;
     display: inline-block;
 }
 
-#chat div.incoming-message div.message-timestamp {
+div.incoming-message div.message-timestamp {
     font-size: small;
 }
 
-#chat div.outgoing-message div.message-timestamp {
+div.outgoing-message div.message-timestamp {
     font-size: small;
 }
 
-#chat img {
+div.incoming-message img {
     border-radius: 10px;
 }
 
 #chat div.modal-footer textarea {
   max-height: 62px;
   min-height: 62px;
+}
+
+#history-chat-messages {
+    height: 400px;
+    max-height: 400px;
+    width: 100%;
+    overflow-y: scroll;
+    overflow-wrap: anywhere;
 }
