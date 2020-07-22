@@ -108,33 +108,33 @@ div.leaflet-popup.leaflet-zoom-animated.on-top {
 }
 
 #contacts div.modal-body {
-  height: 500px;
-  max-height: 500px;
-  width: 100%;
-  overflow-y: scroll;
+    height: 500px;
+    max-height: 500px;
+    width: 100%;
+    overflow-y: scroll;
 }
 
 #show-kid-settings div.modal-body {
-  height: 500px;
-  max-height: 500px;
-  width: 100%;
-  overflow-y: scroll;
+    height: 500px;
+    max-height: 500px;
+    width: 100%;
+    overflow-y: scroll;
 }
 
 div.form-group.reminder-multiselect {
-  width: 100%;
-  margin: 0 5px 12px 5px;
+    width: 100%;
+    margin: 0 5px 12px 5px;
 }
 
 .reminder-multiselect-container {
-  width: 100%;
+    width: 100%;
 }
 
 #show-user-devices div.modal-body {
-  height: 300px;
-  max-height: 300px;
-  width: 100%;
-  overflow-y: scroll;
+    height: 300px;
+    max-height: 300px;
+    width: 100%;
+    overflow-y: scroll;
 }
 
 #edit-device div.form-row {
@@ -258,8 +258,8 @@ div.incoming-message img {
 }
 
 #chat div.modal-footer textarea {
-  max-height: 62px;
-  min-height: 62px;
+    max-height: 62px;
+    min-height: 62px;
 }
 
 #history-chat-messages {
@@ -268,4 +268,10 @@ div.incoming-message img {
     width: 100%;
     overflow-y: scroll;
     overflow-wrap: anywhere;
+}
+
+#history-start-label, #history-end-label, #history-date-label {
+    cursor:pointer;
+    color:blue;
+    text-decoration:underline;
 }
