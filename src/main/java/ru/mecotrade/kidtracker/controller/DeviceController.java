@@ -313,6 +313,7 @@ public class DeviceController {
                 case "REMOVESMS":
                 case "LOWBAT":
                 case "TKONOFF":
+                case "REMOVE":
                 case "SMSONOFF":
                 case "PEDO":
                 case "MAKEFRIEND":

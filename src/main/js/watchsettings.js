@@ -204,6 +204,7 @@ async function showWatchSettings(deviceId) {
         initCommand($('#kid-settings-timeserver'), 'TIMECALI', deviceId, {after: () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT))});
 
         initCheck($('#kid-settings-voicemsg'), 'TKONOFF', config, deviceId);
+        initCheck($('#kid-settings-remove'), 'REMOVE', config, deviceId);
         initCheck($('#kid-settings-sms'), 'SMSONOFF', config, deviceId);
         initCheck($('#kid-settings-pedometer'), 'PEDO', config, deviceId);
         initCheck($('#kid-settings-bt'), 'BT', config, deviceId);

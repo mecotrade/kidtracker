@@ -144,7 +144,8 @@ const i18n = {
             'Not allowed since user phone number is incorrect.': 'Не разрешено поскольку неверно указан номер телефона пользователя.',
             'Chat': 'Чат',
             'Hearts': 'Сердечки',
-            'Hearts amount': 'Количество сердечек'
+            'Hearts amount': 'Количество сердечек',
+            'Alarm when watch is taken off': 'Тревога когда часы сняты'
         }
     },
 
