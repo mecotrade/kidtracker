@@ -241,7 +241,7 @@ div.outgoing-message {
 div.outgoing-message div.message-text {
     background-color: #cce5ff;
     padding: 2px 20px 2px 20px;
-    border-radius: 10px;
+    border-radius: 10px 10px 0 10px;
     display: inline-block;
 }
 
