@@ -103,6 +103,10 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm
         $alert.append($('<div>').addClass('kid-popup-alert-battery'));
     }
 
+    if (alarm) {
+        $alert.append($('<audio>').prop('autoplay', true).prop('loop', true).attr('src', '/sound/alarm.wav'));
+    }
+
     const $content = $('<div>').attr('id', `kid-popup-${kid.deviceId}`)
             .append($('<center>').append($thumb).append($name).append($time).append($info).append($alert));
 
