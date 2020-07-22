@@ -12,6 +12,9 @@ async function showAccount() {
     const $update = $('#user-profile-update');
     const $close = $('#user-profile-close');
 
+    const $username = $('#user-profile-username');
+    const $phone = $('#user-profile-phone');
+    const $admin = $('#user-profile-admin');
     const $name = $('#user-profile-name');
     const $password = $('#user-profile-password');
     const $newPassword = $('#user-profile-new-password');
@@ -22,8 +25,17 @@ async function showAccount() {
     }
 
     const user = await fetchWithRedirect(`/api/user/info`);
-
-    $name.val(!!user ? user.name : '');
+    if (user) {
+        $username.val(user.credentials.username);
+        $phone.val(user.phone);
+        $admin[0].checked = user.admin;
+        $name.val(user.name);
+    } else {
+        $username.val('');
+        $phone.val('');
+        $admin[0].checked = false;
+        $name.val('');
+    }
     clear();
 
     return new Promise(resolve => {

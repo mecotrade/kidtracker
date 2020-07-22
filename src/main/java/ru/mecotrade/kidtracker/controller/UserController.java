@@ -19,6 +19,7 @@ import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
+import ru.mecotrade.kidtracker.model.Credentials;
 import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Response;
@@ -54,7 +55,8 @@ public class UserController {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(new User(null, userInfo.getName(), userInfo.getPhone(), userInfo.isAdmin()));
+            return ResponseEntity.ok(new User(new Credentials(userInfo.getUsername(), null, null),
+                    userInfo.getName(), userInfo.getPhone(), userInfo.isAdmin()));
         } else {
             log.warn("Unauthorized request for user info");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
