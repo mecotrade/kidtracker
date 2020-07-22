@@ -6,10 +6,8 @@ const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = 
 const CHAT_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
 const CHAT_UPDATE_INTERVAL = 10000;
 
-var messages;
+var messages = [];
 var timerId = null;
-
-const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 (function($) {
     $.fn.hasScrollBar = function() {
@@ -19,7 +17,9 @@ const MutationObserver = window.MutationObserver || window.WebKitMutationObserve
 
 function addMessage(message, deviceId, $body, prepend) {
 
-    const $time = $('<div>').addClass('message-timestamp').text(moment(message.timestamp).format(CHAT_TIME_FORMAT));
+    const id = `message-timestamp-${deviceId}-${message.mediaId}`;
+
+    const $time = $('<div>').addClass('message-timestamp').attr('id', id).text(moment(message.timestamp).format(CHAT_TIME_FORMAT));
     const $message = $('<div>').addClass(message.source == 'DEVICE' ? 'incoming-message' : 'outgoing-message').append($time)
     if (message.type == 'AUDIO') {
         $message.append($('<audio>').prop('controls', true).attr('src', `/api/device/${deviceId}/media/${message.mediaId}`));
@@ -34,6 +34,13 @@ function addMessage(message, deviceId, $body, prepend) {
     } else {
         $body.append($message);
     }
+
+    message.fromNow = false;
+    $(`#${id}`).off('click');
+    $(`#${id}`).click(() => {
+        message.fromNow = !message.fromNow;
+        $(`#${id}`).text(message.fromNow ? moment(message.timestamp).fromNow() : moment(message.timestamp).format(CHAT_TIME_FORMAT));
+    });
 }
 
 async function showChat(deviceId) {
