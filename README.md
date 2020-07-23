@@ -9,7 +9,7 @@ GW200S, GW300, GW300S, GW400S, GW400X, GW500S, GW600S, GW700, GW800, GW900, GW90
 GW1000S, EW100, EW100S, EW200, K911, W8, W9, W10, Y3, G36 SAFE KEEPER, DS18, T58, T100, I8, 
 G10, G100, D99, D100, D100S, and many others . Roughly speaking, it does the same as
 such applications as [SeTracker](https://setracker.org/), [FindMyKids](https://findmykids.org/), and so on. 
-The main difference is that all personal data, like phone book contacts, geolocation data, 
+The main difference is that all personal data, like contacts, geolocation data, 
 communication history, becomes truly private, since it is stored at the machine 
 controlled by user.
 
@@ -53,7 +53,7 @@ To log in, use default credentials `admin`/`password`.
 ## Device binding
 
 To bind a device to the application, the latter is to be available from the
-mobile internet, this is, it should have a static ip address, and, probably,
+mobile internet, this is, it should have a public ip address, and, probably,
 an associated domain name. By default, the application listens devices on port `8001`,
 suppose the very same port is mapped to public network. Then the following text message
 sent to device make it to connect to the application:
@@ -74,14 +74,14 @@ difference. Administrator can create both regular users and other administrators
 users, administrator privilege can be neither granted nor revoked, the only way to modify user
 status is to remove user account, and recreated it anew.
 
-For security reason, the user phone number cannot be modified neither. Again, to change it
+For security reason, the user cellphone number cannot be modified neither. Again, to change it
 please remove and recreate user account.
 
 When run for the very first time, there is default user account with administrator privilege with 
 login `admin` and password `password`. It is recommended either removing this account when other
 user accounts are created, or changing the default password. If there is only one account with 
-administrator privilege, it cannot be removed. Since default administrator account has no 
-phone number, no device can be assigned to it.
+administrator privilege, it cannot be removed. Since default administrator account has no valid
+cellphone number, no device can be assigned to it.
 
 ### Timestamps
 Anywhere in UI timestamps are clickable, and by click they can be switched from absolute date and time

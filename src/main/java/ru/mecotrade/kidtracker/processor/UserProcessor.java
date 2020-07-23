@@ -207,7 +207,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     }
 
     @Transactional
-    private void doRemoveKid(UserPrincipal userPrincipal, String deviceId) {
+    public void doRemoveKid(UserPrincipal userPrincipal, String deviceId) {
 
         KidInfo kidInfo = kidService.get(userPrincipal.getUserInfo().getId(), deviceId)
                 .orElseThrow(() -> new InsufficientAuthenticationException(deviceId));
@@ -225,7 +225,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     }
 
     @Transactional
-    private void doAddKid(UserPrincipal userPrincipal, Kid kid) {
+    public void doAddKid(UserPrincipal userPrincipal, Kid kid) {
 
         DeviceInfo deviceInfo = deviceService.get(kid.getDeviceId())
                 .orElseGet(() -> deviceService.save(DeviceInfo.of(kid.getDeviceId())));

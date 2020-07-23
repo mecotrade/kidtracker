@@ -5,7 +5,6 @@ import ru.mecotrade.kidtracker.exception.KidTrackerInvalidTokenException;
 import ru.mecotrade.kidtracker.model.Temporal;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
