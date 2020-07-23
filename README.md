@@ -78,9 +78,10 @@ For security reason, the user phone number cannot be modified neither. Again, to
 please remove and recreate user account.
 
 When run for the very first time, there is default user account with administrator privilege with 
-login `admin` and password `password`. It is recommended either remove this account when other
-user accounts are created, or change the default password. If there is only one account with 
-administrator privilege, it cannot be removed.
+login `admin` and password `password`. It is recommended either removing this account when other
+user accounts are created, or changing the default password. If there is only one account with 
+administrator privilege, it cannot be removed. Since default administrator account has no 
+phone number, no device can be assigned to it.
 
 ### Timestamps
 Anywhere in UI timestamps are clickable, and by click they can be switched from absolute date and time
