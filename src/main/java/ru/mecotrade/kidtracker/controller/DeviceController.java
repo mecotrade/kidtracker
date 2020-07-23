@@ -333,6 +333,7 @@ public class DeviceController {
             switch (command.getType()) {
                 case "POWEROFF":
                 case "FACTORY":
+                case "PW":
                     return true;
             }
         }
@@ -369,6 +370,9 @@ public class DeviceController {
                             && isValidDotTime(payload.get(0))
                             && "DATE".equals(payload.get(1))
                             && isValidDate(payload.get(2));
+                case "PW":
+                    return payload != null && payload.size() == 1
+                            && isValidPassword(payload.get(0));
             }
         }
 

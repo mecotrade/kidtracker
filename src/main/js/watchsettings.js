@@ -261,6 +261,11 @@ async function showWatchSettings(deviceId) {
         initCommand($('#kid-settings-restart'), 'RESET', deviceId);
         initCommand($('#kid-settings-factory'), 'FACTORY', deviceId);
         initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId);
+        initCommand($('#kid-settings-password'), 'PW', deviceId, {
+            init: () => $('#kid-settings-password-input').val(''),
+            payload: () => [$('#kid-settings-password-input').val()],
+            after: () => $('#kid-settings-password-input').val('')
+        });
     }
 
     return new Promise(resolve => {

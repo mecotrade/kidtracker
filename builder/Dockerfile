@@ -6,7 +6,7 @@ RUN \
   apt-get -y install nodejs npm
 
 RUN mkdir -p /build
-ADD build.sh /usr/local/bin/build-entrypoint.sh
+ADD build.sh /usr/local/bin/build.sh
 
 WORKDIR /build
-CMD build-entrypoint.sh
+CMD build.sh

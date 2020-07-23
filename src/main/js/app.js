@@ -458,6 +458,10 @@ async function showNavbar() {
         if (!user.admin) {
             $register.off('click');
         }
+        if (!user.phone) {
+            $devices.prop('disabled', true);
+            $devices.off('click');
+        }
     }
 
     // kids definition and location

@@ -46,7 +46,7 @@ const i18n = {
             'Send SMS when battery level is low': 'Отправлять SMS когда батарея разряжена',
             'Diverse': 'Разное',
             'Send voice message with button': 'Отправлять голосовые сообщения кнопкой',
-            'Accept SMS commands to the watch': 'Принимать SMS команды на часах',
+            'Send responding SMS to SMS commands': 'Отправлять ответные SMS на SMS команды',
             'Activate pedometer': 'Включить шагомер',
             'Bluetooth': 'Bluetooth',
             'Activate Bluetooth': 'Включить Bluetooth',
@@ -145,7 +145,8 @@ const i18n = {
             'Chat': 'Чат',
             'Hearts': 'Сердечки',
             'Hearts amount': 'Количество сердечек',
-            'Alarm when watch is taken off': 'Тревога когда часы сняты'
+            'Alarm when watch is taken off': 'Тревога когда часы сняты',
+            'Set password for SMS commands': 'Установить пароль для SMS команд'
         }
     },
 

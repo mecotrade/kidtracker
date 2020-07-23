@@ -229,14 +229,14 @@ public class DeviceProcessor {
             case PHONEBOOK: {
                 int shift = index < 5 ? 0 : 5;
                 deviceManager.send(deviceId, new Command(index < 5 ? "PHB" : "PHB2", IntStream.range(shift, shift + 5)
-                        .mapToObj(i -> contacts.containsKey(i) ? encodeContact(contacts.get(i).toContact()) : "")
+                        .mapToObj(i -> contacts.containsKey(i) ? encodeContact(contacts.get(i).toContact()) : ",")
                         .collect(Collectors.toList())));
                 break;
             }
             case WHITELIST: {
                 int shift = index < 5 ? 0 : 5;
                 deviceManager.send(deviceId, new Command(index < 5 ? "WHITELIST1" : "WHITELIST2", IntStream.range(shift, shift + 5)
-                        .mapToObj(i -> contacts.containsKey(i) ? contacts.get(i).getPhone() : "")
+                        .mapToObj(i -> contacts.containsKey(i) ? contacts.get(i).getPhone() : ",")
                         .collect(Collectors.toList())));
                 break;
             }

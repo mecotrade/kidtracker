@@ -18,6 +18,8 @@ public class ValidationUtils {
 
     private final static String PROFILE_REGEX = "^([1234])$";
 
+    private final static String PASSWORD_REGEX = "^\\d{6}$";
+
     // only acceptable languages:
     //  0:English,
     //  1:Chinese,
@@ -74,5 +76,9 @@ public class ValidationUtils {
 
     public static boolean isValidTimezone(String timezone) {
         return isValid(timezone, TIMEZONE_REGEX);
+    }
+
+    public static boolean isValidPassword(String password) {
+        return isValid(password, PASSWORD_REGEX);
     }
 }
