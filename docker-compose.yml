@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: target
+      dockerfile: ../Dockerfile
+    ports:
+      - 8001:8001
+      - 8002:8002
+      - 8003:8003
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - TZ=Europe/Moscow

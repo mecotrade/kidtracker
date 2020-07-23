@@ -6,5 +6,6 @@ logs/
 data/
 media/
 src/main/resources/static/js/index.js
+*.p12
 package-lock.json
 node_modules/
