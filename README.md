@@ -1,6 +1,6 @@
 # Kid Tracker
 
-## 1. Motivation
+## Motivation
 
 The project includes both server side and web application designated to communicate with 
 smart baby watch devices of different models and known under various brands. For example, 
@@ -31,7 +31,7 @@ to protect devices from unwilling commands even if user account is compromised.
 
 And last, but not least, it is free of change and ads :).
 
-## 2. Getting started
+## Getting started
 
 Building the project is as simple as
 ```bash
@@ -48,22 +48,45 @@ The application can be started with command
 docker-compose up -d
 ```
 
-## 3. Device binding
+To log in, use default credentials `admin`/`password`.
+
+## Device binding
 
 To bind a device to the application, the latter is to be available from the
-mobile internet, this is, it should has a static ip address, and, probably,
+mobile internet, this is, it should have a static ip address, and, probably,
 an associated domain name. By default, the application listens devices on port `8001`,
 suppose the very same port is mapped to public network. Then the following text message
-sent to device make to connect to the application:
+sent to device make it to connect to the application:
 ```
 pw,123456,ip,<public IP address>,8001#
 ```
 Here `123456` is the default password, which is most probably set on the device. If, however, the password
-was modified, it should be used instead of the default one. 
+was modified, the new password should be used instead of the default one. 
 
 **It is highly recommended changing the default password!**
 
-## 4. References
+## Usage notices
+
+### User roles
+Any user registered in the application can either be a regular user, or an administrator. 
+Administrators can register other users, whereas regular user cannot, this is the only 
+difference. Administrator can create both regular users and other administrators. For existing
+users, administrator privilege can be neither granted nor revoked, the only way to modify user
+status is to remove user account, and recreated it anew.
+
+For security reason, the user phone number cannot be modified neither. Again, to change it
+please remove and recreate user account.
+
+When run for the very first time, there is default user account with administrator privilege with 
+login `admin` and password `password`. It is recommended either remove this account when other
+user accounts are created, or change the default password. If there is only one account with 
+administrator privilege, it cannot be removed.
+
+### Timestamps
+Anywhere in UI timestamps are clickable, and by click they can be switched from absolute date and time
+value to time interval indication from now.
+
+## References
 
 - [**GPRS communication protocol by 3g-elec**](https://github.com/tananaev/traccar/files/213814/3g.elec.comm.protocol.docx)
 - [**A19 communication protocol**](https://www.istartek.com/wp-content/uploads/2019/03/A19-Communication-Protocol.pdf)
