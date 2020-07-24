@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   builder:
-    build: .
+    build: builder
     working_dir: /build
     volumes:
-      - ..:/build
+      - .:/build

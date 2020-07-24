@@ -1,5 +1,5 @@
 FROM maven:3.6.3-jdk-8
-MAINTAINER mecotrade
+MAINTAINER Sergey Shadchin (sergei.shadchin@gmail.com)
 
 RUN \
   apt-get update && \

@@ -36,7 +36,7 @@ And last, but not least, it is free of change and ads :).
 
 Building the project is as simple as
 ```bash
-docker-compose -f builder/docker-compose.yml run --rm builder
+docker-compose -f docker-builder.yml run --rm builder
 ```
 While building, an SSL certificate required for `https` connections is created. It is possible 
 to specify a domain and/or an ip address using environment variables `DOMAIN` and `IP`
@@ -140,7 +140,7 @@ the follow device icon ![eye](images/eye.svg) becomes filled.
 #### Chat dialog
 Chat with device ![chat-dots](images/chat-dots.svg) is asymmetric. Text chat messages can be
 sent to device with button ![chat-text](images/chat-text.svg), whereas the device can send 
-short audio messages and if, device is equipped with camera, snapshots.
+short audio messages and, if device is equipped with camera, snapshots.
 Device can also be forced to take a snapshot with button ![camera](images/camera.svg)
 or make a 15 seconds audio record with button ![voicemail](images/voicemail.svg).
 
@@ -156,7 +156,7 @@ and battery charge graph ![graph-up](images/graph-up.svg) can be shown.
 The device track for picked time interval ![map](images/map.svg) can be put on the map as well. 
 A slider appears at the right top corner, it is used to move device 
 marker along the track. When history track is inspected, the history dialog icon 
-![calendar-week](images/calendar-week.svg) is replaced with ![geo-alt](images/geo-alt.svg). 
+![calendar-week](images/calendar-week.svg) is changed to ![geo-alt](images/geo-alt.svg). 
 To remove the track and get back to online marker positions, click on it. 
 
 #### Contacts dialog
