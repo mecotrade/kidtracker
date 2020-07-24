@@ -67,7 +67,7 @@ the password was changed, the new password should be used instead of the default
 **It is highly recommended changing the default password!**
 
 Then click button ![smile](images/smile.svg) on the right-hand side of the navigation 
-bar and then click ![parson-plus](images/person-plus.svg) button on the footer. The device
+bar and then click ![person-plus](images/person-plus.svg) button on the footer. The device
 identifier is required for device to be assigned. Once the device is connected to 
 the application, four-digit confirmation token is sent to the device. To confirm user owns 
 the device, this token should be entered to the pop-up form during next 5 minutes, 
@@ -138,7 +138,12 @@ position is sent to the device. The map view starts follow the device marker,
 the follow device icon ![eye](images/eye.svg) becomes filled.
 
 #### Chat dialog
-TODO
+Chat with device ![chat-dots](images/chat-dots.svg) is asymmetric. Text chat messages can be
+sent to device with button ![chat-text](images/chat-text.svg), whereas the device can send 
+short audio messages and if, device is equipped with camera, snapshots.
+Device can also be forced to take a snapshot with button ![camera](images/camera.svg)
+or make a 15 seconds audio record with button ![voicemail](images/voicemail.svg).
+
 
 #### History dialog
 History dialog ![calendar-week](images/calendar-week.svg) allows choosing time interval in two
