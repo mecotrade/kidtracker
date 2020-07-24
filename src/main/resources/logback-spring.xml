@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="log.pattern.layout" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %p [%t] %c{30}  : %m%n"/>
+    <property name="log.max.filesize" value="10MB"/>
+    <property name="log.file" value="./logs/kidtracker.log"/>
+    <property name="log.file.archived" value="./logs/kidtracker-%d{yyyy-MM-dd}.%i.log"/>
+    <property name="device.log.pattern.layout" value="%d{yyyy-MM-dd HH:mm:ss.SSS} - %m%n"/>
+    <property name="device.log.file" value="./logs/device.log"/>
+    <property name="device.log.file.archived" value="./logs/device-%d{yyyy-MM-dd}.%i.log"/>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>DEVICE_DEBUG</marker>
+            </evaluator>
+            <OnMismatch>NEUTRAL</OnMismatch>
+            <OnMatch>DENY</OnMatch>
+        </filter>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>${log.pattern.layout}</Pattern>
+        </layout>
+    </appender>
+
+    <appender name="RollingLogFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.file}</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${log.pattern.layout}</Pattern>
+        </encoder>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>DEVICE_DEBUG</marker>
+            </evaluator>
+            <OnMismatch>NEUTRAL</OnMismatch>
+            <OnMatch>DENY</OnMatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.file.archived}</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${log.max.filesize}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="DeviceRollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${device.log.file}</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${device.log.pattern.layout}</Pattern>
+        </encoder>
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>DEVICE_DEBUG</marker>
+            </evaluator>
+            <OnMismatch>DENY</OnMismatch>
+            <OnMatch>NEUTRAL</OnMatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${device.log.file.archived}</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${log.max.filesize}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="RollingLogFile" />
+        <appender-ref ref="DeviceRollingFile" />
+        <appender-ref ref="Console" />
+    </root>
+
+    <logger name="ru.mecotrade.kidtracker" level="debug"/>
+
+</configuration>

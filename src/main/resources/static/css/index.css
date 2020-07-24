@@ -1,0 +1,277 @@
+body {
+    padding: 0;
+    margin: 0;
+}
+html, body, #map {
+    height: 98%;
+    width: 100vw;
+}
+
+.right-padded {
+    margin: 0 12px 0 0;
+}
+
+.leaflet-popup-content-wrapper .leaflet-popup-content {
+    margin: 10px 10px;
+    line-height: 1.4;
+}
+
+.kid-popup-name {
+    font-weight: bold;
+}
+
+.kid-popup-time {
+    width: 80px;
+    overflow: auto;
+}
+
+.kid-popup-pedometer {
+    padding-right: 0.5em;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+#range-picker-input, #date-picker-input {
+    justify-content: center;
+}
+
+#hearts div.form-row {
+    justify-content: center;
+}
+
+.battery-full {
+    color: green;
+}
+
+.battery-half {
+    color: orange;
+}
+
+.battery-low {
+    color: red;
+}
+
+.battery-full.alarm, .battery-half.alarm, .battery-low.alarm {
+    color: white;
+}
+
+.kid-popup-alert-sos {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg class="bi bi-exclamation-octagon-fill" width="20px" height="16px" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>');
+    height: 16px;
+    width: 20px;
+    display: inline-block;
+}
+
+.kid-popup-alert-sos.alarm {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg class="bi bi-exclamation-octagon-fill" width="20px" height="16px" viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.46.146A.5.5 0 0 0 11.107 0H4.893a.5.5 0 0 0-.353.146L.146 4.54A.5.5 0 0 0 0 4.893v6.214a.5.5 0 0 0 .146.353l4.394 4.394a.5.5 0 0 0 .353.146h6.214a.5.5 0 0 0 .353-.146l4.394-4.394a.5.5 0 0 0 .146-.353V4.893a.5.5 0 0 0-.146-.353L11.46.146zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>');
+}
+
+.kid-popup-alert-lost {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg class="bi bi-x-circle" width="20px" height="16px" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"></path><path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"></path></svg>');
+    height: 16px;
+    width: 20px;
+    display: inline-block;
+}
+
+.kid-popup-alert-lost.alarm {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg class="bi bi-x-circle" width="20px" height="16px" viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"></path><path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"></path></svg>');
+}
+
+.kid-popup-alert-removed {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg width="20px" height="16px" viewBox="0 0 16 16" class="bi bi-smartwatch" fill="red" xmlns="http://www.w3.org/2000/svg"><path d="M14 5h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H14V5z"/><path fill-rule="evenodd" d="M8.5 4.5A.5.5 0 0 1 9 5v3.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h2V5a.5.5 0 0 1 .5-.5z"/><path fill-rule="evenodd" d="M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2zm0 1A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7z"/><path d="M4 2.05v-.383C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v.383a2.512 2.512 0 0 0-.5-.05h-7c-.171 0-.338.017-.5.05zm0 11.9c.162.033.329.05.5.05h7c.171 0 .338-.017.5-.05v.383c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333v-.383z"/></svg>');
+    height: 16px;
+    width: 20px;
+    display: inline-block;
+}
+
+.kid-popup-alert-removed.alarm {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg width="20px" height="16px" viewBox="0 0 16 16" class="bi bi-smartwatch" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M14 5h.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H14V5z"/><path fill-rule="evenodd" d="M8.5 4.5A.5.5 0 0 1 9 5v3.5a.5.5 0 0 1-.5.5H6a.5.5 0 0 1 0-1h2V5a.5.5 0 0 1 .5-.5z"/><path fill-rule="evenodd" d="M4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7A2.5 2.5 0 0 1 4.5 2zm0 1A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3h-7z"/><path d="M4 2.05v-.383C4 .747 4.746 0 5.667 0h4.666C11.253 0 12 .746 12 1.667v.383a2.512 2.512 0 0 0-.5-.05h-7c-.171 0-.338.017-.5.05zm0 11.9c.162.033.329.05.5.05h7c.171 0 .338-.017.5-.05v.383c0 .92-.746 1.667-1.667 1.667H5.667C4.747 16 4 15.254 4 14.333v-.383z"/></svg>');
+}
+
+.kid-popup-alert-battery {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg class="bi bi-battery" width="20px" height="16px" viewBox="0 0 16 16" fill="red" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 5H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zM2 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H2z"/><path d="M14.5 9.5a1.5 1.5 0 0 0 0-3v3z"/></svg>');
+    height: 16px;
+    width: 20px;
+    display: inline-block;
+}
+
+.kid-popup-alert-battery.alarm {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg class="bi bi-battery" width="20px" height="16px" viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M12 5H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zM2 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H2z"/><path d="M14.5 9.5a1.5 1.5 0 0 0 0-3v3z"/></svg>');
+}
+
+div.leaflet-popup-content-wrapper.alarm, div.leaflet-popup-tip.alarm {
+    background: red;
+}
+
+div.leaflet-popup.leaflet-zoom-animated.on-top {
+    z-index: 1000;
+}
+
+#contacts div.modal-body {
+    height: 500px;
+    max-height: 500px;
+    width: 100%;
+    overflow-y: scroll;
+}
+
+#show-kid-settings div.modal-body {
+    height: 500px;
+    max-height: 500px;
+    width: 100%;
+    overflow-y: scroll;
+}
+
+div.form-group.reminder-multiselect {
+    width: 100%;
+    margin: 0 5px 12px 5px;
+}
+
+.reminder-multiselect-container {
+    width: 100%;
+}
+
+#show-user-devices div.modal-body {
+    height: 300px;
+    max-height: 300px;
+    width: 100%;
+    overflow-y: scroll;
+}
+
+#edit-device div.form-row {
+    justify-content: center;
+}
+
+#user-profile div.form-row {
+    justify-content: center;
+}
+
+#create-user div.form-row {
+    justify-content: center;
+}
+
+.table th.user-device-thumb {
+    vertical-align: middle;
+}
+
+.table th.user-device-name {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table td.user-device-others {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table div.user-device-name-deviceid {
+    font-family: monospace;
+    color: gray;
+}
+
+.table div.user-device-name-deviceid.online {
+    color: green;
+}
+
+.table div.user-device-name-deviceid.offline {
+    color: red;
+}
+
+.table div.user-device-name-time {
+    color: gray;
+    font-size: smaller;
+    font-weight: normal;
+}
+
+.table span.user-device-other-user {
+    font-style: italic;
+    font-size: small;
+    color: gray;
+}
+
+.thumb-placeholder-lg {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg width="200" height="200" viewBox="0 0 16 16" class="bi bi-emoji-smile" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path fill-rule="evenodd" d="M4.285 9.567a.5.5 0 0 1 .683.183A3.498 3.498 0 0 0 8 11.5a3.498 3.498 0 0 0 3.032-1.75.5.5 0 1 1 .866.5A4.498 4.498 0 0 1 8 12.5a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .183-.683z"/><path d="M7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5zm4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5z"/></svg>');
+    height: 200px;
+    width: 200px;
+    margin-bottom: 30px;
+}
+
+.thumb-placeholder {
+    background: center no-repeat url('data:image/svg+xml;utf8,<svg width="80" height="80" viewBox="0 0 16 16" class="bi bi-emoji-smile" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path fill-rule="evenodd" d="M4.285 9.567a.5.5 0 0 1 .683.183A3.498 3.498 0 0 0 8 11.5a3.498 3.498 0 0 0 3.032-1.75.5.5 0 1 1 .866.5A4.498 4.498 0 0 1 8 12.5a4.498 4.498 0 0 1-3.898-2.25.5.5 0 0 1 .183-.683z"/><path d="M7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5zm4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5z"/></svg>');
+    height: 80px;
+    width: 80px;
+    margin-bottom: 7px;
+}
+
+.thumb-img-lg {
+    width: 200px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+}
+
+.thumb-img {
+    width: 80px;
+    border-radius: 8px;
+}
+
+#edit-device input {
+    text-align: center;
+}
+
+.bi-toggle-on {
+    color: #007bff;
+}
+
+#chat div.modal-body {
+    height: 500px;
+    max-height: 500px;
+    width: 100%;
+    overflow-y: scroll;
+    overflow-wrap: anywhere;
+}
+
+div.incoming-message {
+    padding: 10px 0 0 0;
+}
+
+div.outgoing-message {
+    padding: 10px 0 0 0;
+    text-align: right;
+}
+
+div.outgoing-message div.message-text {
+    background-color: #cce5ff;
+    padding: 2px 20px 2px 20px;
+    border-radius: 10px 10px 0 10px;
+    display: inline-block;
+}
+
+div.incoming-message div.message-timestamp {
+    font-size: small;
+}
+
+div.outgoing-message div.message-timestamp {
+    font-size: small;
+}
+
+div.incoming-message img {
+    border-radius: 10px;
+}
+
+#chat div.modal-footer textarea {
+    max-height: 62px;
+    min-height: 62px;
+}
+
+#history-chat-messages {
+    height: 400px;
+    max-height: 400px;
+    width: 100%;
+    overflow-y: scroll;
+    overflow-wrap: anywhere;
+}
+
+#history-start-label, #history-end-label, #history-date-label {
+    cursor:pointer;
+    color:blue;
+    text-decoration:underline;
+}
