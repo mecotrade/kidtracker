@@ -2,8 +2,8 @@
 
 ## Motivation
 
-The project includes both server side and web application designed to communicate with 
-smart baby watch devices of different models and known under various brands. For example, 
+The project includes both server side and web application designed to communicate with kids smartwatch 
+devices equipped with GPS tracker of different models and known under various brands. For example, 
 it can work with Q50, Q60, Q80, Q90, Q100, Q360, Q523, Q730, Q750, Q8, GW100, GW100S, GW200, 
 GW200S, GW300, GW300S, GW400S, GW400X, GW500S, GW600S, GW700, GW800, GW900, GW900S, GW1000, 
 GW1000S, EW100, EW100S, EW200, K911, W8, W9, W10, Y3, G36 SAFE KEEPER, DS18, T58, T100, I8, 
@@ -13,7 +13,7 @@ and so on. The main difference is that all personal data, like contacts, positio
 communication history, and so on, becomes truly private, since it is stored at the machine 
 controlled by user.
 
-Another issue which was addressed is the security model of smart baby watch applications.
+Another issue which was addressed is the security model of kids smartwatch communication and tracking applications.
 By default, any person could take control over the device provided the device identifier
 is known, with no further confirmation of being a device owner. The identifier, in its turn, 
 can be easily obtained by sending a text message to the device if the device cellphone number 
