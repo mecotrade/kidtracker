@@ -49,7 +49,7 @@ The application can be started with command
 docker-compose up -d
 ```
 
-To log in, use default credentials `admin`/`password`.
+Web UI is available on `https:\\<hostname>:8003`. To log in, use default credentials `admin`/`password`.
 
 ## Device assignment
 
