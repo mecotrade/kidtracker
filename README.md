@@ -66,7 +66,7 @@ the password was changed, the new password should be used instead of the default
 
 **It is highly recommended changing the default password!**
 
-Then click button ![smile](icons/emoji-smile.svg) on the right-hand side of the navigation 
+Then click button ![emoji-smile](icons/emoji-smile.svg) on the right-hand side of the navigation 
 bar and then click ![person-plus](icons/person-plus.svg) button on the footer. The device
 identifier is required for device to be assigned. Once the device is connected to 
 the application, four-digit confirmation token is sent to the device. To confirm user owns 
@@ -105,14 +105,15 @@ Position markers of all assigned devices together with user position marker shar
 map. Device marker contains information about time of last known location, 
 battery charge, pedometer value, and eventually the device take off alert 
 ![smartwatch](icons/smartwatch.svg), low battery alert ![battery](icons/battery.svg), 
-and connection lost alert ![x-circle](icons/x-circle.svg). The device is considered 
-to be lost if the last message from the device was received more than 15 minutes ago. 
+connection lost alert ![x-circle](icons/x-circle.svg), and obsolete location alert ![eye-slash](icons/eye-slash.svg). 
+The device is considered to be lost if the last message from the device was received 
+more than 15 minutes ago. 
 
 Device could provide its actual location, based on direct GPS data, when it is available,
 as well as last detected position, when direct GPS observation is not available, 
-mostly within building or in the presents of electromagnetic noise.  In the first case data 
-is considered as valid, in the second case -  as invalid. When received location data is 
-invalid, the invalid data alert ![invalid](icons/eye-slash.svg) is shown.
+mostly within building or in the presents of electromagnetic noise. In the second case data 
+is considered as obsolete. When received location data is 
+obsolete, the obsolete data alert ![eye-slash](icons/eye-slash.svg) is shown.
 
 Notice that the low battery alert ![battery](icons/battery.svg), and actual charge value
 come in different types of messages. Messages with actual charge come more frequently 
@@ -168,15 +169,15 @@ To remove the track and get back to online marker positions, click on it.
 #### Contacts dialog
 Contacts dialog ![people](icons/people.svg) allows editing primary and secondary
 device administrator ![shield-check](icons/shield-check.svg), SOS numbers 
-![alert-octagon](icons/exclamation-octagon.svg), device contacts 
-![people-circle](icons/person-circle.svg), numbers allowed to make calls to the
+![exclamation-octagon](icons/exclamation-octagon.svg), device contacts 
+![person-circle](icons/person-circle.svg), numbers allowed to make calls to the
 device ![telephone-outbound](icons/telephone-outbound.svg), and quick call numbers
 ![smartwatch](icons/smartwatch.svg) assigned to device buttons. For all contact categories 
 there is a fixed number of slots which can be filled. By default, empty slots are hidden, 
 but can be shown by clicking on ![list](icons/list.svg) button at the dialog footer.
 
 #### Kids dialog 
-Kids dialog ![smile](icons/emoji-smile.svg) allows user to assign and unassign kid devices, 
+Kids dialog ![emoji-smile](icons/emoji-smile.svg) allows user to assign and unassign kid devices, 
 change thumb, and obtain some general information about the device and its actual status. 
 In the left-hand side column a clickable thumb is placed, clicking on it results the
 kid edit dialog. In the middle column there is the device identifier. If the device is online, 
