@@ -273,16 +273,28 @@ async function showWatchSettings(deviceId) {
                 return `${reminderValue($('#kid-settings-reminder-1'))},${reminderValue($('#kid-settings-reminder-2'))},${reminderValue($('#kid-settings-reminder-3'))}`;
             }
         });
-
-        initCommand($('#kid-settings-restart'), 'RESET', deviceId);
-        initCommand($('#kid-settings-factory'), 'FACTORY', deviceId);
-        initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId);
-        initCommand($('#kid-settings-password'), 'PW', deviceId, {
-            init: () => $('#kid-settings-password-input').val(''),
-            payload: () => [$('#kid-settings-password-input').val()],
-            after: () => $('#kid-settings-password-input').val('')
-        });
     }
+
+    const serverConfig = await fetchWithRedirect('/api/user/config');
+
+    initCommand($('#kid-settings-restart'), 'RESET', deviceId);
+    initCommand($('#kid-settings-factory'), 'FACTORY', deviceId);
+    initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId);
+    initCommand($('#kid-settings-password'), 'PW', deviceId, {
+        init: () => $('#kid-settings-password-input').val(''),
+        payload: () => [$('#kid-settings-password-input').val()],
+        after: () => $('#kid-settings-password-input').val('')
+    });
+    initCommand($('#kid-settings-ip'), 'IP', deviceId, {
+        init: () => $('#kid-settings-ip-input').val(window.location.host.split(':')[0] + ':' + serverConfig.messagePort.toString()),
+        payload: () => $('#kid-settings-ip-input').val().split(':')
+    });
+
+    initCommand($('#kid-settings-debug-start'), 'DEBUG', deviceId, {
+        init: () => $('#kid-settings-debug-input').val(window.location.host.split(':')[0] + ':' + serverConfig.debugPort.toString()),
+        payload: () => $('#kid-settings-debug-input').val().split(':')
+    });
+    initCommand($('#kid-settings-debug-stop'), 'DEBUGCLOSE', deviceId);
 
     return new Promise(resolve => {
         $modal.on('shown.bs.modal', function onShow() {

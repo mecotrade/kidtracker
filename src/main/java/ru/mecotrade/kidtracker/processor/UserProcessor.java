@@ -35,6 +35,7 @@ import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.model.Credentials;
+import ru.mecotrade.kidtracker.model.ServerConfig;
 import ru.mecotrade.kidtracker.model.User;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.UserToken;
@@ -86,6 +87,15 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
     @Value("${kidtracker.thumb.size}")
     private int thumbSize;
+
+    @Value("${kidtracker.server.message.port}")
+    private int messagePort;
+
+    @Value("${kidtracker.server.debug.port}")
+    private int debugPort;
+
+    @Value("${kidtracker.server.debug.start}")
+    private boolean debugStart;
 
     public void updateKid(UserPrincipal userPrincipal, Kid kid) throws IOException {
 
@@ -208,6 +218,10 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     @Override
     public void clean() {
         clean(tokenTtlMillis).forEach(u -> log.info("Obsolete user job for {} has been removed", u));
+    }
+
+    public ServerConfig serverConfig() {
+        return new ServerConfig(messagePort, debugStart ? debugPort : 0);
     }
 
     private void applyRemoveKid(UserPrincipal userPrincipal, String deviceId) throws KidTrackerException {

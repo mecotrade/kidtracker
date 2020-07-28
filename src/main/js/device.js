@@ -128,7 +128,7 @@ async function showDevice() {
     });
 }
 
-function editDevice(kid) {
+async function editDevice(kid) {
 
     const $remove = $('#edit-device-remove');
     const $removeThumb = $('#edit-device-remove-thumb');
@@ -141,10 +141,19 @@ function editDevice(kid) {
     const $deviceId = $('#device-deviceid');
     const $name = $('#device-name');
 
+    const $info = $('div.alert-info', $editModal);
+
     const create = !kid;
     if (create) {
         kid = {};
+        const serverConfig = await fetchWithRedirect('/api/user/config');
+        $sms = $('<span>').addClass('user-add-device-sms').text(`pw,123456,ip,${window.location.host.split(':')[0]},${serverConfig.messagePort}#`);
+        $password = $('<span>').addClass('user-add-device-sms').text('123456');
+        $info.html(i18n.format('Send text message to the device {}If the device password was changed, put it instead of {}', ['<br>'+$sms[0].outerHTML+'<br>', $password[0].outerHTML]));
     }
+
+    $info.toggle(create);
+
     $remove.toggle(create == false);
     $upload.toggle(create == false);
     $add.toggle(create == true);

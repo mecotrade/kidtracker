@@ -286,3 +286,12 @@ div.incoming-message img {
     color:blue;
     text-decoration:underline;
 }
+
+span.user-add-device-sms {
+    font-family: monospace;
+    font-weight: bold;
+}
+
+div.alert-info.alert-center {
+    text-align: center;
+}
