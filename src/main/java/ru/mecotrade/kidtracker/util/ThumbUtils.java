@@ -2,6 +2,7 @@ package ru.mecotrade.kidtracker.util;
 
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
+import net.coobird.thumbnailator.resizers.configurations.ScalingMode;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
@@ -17,7 +18,12 @@ public class ThumbUtils {
     public static String resize(String thumb, int size) throws IOException {
         String contentType = getContentType(thumb);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        Thumbnails.of(new ByteArrayInputStream(getBytes(thumb))).crop(Positions.CENTER).size(size, size).toOutputStream(output);
+        Thumbnails.of(new ByteArrayInputStream(getBytes(thumb)))
+                .crop(Positions.CENTER)
+                .size(size, size)
+                .scalingMode(ScalingMode.PROGRESSIVE_BILINEAR)
+                .outputQuality(1)
+                .toOutputStream(output);
         return DATA + contentType + BASE_64 + DatatypeConverter.printBase64Binary(output.toByteArray());
     }
 
