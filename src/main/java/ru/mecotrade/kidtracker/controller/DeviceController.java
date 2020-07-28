@@ -349,6 +349,7 @@ public class DeviceController {
                 case "POWEROFF":
                 case "FACTORY":
                 case "PW":
+                case "IP":
                     return true;
             }
         }
@@ -369,6 +370,7 @@ public class DeviceController {
                 case "FACTORY":
                 case "RCAPTURE":
                 case "RECORD":
+                case "DEBUGCLOSE":
                     return payload == null || payload.isEmpty();
                 case "MONITOR":
                 case "CALL":
@@ -388,6 +390,11 @@ public class DeviceController {
                 case "PW":
                     return payload != null && payload.size() == 1
                             && isValidPassword(payload.get(0));
+                case "IP":
+                case "DEBUG":
+                    return payload != null && payload.size() == 2
+                            && isValidHost(payload.get(0))
+                            && isValidPort(payload.get(1));
             }
         }
 

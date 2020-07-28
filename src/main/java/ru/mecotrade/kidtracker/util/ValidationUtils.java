@@ -49,6 +49,12 @@ public class ValidationUtils {
 
     private final static String TIMEZONE_REGEX = "^(-12|-11|-10|-9|-8|-7|-6|-5|-4|-3\\.50|-3|-2|-1|0|1|2|3|3\\.50|4|4\\.30|5|5\\.50|5\\.75|6|6\\.50|7|8|9|9\\.50|10|11|12|13)$";
 
+    private final static String IP_ADDRESS_REGEX = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+
+    private final static String HOSTNAME_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+
+    private final static String PORT_REGEX = "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$";
+
     public static boolean isValid(String string, String pattern) {
         return string != null && string.matches(pattern);
     }
@@ -95,5 +101,21 @@ public class ValidationUtils {
 
     public static boolean isValidPassword(String password) {
         return isValid(password, PASSWORD_REGEX);
+    }
+
+    public static boolean isValidIp(String ipAddress) {
+        return isValid(ipAddress, IP_ADDRESS_REGEX);
+    }
+
+    public static boolean isValidHostname(String hostName) {
+        return isValid(hostName, HOSTNAME_REGEX);
+    }
+
+    public static boolean isValidHost(String host) {
+        return isValidIp(host) || isValidHostname(host);
+    }
+
+    public static boolean isValidPort(String port) {
+        return isValid(port, PORT_REGEX);
     }
 }

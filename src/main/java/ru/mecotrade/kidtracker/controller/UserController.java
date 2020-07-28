@@ -32,12 +32,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
-import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.model.Credentials;
 import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Response;
+import ru.mecotrade.kidtracker.model.ServerConfig;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.model.Status;
 import ru.mecotrade.kidtracker.model.User;
@@ -271,5 +271,11 @@ public class UserController {
             log.warn("Unauthorized request to execute token {}", token);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    @GetMapping("/config")
+    @ResponseBody
+    public ServerConfig config() {
+        return userProcessor.serverConfig();
     }
 }
