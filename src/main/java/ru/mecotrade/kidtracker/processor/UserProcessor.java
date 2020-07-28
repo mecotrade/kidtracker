@@ -43,8 +43,10 @@ import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.JobExecutor;
+import ru.mecotrade.kidtracker.util.ThumbUtils;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -82,13 +84,16 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     @Value("${kidtracker.remove.without.token.millis}")
     private long removeWithoutTokenMillis;
 
-    public void updateKid(UserPrincipal userPrincipal, Kid kid) {
+    @Value("${kidtracker.thumb.size}")
+    private int thumbSize;
+
+    public void updateKid(UserPrincipal userPrincipal, Kid kid) throws IOException {
 
         KidInfo kidInfo = kidService.get(userPrincipal.getUserInfo().getId(), kid.getDeviceId())
                 .orElseThrow(() -> new InsufficientAuthenticationException(kid.getDeviceId()));
 
         kidInfo.setName(kid.getName());
-        kidInfo.setThumb(kid.getThumb());
+        kidInfo.setThumb(resizeThumb(userPrincipal.getUserInfo(), kid));
         kidService.save(kidInfo);
 
         update(userPrincipal);
@@ -249,7 +254,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
                 .device(deviceInfo)
                 .user(userPrincipal.getUserInfo())
                 .name(kid.getName())
-                .thumb(kid.getThumb())
+                .thumb(resizeThumb(userPrincipal.getUserInfo(), kid))
                 .build());
         update(userPrincipal);
 
@@ -260,5 +265,14 @@ public class UserProcessor extends JobExecutor implements Cleanable {
         String username = userPrincipal.getUsername();
         Optional<UserInfo> userInfo = userService.getByUsername(username);
         userPrincipal.setUserInfo(userInfo.orElseThrow(() -> new InsufficientAuthenticationException(username)));
+    }
+
+    private String resizeThumb(UserInfo userInfo, Kid kid) {
+        try {
+            return ThumbUtils.resize(kid.getThumb(), thumbSize);
+        } catch (Exception ex) {
+            log.warn("Unable to resize thumb for {} assigned to {}, add without resize", kid, userInfo, ex);
+            return kid.getThumb();
+        }
     }
 }
