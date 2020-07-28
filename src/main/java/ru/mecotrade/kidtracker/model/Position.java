@@ -16,6 +16,7 @@
 package ru.mecotrade.kidtracker.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 
@@ -23,12 +24,14 @@ import java.util.Date;
 
 @Data
 @ToString
-@AllArgsConstructor
+@Builder
 public class Position {
 
     private String deviceId;
 
     private Date timestamp;
+
+    private boolean valid;
 
     private double latitude;
 

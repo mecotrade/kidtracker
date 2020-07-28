@@ -118,6 +118,9 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm
     if (position.lowBattery) {
         $alert.append($('<div>').addClass('kid-popup-alert-battery'));
     }
+    if (!position.valid) {
+        $alert.append($('<div>').addClass('kid-popup-alert-invalid'));
+    }
 
     if (alarm) {
         $alert.append($('<audio>').prop('autoplay', true).prop('loop', true).attr('src', '/sound/alarm.wav'));
