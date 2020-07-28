@@ -4,6 +4,7 @@ services:
     build:
       context: target
       dockerfile: ../Dockerfile
+    restart: always
     ports:
       - 8001:8001
       - 8002:8002
