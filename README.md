@@ -66,8 +66,8 @@ the password was changed, the new password should be used instead of the default
 
 **It is highly recommended changing the default password!**
 
-Then click button ![smile](images/smile.svg) on the right-hand side of the navigation 
-bar and then click ![person-plus](images/person-plus.svg) button on the footer. The device
+Then click button ![smile](icons/emoji-smile.svg) on the right-hand side of the navigation 
+bar and then click ![person-plus](icons/person-plus.svg) button on the footer. The device
 identifier is required for device to be assigned. Once the device is connected to 
 the application, four-digit confirmation token is sent to the device. To confirm user owns 
 the device, this token should be entered to the pop-up form during next 5 minutes, 
@@ -104,11 +104,11 @@ it perform several actions or modify its settings.
 Position markers of all assigned devices together with user position marker share the same
 map. Device marker contains information about time of last known location, 
 battery charge, pedometer value, and eventually the device take off alert 
-![smartwatch](images/smartwatch.svg), low battery alert ![battery](images/battery.svg), 
-and connection lost alert ![x-circle](images/x-circle.svg). The device is considered 
+![smartwatch](icons/smartwatch.svg), low battery alert ![battery](icons/battery.svg), 
+and connection lost alert ![x-circle](icons/x-circle.svg). The device is considered 
 to be lost if the last message from the device was received more than 15 minutes ago. 
 
-Notice that the low battery alert ![battery](images/battery.svg), and actual charge value
+Notice that the low battery alert ![battery](icons/battery.svg), and actual charge value
 come in different types of messages. Messages with actual charge come more frequently 
 (each 5 minutes) than messages with locations and alerts, which can be not sent for hours.
 Therefore, it is not uncommon a marker shows 100% of battery charge together with
@@ -125,52 +125,52 @@ Anywhere in UI timestamps are clickable, and by a click can be switched between 
 and time value and time interval from now.
 
 #### Map view
-There are two icons which have two states, filled and wired. First one ![eye](images/eye.svg)
-becomes filled ![eye-fill](images/eye-fill.svg) when map view follows selected device marker. 
-Its state can be toggle by clicking on it. Another one ![cursor](images/cursor.svg) becomes 
-filled ![cursor-fill](images/cursor-fill.svg) when map view follows user position marker. 
+There are two icons which have two states, filled and wired. First one ![eye](icons/eye.svg)
+becomes filled ![eye-fill](icons/eye-fill.svg) when map view follows selected device marker. 
+Its state can be toggle by clicking on it. Another one ![cursor](icons/cursor.svg) becomes 
+filled ![cursor-fill](icons/cursor-fill.svg) when map view follows user position marker. 
 Its state can also be toggled by clicking on it. When one icon becomes filled another becomes 
 wired and vice-versa. Both icons become wired when map is dragged.
 
 #### Wake up GPS
-By clicking on ![search](images/search.svg) a command to wake up GPS and provide the current 
+By clicking on ![search](icons/search.svg) a command to wake up GPS and provide the current 
 position is sent to the device. The map view starts follow the device marker, 
-the follow device icon ![eye](images/eye.svg) becomes filled.
+the follow device icon ![eye](icons/eye.svg) becomes filled.
 
 #### Chat dialog
-Chat with device ![chat-dots](images/chat-dots.svg) is asymmetric. Text chat messages can be
-sent to device with button ![chat-text](images/chat-text.svg), whereas the device can send 
+Chat with device ![chat-dots](icons/chat-dots.svg) is asymmetric. Text chat messages can be
+sent to device with button ![chat-text](icons/chat-text.svg), whereas the device can send 
 short audio messages and, if device is equipped with camera, snapshots.
-Device can also be forced to take a snapshot with button ![camera](images/camera.svg)
-or make a 15 seconds audio record with button ![voicemail](images/voicemail.svg).
+Device can also be forced to take a snapshot with button ![camera](icons/camera.svg)
+or make a 15 seconds audio record with button ![voicemail](icons/voicemail.svg).
 
 
 #### History dialog
-History dialog ![calendar-week](images/calendar-week.svg) allows choosing time interval in two
+History dialog ![calendar-week](icons/calendar-week.svg) allows choosing time interval in two
 modes, the date, from one midnight to the next one, and general, where both the start, 
 and the end of the interval can be picked by user. To switch between modes click on date and time
 picker labels. 
 
-When time interval is picked, the chat history ![chat-dots](images/chat-dots.svg), or pedometer 
-and battery charge graph ![graph-up](images/graph-up.svg) can be shown. 
-The device track for picked time interval ![map](images/map.svg) can be put on the map as well. 
+When time interval is picked, the chat history ![chat-dots](icons/chat-dots.svg), or pedometer 
+and battery charge graph ![graph-up](icons/graph-up.svg) can be shown. 
+The device track for picked time interval ![map](icons/map.svg) can be put on the map as well. 
 A slider appears at the right top corner, it is used to move device 
 marker along the track. When history track is inspected, the history dialog icon 
-![calendar-week](images/calendar-week.svg) is changed to ![geo-alt](images/geo-alt.svg). 
+![calendar-week](icons/calendar-week.svg) is changed to ![geo-alt](icons/geo-alt.svg). 
 To remove the track and get back to online marker positions, click on it. 
 
 #### Contacts dialog
-Contacts dialog ![people](images/people.svg) allows editing primary and secondary
-device administrator ![shield-check](images/shield-check.svg), SOS numbers 
-![alert-octagon](images/alert-octagon.svg), device contacts 
-![people-circle](images/people-circle.svg), numbers allowed to make calls to the
-device ![telephone-outbound](images/telephone-outbound.svg), and quick call numbers
-![smartwatch](images/smartwatch.svg) assigned to device buttons. For all contact categories 
+Contacts dialog ![people](icons/people.svg) allows editing primary and secondary
+device administrator ![shield-check](icons/shield-check.svg), SOS numbers 
+![alert-octagon](icons/exclamation-octagon.svg), device contacts 
+![people-circle](icons/person-circle.svg), numbers allowed to make calls to the
+device ![telephone-outbound](icons/telephone-outbound.svg), and quick call numbers
+![smartwatch](icons/smartwatch.svg) assigned to device buttons. For all contact categories 
 there is a fixed number of slots which can be filled. By default, empty slots are hidden, 
-but can be shown by clicking on ![list](images/list.svg) button at the dialog footer.
+but can be shown by clicking on ![list](icons/list.svg) button at the dialog footer.
 
 #### Kids dialog 
-Kids dialog ![smile](images/smile.svg) allows user to assign and unassign kid devices, 
+Kids dialog ![smile](icons/emoji-smile.svg) allows user to assign and unassign kid devices, 
 change thumb, and obtain some general information about the device and its actual status. 
 In the left-hand side column a clickable thumb is placed, clicking on it results the
 kid edit dialog. In the middle column there is the device identifier. If the device is online, 
