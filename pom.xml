@@ -16,6 +16,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <guava.version>29.0-jre</guava.version>
         <lombok.version>1.18.8</lombok.version>
         <jave.version>2.7.3</jave.version>
+        <thumbnailator.version>0.4.11</thumbnailator.version>
     </properties>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -55,6 +56,11 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <groupId>ws.schild</groupId>
             <artifactId>jave-all-deps</artifactId>
             <version>${jave.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>${thumbnailator.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
