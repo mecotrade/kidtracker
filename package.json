@@ -10,10 +10,11 @@
     "start": "npm run clean && npm run build"
   },
   "dependencies": {
-    "moment": "^2.26.0",
-    "jquery-ui": "^1.12.1",
+    "bootstrap-icons": "^1.0.0-alpha5",
+    "bootstrap-input-spinner": "^1.13.9",
     "chart.js": "^2.9.3",
-    "bootstrap-input-spinner": "^1.13.9"
+    "jquery-ui": "^1.12.1",
+    "moment": "^2.26.0"
   },
   "devDependencies": {
     "browserify": "^14.3.0",

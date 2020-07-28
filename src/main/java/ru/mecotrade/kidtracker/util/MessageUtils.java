@@ -234,16 +234,19 @@ public class MessageUtils {
     }
 
     public static Position toPosition(String deviceId, Date timestamp, Location location) {
-        return new Position(deviceId,
-                timestamp,
-                location.getLatitude(),
-                location.getLongitude(),
-                location.getAccuracy(),
-                location.getBattery(),
-                location.getPedometer(),
-                location.getState().isTakeOff(),
-                location.getState().isLowBattery(),
-                location.getState().isSosAlarm());
+        return Position.builder()
+                .deviceId(deviceId)
+                .timestamp(timestamp)
+                .valid(location.isValid())
+                .latitude(location.getLatitude())
+                .longitude(location.getLongitude())
+                .accuracy(location.getAccuracy())
+                .battery(location.getBattery())
+                .pedometer(location.getPedometer())
+                .takeOff(location.getState().isTakeOff())
+                .lowBattery(location.getState().isLowBattery())
+                .sos(location.getState().isSosAlarm())
+                .build();
     }
 
     public static Position toPosition(String deviceId, Temporal<Location> location) {

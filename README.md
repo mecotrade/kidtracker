@@ -108,6 +108,12 @@ battery charge, pedometer value, and eventually the device take off alert
 and connection lost alert ![x-circle](icons/x-circle.svg). The device is considered 
 to be lost if the last message from the device was received more than 15 minutes ago. 
 
+Device could provide its actual location, based on direct GPS data, when it is available,
+as well as last detected position, when direct GPS observation is not available, 
+mostly within building or in the presents of electromagnetic noise.  In the first case data 
+is considered as valid, in the second case -  as invalid. When received location data is 
+invalid, the invalid data alert ![invalid](icons/eye-slash.svg) is shown.
+
 Notice that the low battery alert ![battery](icons/battery.svg), and actual charge value
 come in different types of messages. Messages with actual charge come more frequently 
 (each 5 minutes) than messages with locations and alerts, which can be not sent for hours.
