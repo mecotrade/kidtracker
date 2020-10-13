@@ -195,9 +195,13 @@ function editContact(deviceId, contactId) {
             $remove.click(async () => {
                 const response = await fetchWithRedirect(`/api/device/${deviceId}/contact/${type}/${index}`, {
                     method: 'DELETE'
-                }, () => {
-                    showError(i18n.translate('Command is not completed.'))
-                })
+                },
+                {
+                    error: () => {
+                        showError(i18n.translate('Command is not completed.'));
+                    },
+                    block: true
+                });
                 hide(true);
             });
             $upload.click(async () => {
@@ -210,8 +214,12 @@ function editContact(deviceId, contactId) {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({type: type, index: index, phone: $phone.val(), name: $name.val()})
-                    }, () => {
-                        showError(i18n.translate('Command is not completed.'))
+                    },
+                    {
+                        error: () => {
+                            showError(i18n.translate('Command is not completed.'));
+                        },
+                        block: true
                     });
                     hide(true);
                 }

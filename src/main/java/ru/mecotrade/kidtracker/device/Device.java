@@ -18,6 +18,7 @@ package ru.mecotrade.kidtracker.device;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import ru.mecotrade.kidtracker.exception.KidTrackerConfirmationException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Position;
 import ru.mecotrade.kidtracker.model.Snapshot;
@@ -32,6 +33,8 @@ import ru.mecotrade.kidtracker.util.MessageUtils;
 import ru.mecotrade.kidtracker.task.UserToken;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class Device extends JobExecutor implements DeviceSender {
@@ -59,6 +62,8 @@ public class Device extends JobExecutor implements DeviceSender {
 
     private MessageConnector messageConnector;
 
+    private final Map<String, Awaiter> awaiters = new ConcurrentHashMap<>();
+
     public Device(String id, String manufacturer, MessageConnector messageConnector) {
         this.id = id;
         this.manufacturer = manufacturer;
@@ -82,11 +87,43 @@ public class Device extends JobExecutor implements DeviceSender {
         messageConnector.send(Message.platform(manufacturer, id, type, payload));
     }
 
+    @Override
+    public Message send(String type, String payload, long timeout) throws KidTrackerConnectionException {
+
+        Awaiter awaiter = awaiters.computeIfAbsent(type, t -> new Awaiter(id, t));
+        awaiter.lock();
+        try {
+            send(type, payload);
+            try {
+                Message confirmation = awaiter.getConfirmation(timeout);
+                if (confirmation != null) {
+                    log.debug("Command with type {} and payload {} is confirmed with message {}", type, payload, confirmation);
+                    return confirmation;
+                }
+            } catch (InterruptedException ex) {
+                log.warn("Confirmation interrupted", ex);
+            }
+            log.error("Unable to confirm command with type {} and payload {}", type, payload);
+            return null;
+        } finally {
+            awaiter.unlock();
+        }
+    }
+
     public synchronized void process(Message message) throws KidTrackerException {
 
         last = message.getTimestamp();
 
         String type = message.getType();
+
+        awaiters.computeIfPresent(type, (t, a) -> {
+            try {
+                a.confirmIfWaiting(message);
+            } catch (KidTrackerConfirmationException ex) {
+                log.warn("Unable to confirm with message {}: ", message, ex);
+            }
+            return a;
+        });
 
         if (MessageUtils.LINK_TYPE.equals(type)) {
             link = MessageUtils.toLink(message);
@@ -104,6 +141,14 @@ public class Device extends JobExecutor implements DeviceSender {
 
     public void apply(UserToken userToken, Command command) {
         apply(userToken, () -> send(command.getType(), String.join(",", command.getPayload())));
+    }
+
+    public void apply(UserToken userToken, Command command, long timeout) {
+        apply(userToken, () -> {
+            if (send(command.getType(), String.join(",", command.getPayload()), timeout) == null) {
+                throw new KidTrackerConfirmationException(String.format("Command %s on device %s was not confirmed within %d milliseconds", command, id, timeout));
+            }
+        });
     }
 
     public Position position() {

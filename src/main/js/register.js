@@ -80,12 +80,16 @@ function showRegister() {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(user)
-                    }, message => {
-                        $password.val('');
-                        $repeat.val('');
-                        showError(i18n.translate(message));
-                    }, () => {
-                        hide();
+                    },
+                    {
+                        error: message => {
+                            $password.val('');
+                            $repeat.val('');
+                            showError(i18n.translate(message));
+                        },
+                        success: () => {
+                            hide();
+                        }
                     });
                 }
             });

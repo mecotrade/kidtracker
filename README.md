@@ -57,7 +57,7 @@ To assign a device to a user registered to the application, the application shou
 from public networks, that is, it should have a public ip address, and, probably,
 an associated domain name. By default, the application listens devices on port `8001`,
 suppose the very same port is mapped to public network. Then the following text message
-sent to device make it start connecting to the application:
+sent to device makes it start connecting to the application:
 ```
 pw,123456,ip,<public IP address or domain>,8001#
 ```

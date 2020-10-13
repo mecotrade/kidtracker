@@ -19,25 +19,40 @@
 const i18n = require('./i18n.js');
 const {showWarning, showError} = require('./notification.js');
 
-async function fetchWithRedirect(url, options, error, success, deviceId) {
-
-    const response = await fetch(url, options);
+async function fetchWithRedirect(url, fetchOptions, options) {
+    options = options || {};
+    if (options.block === true) {
+        $.blockUI({
+            message: '<img src="images/confirmation.gif">',
+            css: {
+                border: 'none',
+                backgroundColor: 'transparent',
+                centerX: true,
+                centerY: true
+            },
+            baseZ: 10000
+        });
+    }
+    const response = await fetch(url, fetchOptions);
+    if (options.block === true) {
+        $.unblockUI();
+    }
     if (response.redirected) {
         window.location = response.url;
     } else if (response.ok) {
-        if (success) {
-            success();
+        if (options.success) {
+            options.success();
         }
         if (response.status == 202) {
-            await showInputToken(deviceId);
+            await showInputToken(config.deviceId);
         }
         if (response.status != 204) {
             return await response.json();
         }
     } else {
-        if (error) {
+        if (options.error) {
             const text = await response.text();
-            error(text ? JSON.parse(text).message : null);
+            options.error(text ? JSON.parse(text).message : null);
         }
     }
 }
@@ -60,19 +75,25 @@ function initCommand($button, command, deviceId, options) {
             deviceId = options.device();
         }
         await fetchWithRedirect(`/api/device/${deviceId}/command`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({type: command, payload: options.payload ? options.payload() : []})
-        }, message => {
-            showError(i18n.translate(message || 'Command is not completed.'));
-            if (options.error) {
-                options.error(message);
-            }
-        }, () => {
-            if (options.after) {
-                options.after();
-            }
-        }, deviceId);
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type: command, payload: options.payload ? options.payload() : []})
+        },
+        {
+            error: message => {
+                showError(i18n.translate(message || 'Command is not completed.'));
+                if (options.error) {
+                    options.error(message);
+                }
+            },
+            success: () => {
+                if (options.after) {
+                    options.after();
+                }
+            },
+            deviceId: deviceId,
+            block: true
+        });
     });
 }
 
@@ -104,18 +125,23 @@ function initConfig($input, $elements, parameter, config, deviceId, options) {
                 options.before();
             }
             await fetchWithRedirect(`/api/device/${deviceId}/config`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({parameter: parameter, value: options.value ? options.value() : $input.val()})
-            }, message => {
-                showError(i18n.translate(message || 'Command is not completed.'));
-                if (options.error) {
-                    options.error(message);
-                }
-            }, () => {
-                if (options.after) {
-                    options.after();
-                }
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({parameter: parameter, value: options.value ? options.value() : $input.val()})
+            },
+            {
+                error: message => {
+                    showError(i18n.translate(message || 'Command is not completed.'));
+                    if (options.error) {
+                        options.error(message);
+                    }
+                },
+                success: () => {
+                    if (options.after) {
+                        options.after();
+                    }
+                },
+                block: true
             });
         });
     });
@@ -134,12 +160,16 @@ function initCheck($check, parameter, config, deviceId, defaultValue) {
     $check.click(async () => {
         const value = $check[0].checked == true ? '1' : '0';
         await fetchWithRedirect(`/api/device/${deviceId}/config`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({parameter: parameter, value: value})
-        }, () => {
-            $check[0].checked = !$check[0].checked;
-            showError(i18n.translate('Command is not completed.'));
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({parameter: parameter, value: value})
+        },
+        {
+            error: () => {
+                $check[0].checked = !$check[0].checked;
+                showError(i18n.translate('Command is not completed.'));
+            },
+            block: true
         });
     });
 }

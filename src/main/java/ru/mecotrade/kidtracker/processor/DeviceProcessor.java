@@ -18,6 +18,7 @@ package ru.mecotrade.kidtracker.processor;
 import com.google.common.collect.Streams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.dao.ConfigService;
 import ru.mecotrade.kidtracker.dao.ContactService;
@@ -202,71 +203,66 @@ public class DeviceProcessor {
         return contactService.get(deviceId, type).stream().map(ContactRecord::toContact).collect(Collectors.toList());
     }
 
-    public void updateContact(String deviceId, Contact contact) throws KidTrackerConnectionException {
+    public Message updateContact(String deviceId, Contact contact, long timeout) throws KidTrackerConnectionException {
         contactService.put(deviceId, contact);
-        syncContact(deviceId, contact.getType(), contact.getIndex());
+        return syncContact(deviceId, contact.getType(), contact.getIndex(), timeout);
     }
 
-    public void removeContact(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
+    public Message removeContact(String deviceId, ContactType type, Integer index, long timeout) throws KidTrackerConnectionException {
         contactService.remove(deviceId, type, index);
-        syncContact(deviceId, type, index);
+        return syncContact(deviceId, type, index, timeout);
     }
 
     public Collection<Config> configs(String deviceId) {
         return configService.get(deviceId).stream().map(ConfigRecord::toConfig).collect(Collectors.toList());
     }
 
-    public void updateConfig(String deviceId, Config config) throws KidTrackerConnectionException {
+    public Message updateConfig(String deviceId, Config config, long timeout) throws KidTrackerConnectionException {
         configService.put(deviceId, config);
-        syncConfig(deviceId, config.getParameter());
+        return syncConfig(deviceId, config.getParameter(), timeout);
     }
 
     private static String encodeContact(Contact contact) {
         return contact.getPhone() + "," + MessageUtils.toUtf16Hex(contact.getName());
     }
 
-    private void syncContact(String deviceId, ContactType type, Integer index) throws KidTrackerConnectionException {
+    private Message syncContact(String deviceId, ContactType type, Integer index, long timeout) throws KidTrackerConnectionException {
 
         Map<Integer, ContactRecord> contacts = contactService.get(deviceId, type).stream()
                 .collect(Collectors.toMap(ContactRecord::getIndex, Function.identity()));
 
         switch (type) {
             case ADMIN: {
-                deviceManager.send(deviceId, new Command(index == 0 ? "CENTER" : "SLAVE",
-                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "d")));
-                break;
+                return deviceManager.send(deviceId, new Command(index == 0 ? "CENTER" : "SLAVE",
+                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "d")), timeout);
             }
             case SOS: {
-                deviceManager.send(deviceId, new Command(index == 0 ? "SOS1" : (index == 1 ? "SOS2" : "SOS3"),
-                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "")));
-                break;
+                return deviceManager.send(deviceId, new Command(index == 0 ? "SOS1" : (index == 1 ? "SOS2" : "SOS3"),
+                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "")), timeout);
             }
             case PHONEBOOK: {
                 int shift = index < 5 ? 0 : 5;
-                deviceManager.send(deviceId, new Command(index < 5 ? "PHB" : "PHB2", IntStream.range(shift, shift + 5)
+                return deviceManager.send(deviceId, new Command(index < 5 ? "PHB" : "PHB2", IntStream.range(shift, shift + 5)
                         .mapToObj(i -> contacts.containsKey(i) ? encodeContact(contacts.get(i).toContact()) : ",")
-                        .collect(Collectors.toList())));
-                break;
+                        .collect(Collectors.toList())), timeout);
             }
             case WHITELIST: {
                 int shift = index < 5 ? 0 : 5;
-                deviceManager.send(deviceId, new Command(index < 5 ? "WHITELIST1" : "WHITELIST2", IntStream.range(shift, shift + 5)
+                return deviceManager.send(deviceId, new Command(index < 5 ? "WHITELIST1" : "WHITELIST2", IntStream.range(shift, shift + 5)
                         .mapToObj(i -> contacts.containsKey(i) ? contacts.get(i).getPhone() : ",")
-                        .collect(Collectors.toList())));
-                break;
+                        .collect(Collectors.toList())), timeout);
             }
             case BUTTON: {
-                deviceManager.send(deviceId, new Command(index == 0 ? "TEL1" : "TEL2",
-                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "")));
-                break;
+                return deviceManager.send(deviceId, new Command(index == 0 ? "TEL1" : "TEL2",
+                        Collections.singletonList(contacts.containsKey(index) ? contacts.get(index).getPhone() : "")), timeout);
             }
+            default:
+                return null;
         }
     }
 
-    private void syncConfig(String deviceId, String parameter) throws KidTrackerConnectionException {
+    private Message syncConfig(String deviceId, String parameter, long timeout) throws KidTrackerConnectionException {
         Config config = configService.get(deviceId, parameter).map(ConfigRecord::toConfig).orElse(null);
-        if (config != null) {
-            deviceManager.send(deviceId, Command.from(config));
-        }
+        return config != null ? deviceManager.send(deviceId, Command.from(config), timeout) : null;
     }
 }

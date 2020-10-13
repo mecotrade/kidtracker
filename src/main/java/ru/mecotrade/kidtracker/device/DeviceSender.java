@@ -15,6 +15,7 @@
  */
 package ru.mecotrade.kidtracker.device;
 
+import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.model.Command;
 
@@ -29,4 +30,27 @@ public interface DeviceSender {
     default void send(Command command) throws KidTrackerConnectionException {
         send(command.getType(), String.join(",", command.getPayload()));
     }
+
+    /**
+     * Sends command with given type and payload and awaits confirmation during
+     * timeout in milliseconds. If a confirmation is received, returns the confirmation
+     * message, otherwise returns null.
+     *
+     * @param type command type
+     * @param payload command payload
+     * @param timeout confirmation timeout
+     * @return confirmation message
+     * @throws KidTrackerConnectionException
+     */
+    Message send(String type, String payload, long timeout) throws KidTrackerConnectionException;
+
+    default Message send(String type, long timeout) throws KidTrackerConnectionException {
+        return send(type, null, timeout);
+    }
+
+    default Message send(Command command, long timeout) throws KidTrackerConnectionException {
+        return send(command.getType(), String.join(",", command.getPayload()), timeout);
+    }
+
+
 }

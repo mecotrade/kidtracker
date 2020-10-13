@@ -80,11 +80,15 @@ async function showAccount() {
                         method: 'DELETE',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(user)
-                    }, message => {
-                        clear();
-                        showError(i18n.translate(message));
-                    }, () => {
-                        hide();
+                    },
+                    {
+                        error: message => {
+                            clear();
+                            showError(i18n.translate(message));
+                        },
+                        success: () => {
+                            hide();
+                        }
                     });
                 }
             });
@@ -98,11 +102,15 @@ async function showAccount() {
                         method: 'PUT',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(user)
-                    }, message => {
-                        clear();
-                        showError(i18n.translate(message || 'Command is not completed.'));
-                    }, () => {
-                        hide();
+                    },
+                    {
+                        error: message => {
+                            clear();
+                            showError(i18n.translate(message || 'Command is not completed.'));
+                        },
+                        success: () => {
+                            hide();
+                        }
                     });
                 }
             });

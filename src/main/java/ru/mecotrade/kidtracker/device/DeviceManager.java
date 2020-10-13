@@ -73,6 +73,15 @@ public class DeviceManager implements MessageListener, Cleanable {
         }
     }
 
+    public Message send(String deviceId, Command command, long timeout) throws KidTrackerConnectionException {
+        Device device = devices.get(deviceId);
+        if (device != null) {
+            return device.send(command, timeout);
+        } else {
+            throw new KidTrackerConnectionException(String.format("Device %s is not connected", deviceId));
+        }
+    }
+
     @Override
     public void onMessage(Message message, MessageConnector messageConnector) throws KidTrackerException {
 
@@ -131,6 +140,19 @@ public class DeviceManager implements MessageListener, Cleanable {
         if (device != null) {
             UserToken userToken = UserToken.of(userInfo.getId(), RandomStringUtils.randomNumeric(tokenLength));
             device.apply(userToken, command);
+            device.send(Command.of("SMS", userInfo.getPhone(), userToken.getToken()));
+            log.info("[{}] {} for {} is sent to user {}", deviceId, userToken, command, userInfo);
+        } else {
+            throw new KidTrackerUnknownDeviceException(deviceId);
+        }
+    }
+
+    public void apply(UserInfo userInfo, String deviceId, Command command, long timeout) throws KidTrackerException {
+
+        Device device = devices.get(deviceId);
+        if (device != null) {
+            UserToken userToken = UserToken.of(userInfo.getId(), RandomStringUtils.randomNumeric(tokenLength));
+            device.apply(userToken, command, timeout);
             device.send(Command.of("SMS", userInfo.getPhone(), userToken.getToken()));
             log.info("[{}] {} for {} is sent to user {}", deviceId, userToken, command, userInfo);
         } else {

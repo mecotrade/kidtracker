@@ -68,6 +68,9 @@ public class DeviceController {
     @Value("${kidtracker.device.controller.min.worktime}")
     private int minWorktime;
 
+    @Value("${kidtracker.device.confirmation.timeout.millis}")
+    private long confirmationTimeout;
+
     @Autowired
     private DeviceProcessor deviceProcessor;
 
@@ -137,7 +140,7 @@ public class DeviceController {
                     if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
                         UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
                         if (isValidPhone(userInfo.getPhone())) {
-                            deviceManager.apply(userInfo, deviceId, command);
+                            deviceManager.apply(userInfo, deviceId, command, confirmationTimeout);
                             return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to user's phone"));
                         } else {
                             log.warn("{} has invalid phone number", userInfo);
@@ -148,8 +151,12 @@ public class DeviceController {
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
                     }
                 } else {
-                    deviceManager.send(deviceId, command);
-                    return ResponseEntity.noContent().build();
+                    if (deviceManager.send(deviceId, command, confirmationTimeout) != null) {
+                        return ResponseEntity.noContent().build();
+                    } else {
+                        log.warn("Command {} was not confirmed on device {}", command, deviceId);
+                        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Command was not confirmed"));
+                    }
                 }
             } else {
                 log.error("[{}] {} is incorrect", deviceId, command);
@@ -192,8 +199,12 @@ public class DeviceController {
         log.info("[{}] Received {}", deviceId, contact);
         try {
             if (isValid(contact)) {
-                deviceProcessor.updateContact(deviceId, contact);
-                return ResponseEntity.noContent().build();
+                if (deviceProcessor.updateContact(deviceId, contact, confirmationTimeout) != null) {
+                    return ResponseEntity.noContent().build();
+                } else {
+                    log.warn("Update {} was not confirmed on device {}", contact, deviceId);
+                    return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Contact update was not confirmed"));
+                }
             } else {
                 log.error("[{}] {} is incorrect", deviceId, contact);
                 return ResponseEntity.badRequest().build();
@@ -207,10 +218,14 @@ public class DeviceController {
     @DeleteMapping("/contact/{type}/{index:\\d+}")
     @ResponseBody
     public ResponseEntity<Response> removeContact(@PathVariable String deviceId, @PathVariable ContactType type, @PathVariable Integer index) {
-        log.info("[{}] Remove contact for type={}, index={}", deviceId, type, index);
+        log.info("[{}] Remove contact of type {} and index={}", deviceId, type, index);
         try {
-            deviceProcessor.removeContact(deviceId, type, index);
-            return ResponseEntity.noContent().build();
+            if (deviceProcessor.removeContact(deviceId, type, index, confirmationTimeout) != null) {
+                return ResponseEntity.noContent().build();
+            } else {
+                log.warn("Remove contact of type {} and index {} was not confirmed on device {}", type, index, deviceId);
+                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Contact remove was not confirmed"));
+            }
         } catch (Exception ex) {
             log.error("[{}] Unable to remove contact for type={}, index={}", deviceId, type, index, ex);
             return ResponseEntity.unprocessableEntity().build();
@@ -229,8 +244,12 @@ public class DeviceController {
         log.info("[{}] Received {}", deviceId, config);
         try {
             if (isValid(config)) {
-                deviceProcessor.updateConfig(deviceId, config);
-                return ResponseEntity.noContent().build();
+                if (deviceProcessor.updateConfig(deviceId, config, confirmationTimeout) != null) {
+                    return ResponseEntity.noContent().build();
+                } else {
+                    log.warn("Update {} was not confirmed on device {}", config, deviceId);
+                    return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Config update was not confirmed"));
+                }
             } else {
                 log.error("[{}] {} is incorrect", deviceId, config);
                 return ResponseEntity.badRequest().build();
