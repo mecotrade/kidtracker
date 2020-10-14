@@ -106,7 +106,7 @@ async function showAccount() {
                     {
                         error: message => {
                             clear();
-                            showError(i18n.translate(message || 'Command is not completed.'));
+                            showError(i18n.translate(message || 'Command is not completed'));
                         },
                         success: () => {
                             hide();

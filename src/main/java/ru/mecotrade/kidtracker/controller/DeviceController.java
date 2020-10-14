@@ -144,7 +144,7 @@ public class DeviceController {
                             return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to user's phone"));
                         } else {
                             log.warn("{} has invalid phone number", userInfo);
-                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user has incorrect phone number."));
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user has incorrect phone number"));
                         }
                     } else {
                         log.warn("Unauthorized request to execute {} on device {}", command, deviceId);

@@ -40,7 +40,7 @@ const i18n = {
             'Phone': 'Телефон',
             'Message': 'Сообщение',
             "Kid's watch will call or send a text message to provided phone number. Some characters might be sent incorrectly.": 'Часы ребенка совершат вызов или отправят SMS на указанный номер. Некоторые символы могут быть отправлены некорректно.',
-            'Command is not completed.': 'Команда не выполнена',
+            'Command is not completed': 'Команда не выполнена',
             'Text message should not be empty.': 'Сообщение не должно быть пустым.',
             'Contacts': 'Контакты',
             'Edit': 'Редактирование',
@@ -166,7 +166,12 @@ const i18n = {
             'For developers': 'Для разработчиков',
             'Set server hostname and port': 'Имя сервера и порт',
             'Send text message to the device {}If the device password was changed, put it instead of {}': 'Отправьте на устройство SMS с текстом {}Если пароль был изменён, замените {} на новый пароль',
-            'Activate Wi-Fi': 'Включить Wi-Fi'
+            'Activate Wi-Fi': 'Включить Wi-Fi',
+            'Config update was not confirmed': 'Изменение настроек не подтверждено',
+            'Contact remove was not confirmed': 'Удаление контакта не подтверждено',
+            'Contact update was not confirmed': 'Изменение контакта не подтверждено',
+            'Command was not confirmed': 'Команда не подтверждена',
+            'Not allowed since user has incorrect phone number': 'Не разрешено, поскольку номер телефона пользователя некорректно указан'
         }
     },
 

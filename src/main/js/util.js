@@ -81,7 +81,7 @@ function initCommand($button, command, deviceId, options) {
         },
         {
             error: message => {
-                showError(i18n.translate(message || 'Command is not completed.'));
+                showError(i18n.translate(message || 'Command is not completed'));
                 if (options.error) {
                     options.error(message);
                 }
@@ -131,7 +131,7 @@ function initConfig($input, $elements, parameter, config, deviceId, options) {
             },
             {
                 error: message => {
-                    showError(i18n.translate(message || 'Command is not completed.'));
+                    showError(i18n.translate(message || 'Command is not completed'));
                     if (options.error) {
                         options.error(message);
                     }
@@ -165,9 +165,9 @@ function initCheck($check, parameter, config, deviceId, defaultValue) {
             body: JSON.stringify({parameter: parameter, value: value})
         },
         {
-            error: () => {
+            error: message => {
                 $check[0].checked = !$check[0].checked;
-                showError(i18n.translate('Command is not completed.'));
+                showError(i18n.translate(message || 'Command is not completed'));
             },
             block: true
         });
@@ -202,8 +202,11 @@ async function showInputToken(deviceId) {
             });
             $executeToken.click(async () => {
                 const token = $inputToken.val();
-                await fetchWithRedirect(deviceId ? `/api/device/${deviceId}/execute/${token}` : `/api/user/token/${token}`, {}, () => {
-                    showError(i18n.translate('Command is not completed.'));
+                await fetchWithRedirect(deviceId ? `/api/device/${deviceId}/execute/${token}` : `/api/user/token/${token}`, {},
+                {
+                    error: message => {
+                        showError(i18n.translate(message || 'Command is not completed'));
+                    }
                 });
                 hide();
             });

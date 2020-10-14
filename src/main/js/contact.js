@@ -197,8 +197,8 @@ function editContact(deviceId, contactId) {
                     method: 'DELETE'
                 },
                 {
-                    error: () => {
-                        showError(i18n.translate('Command is not completed.'));
+                    error: message => {
+                        showError(i18n.translate(message || 'Command is not completed'));
                     },
                     block: true
                 });
@@ -216,8 +216,8 @@ function editContact(deviceId, contactId) {
                         body: JSON.stringify({type: type, index: index, phone: $phone.val(), name: $name.val()})
                     },
                     {
-                        error: () => {
-                            showError(i18n.translate('Command is not completed.'));
+                        error: message => {
+                            showError(i18n.translate(message || 'Command is not completed'));
                         },
                         block: true
                     });

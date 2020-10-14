@@ -219,7 +219,7 @@ async function editDevice(kid) {
                 },
                 {
                     error: message => {
-                        showError(i18n.translate(message || 'Command is not completed.'));
+                        showError(i18n.translate(message || 'Command is not completed'));
                     }
                 });
                 hide();
@@ -242,7 +242,7 @@ async function editDevice(kid) {
                     },
                     {
                         error: message => {
-                            showError(i18n.translate(message || 'Command is not completed.'));
+                            showError(i18n.translate(message || 'Command is not completed'));
                         }
                     });
                     hide();
@@ -263,7 +263,7 @@ async function editDevice(kid) {
                     },
                     {
                         error: message => {
-                            showError(i18n.translate(message || 'Command is not completed.'));
+                            showError(i18n.translate(message || 'Command is not completed'));
                         }
                     });
                     hide();
