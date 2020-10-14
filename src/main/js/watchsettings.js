@@ -173,16 +173,17 @@ async function showWatchSettings(deviceId) {
     const config = await fetchWithRedirect(`/api/device/${deviceId}/config`);
     if (config) {
 
+        /* GPS refresh rate */
         initConfig($('#kid-settings-uploadinterval-input'), $('#kid-settings-uploadinterval'), 'UPLOAD', config, deviceId, {
             defaultValue: () => 60,
             value: () => $('#kid-settings-uploadinterval-input').val()
         });
-
         initConfig($('#kid-settings-worktime-input'), $('#kid-settings-worktime'), 'WORKTIME', config, deviceId, {
             defaultValue: () => 3,
             value: () => $('#kid-settings-worktime-input').val()
         });
 
+        /* Call ring profile */
         initConfig(null, [$('#kid-settings-profile-sound'), $('#kid-settings-profile-vibro')], 'PROFILE', config, deviceId, {
             init: () => {
                 function set(value) {
@@ -203,6 +204,34 @@ async function showWatchSettings(deviceId) {
             }
         });
 
+        /* Reminders */
+        initConfig(null, $('#kid-settings-reminder'), 'REMIND', config, deviceId, {
+            init: () => {
+                let done = false;
+                config.filter(c => c.parameter == 'REMIND').forEach(function (c) {
+                    const [reminder1, reminder2, reminder3] = c.value.split(',');
+                    reminderConfig($('#kid-settings-reminder-1'), reminder1);
+                    reminderConfig($('#kid-settings-reminder-2'), reminder2);
+                    reminderConfig($('#kid-settings-reminder-3'), reminder3);
+                    done = true;
+                });
+                if (done == false) {
+                    reminderConfig($('#kid-settings-reminder-1'));
+                    reminderConfig($('#kid-settings-reminder-2'));
+                    reminderConfig($('#kid-settings-reminder-3'));
+                }
+            },
+            value: () => {
+                return `${reminderValue($('#kid-settings-reminder-1'))},${reminderValue($('#kid-settings-reminder-2'))},${reminderValue($('#kid-settings-reminder-3'))}`;
+            }
+        });
+
+        /* Bluetooth */
+        initCheck($('#kid-settings-bt'), 'BT', config, deviceId);
+        initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND', config, deviceId);
+        initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', config, deviceId);
+
+        /* Regional settings */
         initCommand($('#kid-settings-timecustom'), 'TIME', deviceId, {
             init: () => {
                 $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT));
@@ -216,20 +245,7 @@ async function showWatchSettings(deviceId) {
                 ];
             }
         });
-
         initCommand($('#kid-settings-timeserver'), 'TIMECALI', deviceId, {after: () => $('#kid-settings-datetime').val(moment().format(WATCH_DATETIME_FORMAT))});
-
-        initCheck($('#kid-settings-voicemsg'), 'TKONOFF', config, deviceId);
-        initCheck($('#kid-settings-remove'), 'REMOVE', config, deviceId);
-        initCheck($('#kid-settings-sms'), 'SMSONOFF', config, deviceId);
-        initCheck($('#kid-settings-pedometer'), 'PEDO', config, deviceId);
-        initCheck($('#kid-settings-bt'), 'BT', config, deviceId);
-        initCheck($('#kid-settings-makefriend'), 'MAKEFRIEND', config, deviceId);
-
-        initConfig($('#kid-settings-btname-input'), $('#kid-settings-btname'), 'BTNAME', config, deviceId);
-
-        initCheck($('#kid-settings-bigtime'), 'BIGTIME', config, deviceId);
-
         initConfig(null, $('#kid-settings-langtz'), 'LZ', config, deviceId, {
             init: function() {
                 let done = false;
@@ -253,30 +269,18 @@ async function showWatchSettings(deviceId) {
             }
         });
 
-        initConfig(null, $('#kid-settings-reminder'), 'REMIND', config, deviceId, {
-            init: () => {
-                let done = false;
-                config.filter(c => c.parameter == 'REMIND').forEach(function (c) {
-                    const [reminder1, reminder2, reminder3] = c.value.split(',');
-                    reminderConfig($('#kid-settings-reminder-1'), reminder1);
-                    reminderConfig($('#kid-settings-reminder-2'), reminder2);
-                    reminderConfig($('#kid-settings-reminder-3'), reminder3);
-                    done = true;
-                });
-                if (done == false) {
-                    reminderConfig($('#kid-settings-reminder-1'));
-                    reminderConfig($('#kid-settings-reminder-2'));
-                    reminderConfig($('#kid-settings-reminder-3'));
-                }
-            },
-            value: () => {
-                return `${reminderValue($('#kid-settings-reminder-1'))},${reminderValue($('#kid-settings-reminder-2'))},${reminderValue($('#kid-settings-reminder-3'))}`;
-            }
-        });
+        /* Diverse */
+        initCheck($('#kid-settings-voicemsg'), 'TKONOFF', config, deviceId);
+        initCheck($('#kid-settings-remove'), 'REMOVE', config, deviceId);
+        initCheck($('#kid-settings-sms'), 'SMSONOFF', config, deviceId);
+        initCheck($('#kid-settings-pedometer'), 'PEDO', config, deviceId);
+        initCheck($('#kid-settings-bigtime'), 'BIGTIME', config, deviceId);
+        initCheck($('#kid-settings-wifi'), 'WIFI', config, deviceId);
     }
 
     const serverConfig = await fetchWithRedirect('/api/user/config');
 
+    /* Danger zone */
     initCommand($('#kid-settings-restart'), 'RESET', deviceId);
     initCommand($('#kid-settings-factory'), 'FACTORY', deviceId);
     initCommand($('#kid-settings-poweroff'), 'POWEROFF', deviceId);
@@ -290,6 +294,7 @@ async function showWatchSettings(deviceId) {
         payload: () => $('#kid-settings-ip-input').val().split(':')
     });
 
+    /* For developers */
     initCommand($('#kid-settings-debug-start'), 'DEBUG', deviceId, {
         init: () => $('#kid-settings-debug-input').val(window.location.host.split(':')[0] + ':' + serverConfig.debugPort.toString()),
         payload: () => $('#kid-settings-debug-input').val().split(':')

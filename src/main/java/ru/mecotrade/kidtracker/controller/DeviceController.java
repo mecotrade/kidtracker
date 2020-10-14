@@ -354,6 +354,7 @@ public class DeviceController {
                 case "BT":
                 case "BIGTIME":
                 case "PHBONOFF":
+                case "WIFI":
                     return isValidSwitch(config.getValue());
             }
         }

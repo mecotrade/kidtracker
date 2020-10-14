@@ -165,7 +165,8 @@ const i18n = {
             'Set password for SMS commands': 'Установить пароль для SMS команд',
             'For developers': 'Для разработчиков',
             'Set server hostname and port': 'Имя сервера и порт',
-            'Send text message to the device {}If the device password was changed, put it instead of {}': 'Отправьте на устройство SMS с текстом {}Если пароль был изменён, замените {} на новый пароль'
+            'Send text message to the device {}If the device password was changed, put it instead of {}': 'Отправьте на устройство SMS с текстом {}Если пароль был изменён, замените {} на новый пароль',
+            'Activate Wi-Fi': 'Включить Wi-Fi'
         }
     },
 
