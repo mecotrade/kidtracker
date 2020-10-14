@@ -254,7 +254,13 @@ public class MessageUtils {
     }
 
     public static Snapshot toSnapshot(String deviceId, Temporal<Link> link) {
-        return new Snapshot(deviceId, link.getTimestamp(), link.getValue().getPedometer(), link.getValue().getRolls(), link.getValue().getBattery());
+        return Snapshot.builder()
+                .deviceId(deviceId)
+                .timestamp(link.getTimestamp())
+                .pedometer(link.getValue().getPedometer())
+                .rolls(link.getValue().getRolls())
+                .battery(link.getValue().getBattery())
+                .build();
     }
 
     public static Position toPosition(Message message) {
@@ -270,8 +276,13 @@ public class MessageUtils {
         try {
             if (LOCATION_TYPES.contains(message.getType())) {
                 Temporal<Location> location = toLocation(message);
-                return new Snapshot(message.getDeviceId(), message.getTimestamp(), location.getValue().getPedometer(),
-                        location.getValue().getRolls(), location.getValue().getBattery());
+                return Snapshot.builder()
+                        .deviceId(message.getDeviceId())
+                        .timestamp(message.getTimestamp())
+                        .pedometer(location.getValue().getPedometer())
+                        .rolls(location.getValue().getRolls())
+                        .battery(location.getValue().getBattery())
+                        .build();
             } else if (LINK_TYPE.equals(message.getType())) {
                 return toSnapshot(message.getDeviceId(), toLink(message));
             }

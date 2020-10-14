@@ -46,7 +46,7 @@ public class MessageUtilsTest {
     public void testParseLocation() throws KidTrackerParseException {
 
         Message message = Message.device("3G", "1234567890", "UD",
-                "060620,125420,A,60.062543,N,30.4606333,E,0.00,95.3,0.0,9,100,100,865649,0,00000008,7,255,250,1,234,15482,170,234,15481,151,234,15485,146,234,20082,144,290,25623,142,234,63301,141,234,63332,138,0,25.9");
+                "060620,125420,A,60.062543,N,30.4606333,E,0.00,95.3,0.0,9,100,100,865649,0,00000008,7,255,250,1,234,15482,170,234,15481,151,234,15485,146,234,20082,144,290,25623,142,234,63301,141,234,63332,138,2,AccessPoint1,01:23:45:67:8a:bc,-69,AccessPoint2,fe:dc:ba:98:76:54,-51,25.9");
 
         Location location = MessageUtils.toLocation(message).getValue();
 
@@ -72,7 +72,13 @@ public class MessageUtilsTest {
         assertEquals(234, location.getBaseStations().get(0).getArea());
         assertEquals(15482, location.getBaseStations().get(0).getSerial());
         assertEquals(170, location.getBaseStations().get(0).getRssi());
-        assertEquals(0, location.getAccessPoints().size());
+        assertEquals(2, location.getAccessPoints().size());
+        assertEquals("AccessPoint1", location.getAccessPoints().get(0).getName());
+        assertEquals("01:23:45:67:8a:bc", location.getAccessPoints().get(0).getMac());
+        assertEquals(-69, location.getAccessPoints().get(0).getSignal());
+        assertEquals("AccessPoint2", location.getAccessPoints().get(1).getName());
+        assertEquals("fe:dc:ba:98:76:54", location.getAccessPoints().get(1).getMac());
+        assertEquals(-51, location.getAccessPoints().get(1).getSignal());
         assertEquals(25.9, location.getAccuracy(), DELTA);
     }
 }

@@ -157,7 +157,7 @@ const i18n = {
             'Incorrect credentials.': 'Пароль указан неверно.',
             'Kid list is not empty.': 'Список детей не пуст.',
             'Last admin can\'t be removed.': 'Последний администратор не может быть удалён.',
-            'Not allowed since user phone number is incorrect.': 'Не разрешено поскольку неверно указан номер телефона пользователя.',
+            'Not allowed since user phone number is incorrect': 'Не разрешено поскольку неверно указан номер телефона пользователя',
             'Chat': 'Чат',
             'Hearts': 'Сердечки',
             'Hearts amount': 'Количество сердечек',
@@ -170,8 +170,7 @@ const i18n = {
             'Config update was not confirmed': 'Изменение настроек не подтверждено',
             'Contact remove was not confirmed': 'Удаление контакта не подтверждено',
             'Contact update was not confirmed': 'Изменение контакта не подтверждено',
-            'Command was not confirmed': 'Команда не подтверждена',
-            'Not allowed since user has incorrect phone number': 'Не разрешено, поскольку номер телефона пользователя некорректно указан'
+            'Command was not confirmed': 'Команда не подтверждена'
         }
     },
 

@@ -52,7 +52,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .and()
                 .addFilterAfter(new UserDeviceFilter(), FilterSecurityInterceptor.class)
                 .formLogin()
-//                        .loginPage("/login.html")
                         .defaultSuccessUrl("/", true)
                         .permitAll()
                         .and()

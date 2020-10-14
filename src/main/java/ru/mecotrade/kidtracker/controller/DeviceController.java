@@ -30,6 +30,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
+import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.model.Command;
@@ -37,7 +40,6 @@ import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
 import ru.mecotrade.kidtracker.model.ContactType;
 import ru.mecotrade.kidtracker.model.Position;
-import ru.mecotrade.kidtracker.model.Response;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
@@ -52,6 +54,8 @@ import org.springframework.http.ResponseEntity;
 import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.UserToken;
+
+import javax.annotation.security.RolesAllowed;
 
 import static ru.mecotrade.kidtracker.util.ValidationUtils.*;
 
@@ -131,59 +135,64 @@ public class DeviceController {
     }
 
     @PostMapping("/command")
-    @ResponseBody
-    public ResponseEntity<Response> command(@PathVariable String deviceId, @RequestBody Command command, Authentication authentication) {
+    public ResponseEntity<String> command(@PathVariable String deviceId, @RequestBody Command command, Authentication authentication) {
         log.info("[{}] Received {}", deviceId, command);
-        try {
-            if (isValid(command)) {
-                if (isProtected(command)) {
-                    if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
-                        UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-                        if (isValidPhone(userInfo.getPhone())) {
+        if (isValid(command)) {
+            if (isProtected(command)) {
+                if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+                    UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
+                    if (isValidPhone(userInfo.getPhone())) {
+                        try {
                             deviceManager.apply(userInfo, deviceId, command, confirmationTimeout);
-                            return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to user's phone"));
-                        } else {
-                            log.warn("{} has invalid phone number", userInfo);
-                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user has incorrect phone number"));
+                            return ResponseEntity.accepted().build();
+                        } catch (Exception ex) {
+                            log.error("[{}] Unable to apply {}", deviceId, command, ex);
+                            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
                         }
                     } else {
-                        log.warn("Unauthorized request to execute {} on device {}", command, deviceId);
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                        log.warn("{} has invalid phone number", userInfo);
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed since user phone number is incorrect");
                     }
                 } else {
-                    if (deviceManager.send(deviceId, command, confirmationTimeout) != null) {
-                        return ResponseEntity.noContent().build();
-                    } else {
-                        log.warn("Command {} was not confirmed on device {}", command, deviceId);
-                        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Command was not confirmed"));
-                    }
+                    log.warn("Unauthorized request to execute {} on device {}", command, deviceId);
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
                 }
             } else {
-                log.error("[{}] {} is incorrect", deviceId, command);
-                return ResponseEntity.badRequest().build();
+                Message confirmation = null;
+                try {
+                    confirmation = deviceManager.send(deviceId, command, confirmationTimeout);
+                } catch (Exception ex) {
+                    log.error("[{}] Unable to send {}", deviceId, command, ex);
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
+                }
+                if (confirmation != null) {
+                    return ResponseEntity.noContent().build();
+                } else {
+                    log.warn("Command {} was not confirmed on device {}", command, deviceId);
+                    throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Command was not confirmed");
+                }
             }
-        } catch (Exception ex) {
-            log.error("[{}] Unable to send {}", deviceId, command, ex);
-            return ResponseEntity.unprocessableEntity().build();
+        } else {
+            log.error("[{}] {} is incorrect", deviceId, command);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping("/execute/{token}")
-    @ResponseBody
-    public ResponseEntity<Response> execute(@PathVariable String deviceId, @PathVariable String token, Authentication authentication) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void execute(@PathVariable String deviceId, @PathVariable String token, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
             try {
                 deviceManager.execute(UserToken.of(userInfo.getId(), token), deviceId);
                 log.info("[{}] Token {} successfully executed by {}", deviceId, token, userInfo);
-                return ResponseEntity.noContent().build();
             } catch (Exception ex) {
                 log.error("[{}] Unable to execute token {} by {}", deviceId, token, userInfo, ex);
-                return ResponseEntity.unprocessableEntity().build();
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
             }
         } else {
             log.warn("[{}] Unauthorized request to execute token {}", deviceId, token);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -194,41 +203,42 @@ public class DeviceController {
     }
 
     @PostMapping("/contact")
-    @ResponseBody
-    public ResponseEntity<Response> updateContact(@PathVariable String deviceId, @RequestBody Contact contact) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateContact(@PathVariable String deviceId, @RequestBody Contact contact) {
         log.info("[{}] Received {}", deviceId, contact);
-        try {
-            if (isValid(contact)) {
-                if (deviceProcessor.updateContact(deviceId, contact, confirmationTimeout) != null) {
-                    return ResponseEntity.noContent().build();
-                } else {
-                    log.warn("Update {} was not confirmed on device {}", contact, deviceId);
-                    return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Contact update was not confirmed"));
-                }
-            } else {
-                log.error("[{}] {} is incorrect", deviceId, contact);
-                return ResponseEntity.badRequest().build();
+        if (isValid(contact)) {
+            Message confirmation = null;
+            try {
+                confirmation = deviceProcessor.updateContact(deviceId, contact, confirmationTimeout);
+            } catch (Exception ex) {
+                log.error("[{}] Unable to update {}", deviceId, contact, ex);
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
             }
-        } catch (Exception ex) {
-            log.error("[{}] Unable to update {}", deviceId, contact, ex);
-            return ResponseEntity.unprocessableEntity().build();
+            if (confirmation == null) {
+                log.warn("Update {} was not confirmed on device {}", contact, deviceId);
+                throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Contact update was not confirmed");
+            }
+        } else {
+            log.error("[{}] {} is incorrect", deviceId, contact);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 
     @DeleteMapping("/contact/{type}/{index:\\d+}")
-    @ResponseBody
-    public ResponseEntity<Response> removeContact(@PathVariable String deviceId, @PathVariable ContactType type, @PathVariable Integer index) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeContact(@PathVariable String deviceId, @PathVariable ContactType type, @PathVariable Integer index) {
         log.info("[{}] Remove contact of type {} and index={}", deviceId, type, index);
+        Message confirmation = null;
         try {
-            if (deviceProcessor.removeContact(deviceId, type, index, confirmationTimeout) != null) {
-                return ResponseEntity.noContent().build();
-            } else {
-                log.warn("Remove contact of type {} and index {} was not confirmed on device {}", type, index, deviceId);
-                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Contact remove was not confirmed"));
-            }
+            confirmation = deviceProcessor.removeContact(deviceId, type, index, confirmationTimeout);
         } catch (Exception ex) {
             log.error("[{}] Unable to remove contact for type={}, index={}", deviceId, type, index, ex);
-            return ResponseEntity.unprocessableEntity().build();
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
+
+        }
+        if (confirmation == null) {
+            log.warn("Remove contact of type {} and index {} was not confirmed on device {}", type, index, deviceId);
+            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Contact remove was not confirmed");
         }
     }
 
@@ -239,47 +249,49 @@ public class DeviceController {
     }
 
     @PostMapping("/config")
-    @ResponseBody
-    public ResponseEntity<Response> updateConfig(@PathVariable String deviceId, @RequestBody Config config) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateConfig(@PathVariable String deviceId, @RequestBody Config config) {
         log.info("[{}] Received {}", deviceId, config);
-        try {
-            if (isValid(config)) {
-                if (deviceProcessor.updateConfig(deviceId, config, confirmationTimeout) != null) {
-                    return ResponseEntity.noContent().build();
-                } else {
-                    log.warn("Update {} was not confirmed on device {}", config, deviceId);
-                    return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new Response("Config update was not confirmed"));
-                }
-            } else {
-                log.error("[{}] {} is incorrect", deviceId, config);
-                return ResponseEntity.badRequest().build();
+        if (isValid(config)) {
+            Message confirmation = null;
+            try {
+                confirmation = deviceProcessor.updateConfig(deviceId, config, confirmationTimeout);
+            } catch (Exception ex) {
+                log.error("[{}] Unable to update {}", deviceId, config, ex);
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
             }
-        } catch (Exception ex) {
-            log.error("[{}] Unable to update {}", deviceId, config, ex);
-            return ResponseEntity.unprocessableEntity().build();
+            if (confirmation == null) {
+                log.warn("Update {} was not confirmed on device {}", config, deviceId);
+                throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Config update was not confirmed");
+            }
+        } else {
+            log.error("[{}] {} is incorrect", deviceId, config);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 
     @GetMapping("/alarmoff")
-    @ResponseBody
-    public ResponseEntity<Response> alarmOff(@PathVariable String deviceId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void alarmOff(@PathVariable String deviceId) {
         log.info("[{}] Received alarm off request", deviceId);
         deviceManager.alarmOff(deviceId);
-        return ResponseEntity.noContent().build();
     }
 
-    // TODO: remove
-    @Deprecated
-    @GetMapping("/command/{command}")
-    @ResponseBody
-    public ResponseEntity<Response> command(@PathVariable String deviceId, @PathVariable String command) {
+    @RolesAllowed("ROLE_ADMIN")
+    @GetMapping("/command/{payload}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void command(@PathVariable String deviceId, @PathVariable String payload) {
+        log.info("[{}] Received payload '{}'", deviceId, payload);
+        String[] parts = payload.split(",");
+        Message confirmation = null;
         try {
-            String[] parts = command.split(",");
-            deviceManager.send(deviceId, new Command(parts[0], Stream.of(parts).skip(1).collect(Collectors.toList())));
-            return ResponseEntity.noContent().build();
+            confirmation = deviceManager.send(deviceId, new Command(parts[0], Stream.of(parts).skip(1).collect(Collectors.toList())), confirmationTimeout);
         } catch (Exception ex) {
-            log.error("[{}] Unable to send payload '{}'", deviceId, command, ex);
-            return ResponseEntity.unprocessableEntity().build();
+            log.error("[{}] Unable to send payload '{}'", deviceId, payload, ex);
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        if (confirmation == null) {
+            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Payload was not confirmed");
         }
     }
 

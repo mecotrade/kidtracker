@@ -30,13 +30,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.model.Credentials;
 import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.model.Report;
-import ru.mecotrade.kidtracker.model.Response;
 import ru.mecotrade.kidtracker.model.ServerConfig;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.model.Status;
@@ -66,141 +67,147 @@ public class UserController {
 
     @GetMapping("/info")
     @ResponseBody
-    public ResponseEntity<User> info(Authentication authentication) {
+    public User info(Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(new User(new Credentials(userInfo.getUsername(), null, null),
-                    userInfo.getName(), userInfo.getPhone(), userInfo.isAdmin()));
+            return User.builder()
+                    .credentials(new Credentials(userInfo.getUsername(), null, null))
+                    .name(userInfo.getName())
+                    .phone(userInfo.getPhone())
+                    .admin(userInfo.isAdmin())
+                    .build();
         } else {
             log.warn("Unauthorized request for user info");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @PutMapping("/info")
-    @ResponseBody
-    public ResponseEntity<Response> update(@RequestBody User user, Authentication authentication) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void update(@RequestBody User user, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             try {
                 userProcessor.updateUser(userPrincipal, user);
             } catch (KidTrackerInvalidOperationException ex) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(ex.getMessage()));
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, ex.getMessage());
             } catch (Exception ex) {
                 log.warn("{} fails to update account", userPrincipal.getUserInfo(), ex);
-                return ResponseEntity.badRequest().build();
-            }            return ResponseEntity.noContent().build();
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            }
         } else {
             log.warn("Unauthorized request for account update");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @DeleteMapping("/info")
-    @ResponseBody
-    public ResponseEntity<Response> remove(@RequestBody User user, Authentication authentication) {
+    public void remove(@RequestBody User user, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             try {
                 userProcessor.removeUser(userPrincipal, user);
             } catch (KidTrackerInvalidOperationException ex) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(ex.getMessage()));
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, ex.getMessage());
             } catch (Exception ex) {
                 log.warn("{} fails to remove account", userPrincipal.getUserInfo(), ex);
-                return ResponseEntity.badRequest().build();
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
             throw new InsufficientAuthenticationException(userPrincipal.getUsername());
         } else {
             log.warn("Unauthorized request for account remove");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @GetMapping("/kids/info")
     @ResponseBody
-    public ResponseEntity<Collection<Kid>> kidInfo(Authentication authentication) {
+    public Collection<Kid> kidInfo(Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(userInfo.getKids().stream()
+            return userInfo.getKids().stream()
                     .map(k -> new Kid(k.getDevice().getId(),
                             k.getName(),
                             k.getThumb(),
                             k.getDevice().getKids().stream()
                                     .map(KidInfo::getUser)
-                                    .map(u -> new User(null, u.getName(), u.getPhone(), u.isAdmin()))
+                                    .map(u -> User.builder()
+                                            .name(u.getName())
+                                            .phone(u.getPhone())
+                                            .admin(u.isAdmin())
+                                            .build())
                                     .collect(Collectors.toList())))
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
         } else {
             log.warn("Unauthorized request for kids info");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @GetMapping("/kids/status")
     @ResponseBody
-    public ResponseEntity<Collection<Status>> status(Authentication authentication) {
+    public Collection<Status> status(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(deviceProcessor.status(userInfo));
+            return deviceProcessor.status(userInfo);
         } else {
-            log.warn("Unauthorized request for kids report");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            log.warn("Unauthorized request for kids status");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @GetMapping("/kids/report")
     @ResponseBody
-    public ResponseEntity<Report> report(Authentication authentication) {
+    public Report report(Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(deviceProcessor.report(userInfo));
+            return deviceProcessor.report(userInfo);
         } else {
             log.warn("Unauthorized request for kids report");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @GetMapping("/kids/snapshot/{timestamp:\\d+}")
     @ResponseBody
-    public ResponseEntity<Collection<Snapshot>> snapshot(@PathVariable Long timestamp, Authentication authentication) throws KidTrackerUnknownUserException {
+    public Collection<Snapshot> snapshot(@PathVariable Long timestamp, Authentication authentication) throws KidTrackerUnknownUserException {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return ResponseEntity.ok(deviceProcessor.lastSnapshots(userInfo.getId(), new Date(timestamp)));
+            return deviceProcessor.lastSnapshots(userInfo.getId(), new Date(timestamp));
         } else {
             log.warn("Unauthorized request for kids snapshots at timestamp {}", timestamp);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @PutMapping("/kid")
-    @ResponseBody
-    public ResponseEntity<Response> update(@RequestBody Kid kid, Authentication authentication) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void update(@RequestBody Kid kid, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             try {
                 userProcessor.updateKid(userPrincipal, kid);
                 log.info("{} successfully updated {}", userPrincipal.getUserInfo(), kid);
-                return ResponseEntity.noContent().build();
             } catch (InsufficientAuthenticationException ex) {
                 throw ex;
             } catch (Exception ex) {
                 log.warn("{} fails to update {}", userPrincipal.getUserInfo(), kid, ex);
-                return ResponseEntity.badRequest().build();
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
         } else {
             log.warn("Unauthorized request to update {}", kid);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @DeleteMapping("/kid")
     @ResponseBody
-    public ResponseEntity<Response> remove(@RequestBody Kid kid, Authentication authentication) {
+    public ResponseEntity<String> remove(@RequestBody Kid kid, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
@@ -208,68 +215,66 @@ public class UserController {
                 if (isValidPhone(userPrincipal.getUserInfo().getPhone())) {
                     return userProcessor.removeKid(userPrincipal, kid.getDeviceId())
                             ? ResponseEntity.noContent().build()
-                            : ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to device"));
+                            : ResponseEntity.status(HttpStatus.ACCEPTED).build();
                 } else {
                     log.warn("{} has invalid number and not allowed to remove {}", userPrincipal.getUserInfo(), kid);
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user phone number is incorrect."));
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed since user phone number is incorrect");
                 }
             } catch (InsufficientAuthenticationException ex) {
                 throw ex;
             } catch (Exception ex) {
                 log.warn("{} fails to remove {}", userPrincipal.getUserInfo(), kid, ex);
-                return ResponseEntity.badRequest().build();
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
         } else {
             log.warn("Unauthorized request to remove {}", kid);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @PostMapping("/kid")
-    @ResponseBody
-    public ResponseEntity<Response> create(@RequestBody Kid kid, Authentication authentication) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void create(@RequestBody Kid kid, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             if (isValidPhone(userPrincipal.getUserInfo().getPhone())) {
                 try {
                     userProcessor.applyAddKid(userPrincipal, kid);
-                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Token is send to device"));
                 } catch (InsufficientAuthenticationException ex) {
                     throw ex;
                 } catch (Exception ex) {
                     log.warn("{} fails to add {}", userPrincipal.getUserInfo(), kid, ex);
-                    return ResponseEntity.badRequest().build();
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
                 }
             } else {
                 log.warn("{} has invalid number and not allowed to add {}", userPrincipal.getUserInfo(), kid);
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response("Not allowed since user phone number is incorrect."));
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed since user phone number is incorrect");
             }
         } else {
             log.warn("Unauthorized request to add {}", kid);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
     @GetMapping("/token/{token}")
-    @ResponseBody
-    public ResponseEntity<Response> token(@PathVariable String token, Authentication authentication) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void token(@PathVariable String token, Authentication authentication) {
 
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             try {
                 userProcessor.execute(UserToken.of(userPrincipal.getUserInfo().getId(), token));
                 log.info("Token {} successfully executed by {}", token, userPrincipal.getUserInfo());
-                return ResponseEntity.noContent().build();
             } catch (InsufficientAuthenticationException ex) {
                 throw ex;
             } catch (Exception ex) {
                 log.warn("{} fails to execute token {}", userPrincipal.getUserInfo(), token, ex);
-                return ResponseEntity.badRequest().build();
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
             }
         } else {
             log.warn("Unauthorized request to execute token {}", token);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 
