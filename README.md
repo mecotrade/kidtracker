@@ -95,8 +95,13 @@ cellphone number, and no device can be assigned to it.
 ### Communication with device
 Devices communicate to the application by means of messages. There are several types of messages,
 some can provide information about the device location and alerts, others contain actual battery
-charge and pedometer value. Some messages can also be sent by the application to a device to make
-it perform several actions or modify its settings.
+charge and pedometer value. 
+
+Some messages can also be sent by the application to a device to make
+it perform several actions or modify its settings. To assure the device has received the message, 
+it sends a confirmation message back to the application. While waiting the confirmation
+message, the UI gets blocked. If no confirmation is received
+in 10 seconds (can be configured), the initial message is considered to be not confirmed. 
 
 ### User interface
 
