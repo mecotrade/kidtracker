@@ -1,6 +1,12 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## v1.2.0 - 15 Oct 2020
+- Message receiving confirmed by device
+- Remember me in login page
+- Non clickable timestamp bug fixed
+- On/Off Wi-Fi config added
+
 ## v1.1.0 - 28 Jul 2020
 - Alert when location is obsolete
 - Resize kid's images, so large images upload is possible
