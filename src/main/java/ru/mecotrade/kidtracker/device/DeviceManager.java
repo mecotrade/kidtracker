@@ -24,6 +24,7 @@ import ru.mecotrade.kidtracker.dao.DeviceService;
 import ru.mecotrade.kidtracker.dao.MessageService;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
+import ru.mecotrade.kidtracker.exception.KidTrackerConfirmationException;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownDeviceException;
@@ -147,14 +148,20 @@ public class DeviceManager implements MessageListener, Cleanable {
         }
     }
 
-    public void apply(UserInfo userInfo, String deviceId, Command command, long timeout) throws KidTrackerException {
+    public Message apply(UserInfo userInfo, String deviceId, Command command, long timeout) throws KidTrackerException {
 
         Device device = devices.get(deviceId);
         if (device != null) {
             UserToken userToken = UserToken.of(userInfo.getId(), RandomStringUtils.randomNumeric(tokenLength));
             device.apply(userToken, command, timeout);
-            device.send(Command.of("SMS", userInfo.getPhone(), userToken.getToken()));
-            log.info("[{}] {} for {} is sent to user {}", deviceId, userToken, command, userInfo);
+            Command smsCommand = Command.of("SMS", userInfo.getPhone(), userToken.getToken());
+            Message confirmation = device.send(smsCommand, timeout);
+            if (confirmation != null) {
+                log.info("[{}] {} for {} is sent to user {}", deviceId, userToken, command, userInfo);
+                return confirmation;
+            } else {
+                throw new KidTrackerConfirmationException(String.format("%s on device %s was not confirmed within %d milliseconds", smsCommand, deviceId, timeout));
+            }
         } else {
             throw new KidTrackerUnknownDeviceException(deviceId);
         }

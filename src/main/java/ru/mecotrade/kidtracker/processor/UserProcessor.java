@@ -156,7 +156,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
         if (userService.getByUsername(user.getCredentials().getUsername()).isPresent()) {
             log.info("{} can't be created since username is not unique", user);
-            throw new KidTrackerInvalidOperationException("Username is not unique.");
+            throw new KidTrackerInvalidOperationException("Username is not unique");
         }
 
         UserInfo userInfo = UserInfo.builder()

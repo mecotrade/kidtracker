@@ -146,7 +146,7 @@ public class Device extends JobExecutor implements DeviceSender {
     public void apply(UserToken userToken, Command command, long timeout) {
         apply(userToken, () -> {
             if (send(command.getType(), String.join(",", command.getPayload()), timeout) == null) {
-                throw new KidTrackerConfirmationException(String.format("Command %s on device %s was not confirmed within %d milliseconds", command, id, timeout));
+                throw new KidTrackerConfirmationException(String.format("%s on device %s was not confirmed within %d milliseconds", command, id, timeout));
             }
         });
     }

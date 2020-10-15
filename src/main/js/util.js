@@ -44,7 +44,7 @@ async function fetchWithRedirect(url, fetchOptions, options) {
             options.success();
         }
         if (response.status == 202) {
-            await showInputToken(config.deviceId);
+            await showInputToken(options.deviceId);
         }
         if (response.status != 204) {
             return await response.json();
@@ -206,7 +206,8 @@ async function showInputToken(deviceId) {
                 {
                     error: message => {
                         showError(i18n.translate(message || 'Command is not completed'));
-                    }
+                    },
+                    block: true
                 });
                 hide();
             });

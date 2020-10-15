@@ -153,7 +153,7 @@ const i18n = {
             'Repeat password': 'Повторите пароль',
             'Passwords do not match.': 'Пароли не совпадают',
             'Username should not be empty.': 'Логин должен быть заполнен',
-            'Username is not unique.': 'Пользователь с таким логином уже существует.',
+            'Username is not unique': 'Пользователь с таким логином уже существует',
             'Incorrect credentials.': 'Пароль указан неверно.',
             'Kid list is not empty.': 'Список детей не пуст.',
             'Last admin can\'t be removed.': 'Последний администратор не может быть удалён.',
@@ -167,10 +167,11 @@ const i18n = {
             'Set server hostname and port': 'Имя сервера и порт',
             'Send text message to the device {}If the device password was changed, put it instead of {}': 'Отправьте на устройство SMS с текстом {}Если пароль был изменён, замените {} на новый пароль',
             'Activate Wi-Fi': 'Включить Wi-Fi',
-            'Config update was not confirmed': 'Изменение настроек не подтверждено',
-            'Contact remove was not confirmed': 'Удаление контакта не подтверждено',
-            'Contact update was not confirmed': 'Изменение контакта не подтверждено',
-            'Command was not confirmed': 'Команда не подтверждена'
+            'Config update is not confirmed': 'Изменение настроек не подтверждено',
+            'Contact remove is not confirmed': 'Удаление контакта не подтверждено',
+            'Contact update is not confirmed': 'Изменение контакта не подтверждено',
+            'Command is not confirmed': 'Команда не подтверждена',
+            'Token sending is not confirmed': 'Отправка токена не подтверждена'
         }
     },
 

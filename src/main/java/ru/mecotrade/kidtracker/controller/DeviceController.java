@@ -142,12 +142,18 @@ public class DeviceController {
                 if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
                     UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
                     if (isValidPhone(userInfo.getPhone())) {
+                        Message confirmation = null;
                         try {
-                            deviceManager.apply(userInfo, deviceId, command, confirmationTimeout);
-                            return ResponseEntity.accepted().build();
+                            confirmation = deviceManager.apply(userInfo, deviceId, command, confirmationTimeout);
                         } catch (Exception ex) {
                             log.error("[{}] Unable to apply {}", deviceId, command, ex);
                             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
+                        }
+                        if (confirmation != null) {
+                            return ResponseEntity.accepted().build();
+                        } else {
+                            log.warn("Token sending for {} is not confirmed on device {}", command, deviceId);
+                            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Token sending is not confirmed");
                         }
                     } else {
                         log.warn("{} has invalid phone number", userInfo);
@@ -169,7 +175,7 @@ public class DeviceController {
                     return ResponseEntity.noContent().build();
                 } else {
                     log.warn("Command {} was not confirmed on device {}", command, deviceId);
-                    throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Command was not confirmed");
+                    throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Command is not confirmed");
                 }
             }
         } else {
@@ -216,7 +222,7 @@ public class DeviceController {
             }
             if (confirmation == null) {
                 log.warn("Update {} was not confirmed on device {}", contact, deviceId);
-                throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Contact update was not confirmed");
+                throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Contact update is not confirmed");
             }
         } else {
             log.error("[{}] {} is incorrect", deviceId, contact);
@@ -238,7 +244,7 @@ public class DeviceController {
         }
         if (confirmation == null) {
             log.warn("Remove contact of type {} and index {} was not confirmed on device {}", type, index, deviceId);
-            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Contact remove was not confirmed");
+            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Contact remove is not confirmed");
         }
     }
 
@@ -262,7 +268,7 @@ public class DeviceController {
             }
             if (confirmation == null) {
                 log.warn("Update {} was not confirmed on device {}", config, deviceId);
-                throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Config update was not confirmed");
+                throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Config update is not confirmed");
             }
         } else {
             log.error("[{}] {} is incorrect", deviceId, config);
@@ -301,7 +307,10 @@ public class DeviceController {
                 case PHONEBOOK:
                     return !StringUtils.isBlank(contact.getName())
                             && isValidPhone(contact.getPhone());
-                default:
+                case ADMIN:
+                case SOS:
+                case WHITELIST:
+                case BUTTON:
                     return isValidPhone(contact.getPhone());
             }
         }
