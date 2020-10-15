@@ -16,6 +16,7 @@
 package ru.mecotrade.kidtracker.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -33,6 +34,9 @@ import ru.mecotrade.kidtracker.security.UserDeviceFilter;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Value("${remember.me.token.validity.seconds}")
+    private int rememberMeTokenValiditySeconds;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -56,7 +60,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .permitAll()
                         .and()
                 .logout()
-                        .permitAll();
+                        .permitAll()
+                        .and()
+                .rememberMe()
+                        .tokenValiditySeconds(rememberMeTokenValiditySeconds);
     }
 
     @Bean
