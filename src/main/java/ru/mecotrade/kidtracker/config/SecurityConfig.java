@@ -63,6 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .permitAll()
                         .and()
                 .rememberMe()
+                        .userDetailsService(userDetailsService)
                         .tokenValiditySeconds(rememberMeTokenValiditySeconds);
     }
 
