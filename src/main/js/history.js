@@ -220,9 +220,9 @@ async function showHistory(deviceId) {
             $messages.html('');
             const messages = await fetchWithRedirect(`/api/device/${deviceId}/chat/${range.start.getTime()}/${range.end.getTime()}`);
             if (messages && messages.length) {
-                messages.forEach(async message => await addMessage(message, deviceId, $messages));
                 $chart.hide();
-                $messages.show()
+                $messages.show();
+                messages.forEach(async message => await addMessage(message, deviceId, $messages));
             } else {
                 await showWarning(i18n.format('No data'));
             }
