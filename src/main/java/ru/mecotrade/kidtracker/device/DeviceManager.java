@@ -113,7 +113,10 @@ public class DeviceManager implements MessageListener, Cleanable {
     }
 
     public Collection<Device> select(Collection<String> deviceIds) {
-        return devices.entrySet().stream().filter(e -> deviceIds.contains(e.getKey())).map(Map.Entry::getValue).collect(Collectors.toList());
+        return devices.entrySet().stream()
+                .filter(e -> deviceIds.contains(e.getKey()))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
     }
 
     public Date last(String deviceId) {

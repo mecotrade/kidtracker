@@ -89,20 +89,20 @@ public class MessageUtils {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("ddMMyyHHmmss");
 
-    private static final Map<Byte, Map<Byte, byte[]>> CYRILLIC_GMS_MAPPING = new HashMap<>();
+    private static final Map<Byte, Map<Byte, byte[]>> CYRILLIC_GSM_MAPPING = new HashMap<>();
 
     static {
 
         byte[] utf8 = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя".getBytes(StandardCharsets.UTF_8);
-        byte[] gms = ("\ua7a1\ua7a2\ua7a3\ua7a4\ua7a5\ua7a6\ua7a7\ua7a8\ua7a9\ua7aa\ua7ab\ua7ac\ua7ad\ua7ae\ua7af"
+        byte[] gsm = ("\ua7a1\ua7a2\ua7a3\ua7a4\ua7a5\ua7a6\ua7a7\ua7a8\ua7a9\ua7aa\ua7ab\ua7ac\ua7ad\ua7ae\ua7af"
                 + "\ua7b0\ua7b1\ua7b2\ua7b3\ua7b4\ua7b5\ua7b6\ua7b7\ua7b8\ua7b9\ua7ba\ua7bb\ua7bc\ua7bd\ua7be\ua7bf\ua7c0\ua7c1"
                 + "\ua7d1\ua7d2\ua7d3\ua7d4\ua7d5\ua7d6\ua7d7\ua7d8\ua7d9\ua7da\ua7db\ua7dc\ua7dd\ua7de\ua7df"
                 + "\ua7e0\ua7e1\ua7e2\ua7e3\ua7e4\ua7e5\ua7e6\ua7e7\ua7e8\ua7e9\ua7ea\ua7eb\ua7ec\ua7ed\ua7ee\ua7ef\ua7f0\ua7f1").getBytes(StandardCharsets.UTF_16);
 
         for (int i = 0; i < utf8.length; i += 2) {
-            Map<Byte, byte[]> prefixMap = CYRILLIC_GMS_MAPPING.computeIfAbsent(utf8[i], b -> new HashMap<Byte, byte[]>());
+            Map<Byte, byte[]> prefixMap = CYRILLIC_GSM_MAPPING.computeIfAbsent(utf8[i], b -> new HashMap<Byte, byte[]>());
             // skip leading FEFF in UTF_16 encoding
-            prefixMap.put(utf8[i+1], Arrays.copyOfRange(gms, i+2, i+4));
+            prefixMap.put(utf8[i+1], Arrays.copyOfRange(gsm, i+2, i+4));
         }
     }
 
@@ -129,7 +129,7 @@ public class MessageUtils {
         int idx = 0;
         while (idx < payload.length) {
             byte b = payload[idx++];
-            Map<Byte, byte[]> mapping = CYRILLIC_GMS_MAPPING.get(b);
+            Map<Byte, byte[]> mapping = CYRILLIC_GSM_MAPPING.get(b);
             if (mapping != null) {
                 byte bb = payload[idx++];
                 byte[] bs = mapping.get(bb);
