@@ -41,7 +41,7 @@ docker-compose -f docker-builder.yml run --rm builder
 While building, an SSL certificate required for `https` connections is created. It is possible 
 to specify a domain and/or an ip address using environment variables `DOMAIN` and `IP`
 ```bash
-docker-compose -f builder/docker-compose.yml run --rm -e DOMAIN=example.com -e IP=123.45.67.89 builder
+docker-compose -f docker-builder.yml run --rm -e DOMAIN=example.com -e IP=123.45.67.89 builder
 ```
 
 The application can be started with command

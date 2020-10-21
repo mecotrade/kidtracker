@@ -17,6 +17,7 @@ package ru.mecotrade.kidtracker.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -36,13 +37,9 @@ public class DaoUserDetailsService implements UserDetailsService  {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        Optional<UserInfo> userInfoOptional = userService.getByUsername(username);
-        if (userInfoOptional.isPresent()) {
-            UserInfo userInfo = userInfoOptional.get();
-            return new UserPrincipal(userInfo,
-                    Collections.singleton(userInfo.isAdmin() ? Roles.ADMIN.toAuthority() : Roles.USER.toAuthority()));
-        } else {
-            throw new UsernameNotFoundException(username);
-        }
+        UserInfo userInfo = userService.getByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+        return new UserPrincipal(userInfo,
+                AuthorityUtils.createAuthorityList(userInfo.isAdmin() ? Roles.ADMIN.name() : Roles.USER.name()));
     }
 }
