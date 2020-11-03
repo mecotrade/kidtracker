@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ru.mecotrade.kidtracker.dao;
+package ru.mecotrade.kidtracker.dao.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.mecotrade.kidtracker.dao.model.ConfigRecord;
+import org.springframework.data.jpa.repository.Query;
+import ru.mecotrade.kidtracker.dao.model.Message;
+import ru.mecotrade.kidtracker.dao.model.UserInfo;
 
 import java.util.Collection;
 import java.util.Optional;
 
-public interface ConfigRepository extends JpaRepository<ConfigRecord, Long> {
+public interface UserRepository extends JpaRepository<UserInfo, Long> {
 
-    Optional<ConfigRecord> findByDeviceIdAndParameter(String deviceId, String parameter);
+    Optional<UserInfo> findByUsername(String username);
 
-    Collection<ConfigRecord> findByDeviceId(String deviceId);
+    long countByAdmin(Boolean admin);
+
+    @Query("select message from Message message where message.id in (select max(m.id) from Message m join UserInfo u join u.kids k on m.deviceId = k.device.id where u.id = :userId and m.type in :types and m.source = :source group by m.deviceId)")
+    Collection<Message> findUserKidsLastMessages(Long userId, Collection<String> types, Message.Source source);
 }

@@ -19,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -34,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
+import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.model.Credentials;
 import ru.mecotrade.kidtracker.model.Kid;
@@ -64,6 +68,9 @@ public class UserController {
 
     @Autowired
     private UserProcessor userProcessor;
+
+    @Autowired
+    private DeviceManager deviceManager;
 
     @GetMapping("/info")
     @ResponseBody
@@ -154,19 +161,6 @@ public class UserController {
             return deviceProcessor.status(userInfo);
         } else {
             log.warn("Unauthorized request for kids status");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    @GetMapping("/kids/report")
-    @ResponseBody
-    public Report report(Authentication authentication) {
-
-        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
-            UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return deviceProcessor.report(userInfo);
-        } else {
-            log.warn("Unauthorized request for kids report");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
@@ -282,5 +276,23 @@ public class UserController {
     @ResponseBody
     public ServerConfig config() {
         return userProcessor.serverConfig();
+    }
+
+    @SubscribeMapping("/queue/report")
+    public Collection<Report> onSubscribe(Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        UserInfo userInfo = userPrincipal.getUserInfo();
+        log.debug("User {} subscribed to device report queue", userInfo.getUsername());
+
+        deviceManager.subscribe(userInfo);
+
+        return deviceManager.reports(userInfo);
+    }
+
+    @MessageMapping("/report")
+    @SendToUser("/queue/report")
+    public Collection<Report> reports(Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return deviceManager.reports(userPrincipal.getUserInfo());
     }
 }

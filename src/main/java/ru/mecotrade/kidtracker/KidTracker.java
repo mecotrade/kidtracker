@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import ru.mecotrade.kidtracker.device.DeviceServer;
 import ru.mecotrade.kidtracker.processor.UserProcessor;
@@ -28,6 +29,7 @@ import javax.annotation.PostConstruct;
 
 @SpringBootApplication
 @EnableScheduling
+@ServletComponentScan
 @Slf4j
 public class KidTracker {
 

@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.mecotrade.kidtracker.exception.KidTrackerConfirmationException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Position;
+import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;

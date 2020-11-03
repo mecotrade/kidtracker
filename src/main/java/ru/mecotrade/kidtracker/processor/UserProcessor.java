@@ -23,10 +23,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import ru.mecotrade.kidtracker.dao.DeviceService;
-import ru.mecotrade.kidtracker.dao.KidService;
-import ru.mecotrade.kidtracker.dao.MessageService;
-import ru.mecotrade.kidtracker.dao.UserService;
+import ru.mecotrade.kidtracker.dao.service.DeviceService;
+import ru.mecotrade.kidtracker.dao.service.KidService;
+import ru.mecotrade.kidtracker.dao.service.MessageService;
+import ru.mecotrade.kidtracker.dao.service.UserService;
 import ru.mecotrade.kidtracker.dao.model.Assignment;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
@@ -82,8 +82,8 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     @Value("${kidtracker.token.ttl.millis}")
     private long tokenTtlMillis;
 
-    @Value("${kidtracker.remove.without.token.millis}")
-    private long removeWithoutTokenMillis;
+    @Value("${kidtracker.device.remove.without.token.millis}")
+    private long removeDeviceWithoutTokenMillis;
 
     @Value("${kidtracker.thumb.size}")
     private int thumbSize;
@@ -112,7 +112,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     public boolean removeKid(UserPrincipal userPrincipal, String deviceId) throws KidTrackerException {
 
         boolean now = messageService.last(Collections.singleton(deviceId), Message.Source.DEVICE).stream()
-                .map(m -> System.currentTimeMillis() - m.getTimestamp().getTime() > removeWithoutTokenMillis)
+                .map(m -> System.currentTimeMillis() - m.getTimestamp().getTime() > removeDeviceWithoutTokenMillis)
                 .findFirst()
                 .orElse(true);
 

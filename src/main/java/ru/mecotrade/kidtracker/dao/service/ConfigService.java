@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ru.mecotrade.kidtracker.dao;
+package ru.mecotrade.kidtracker.dao.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.mecotrade.kidtracker.dao.model.ConfigRecord;
+import ru.mecotrade.kidtracker.dao.repository.ConfigRepository;
 import ru.mecotrade.kidtracker.model.Config;
 
 import javax.transaction.Transactional;

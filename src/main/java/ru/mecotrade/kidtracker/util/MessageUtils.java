@@ -292,4 +292,8 @@ public class MessageUtils {
         }
         return null;
     }
+
+    public static boolean isReportable(Message message) {
+        return LINK_TYPE.equals(message.getType()) || LOCATION_TYPES.contains(message.getType());
+    }
 }

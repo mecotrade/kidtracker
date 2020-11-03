@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ru.mecotrade.kidtracker.dao;
+package ru.mecotrade.kidtracker.dao.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import ru.mecotrade.kidtracker.dao.model.ContactRecord;
-import ru.mecotrade.kidtracker.model.ContactType;
+import org.springframework.data.jpa.repository.Query;
+import ru.mecotrade.kidtracker.dao.model.Assignment;
+import ru.mecotrade.kidtracker.dao.model.KidInfo;
+import ru.mecotrade.kidtracker.dao.model.UserInfo;
 
 import java.util.Collection;
 
-@Repository
-public interface ContactRepository extends JpaRepository<ContactRecord, Long> {
+public interface KidRepository extends JpaRepository<KidInfo, Assignment> {
 
-    Collection<ContactRecord> findByDeviceIdAndType(String deviceId, ContactType type);
-
-    Collection<ContactRecord> findByDeviceIdAndTypeAndIndexIn(String deviceId, ContactType type, Collection<Integer> indices);
-
-    long deleteByDeviceIdAndTypeAndIndex(String deviceId, ContactType type, Integer index);
+    @Query("select user from UserInfo user join user.kids k where k.device.id = :deviceId")
+    Collection<UserInfo> findUsersByDeviceId(String deviceId);
 }

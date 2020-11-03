@@ -15,6 +15,7 @@
  */
 package ru.mecotrade.kidtracker.controller;
 
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
@@ -25,8 +26,8 @@ import java.util.Map;
 public class RawMessageErrorAttributes extends DefaultErrorAttributes {
 
     @Override
-    public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
-        Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, includeStackTrace);
+    public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions errorAttributeOptions) {
+        Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, errorAttributeOptions);
         Object message = webRequest.getAttribute("javax.servlet.error.message", 0);
         errorAttributes.put("message", message);
         return errorAttributes;

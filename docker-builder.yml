@@ -5,3 +5,4 @@ services:
     working_dir: /build
     volumes:
       - .:/build
+      - .m2:/root/.m2

@@ -17,12 +17,11 @@ package ru.mecotrade.kidtracker.device;
 
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
-import ru.mecotrade.kidtracker.dao.MessageService;
+import ru.mecotrade.kidtracker.dao.service.MessageService;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.dao.model.Message;
-import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
 import java.io.IOException;

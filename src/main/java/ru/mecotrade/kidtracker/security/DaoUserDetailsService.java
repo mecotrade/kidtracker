@@ -22,11 +22,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import ru.mecotrade.kidtracker.dao.UserService;
+import ru.mecotrade.kidtracker.dao.service.UserService;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
-
-import java.util.Collections;
-import java.util.Optional;
 
 @Service
 @Slf4j

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ru.mecotrade.kidtracker.dao;
+package ru.mecotrade.kidtracker.dao.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;

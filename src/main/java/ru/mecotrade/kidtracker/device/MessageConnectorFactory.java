@@ -17,7 +17,7 @@ package ru.mecotrade.kidtracker.device;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.mecotrade.kidtracker.dao.MessageService;
+import ru.mecotrade.kidtracker.dao.service.MessageService;
 
 import java.net.Socket;
 

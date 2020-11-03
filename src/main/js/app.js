@@ -40,7 +40,6 @@ const ERROR_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm';
 const LOST_INTERVAL = 15 * 60 * 1000;       /* 15 min */
 
 const DEFAULT_ZOOM = 16;
-const KID_POSITION_QUERY_INTERVAL = 10 * 1000;      /* 10 sec */
 
 const map = L.map('map');
 
@@ -68,6 +67,18 @@ var midnight;
 var view = 'none';
 var path = null;
 var selected = null;
+
+var stompClient = null;
+
+function connectStompClient() {
+    stompClient = Stomp.over(new SockJS('/device'));
+    stompClient.connect({}, function(frame) {
+        stompClient.subscribe('/user/queue/report', function(response) {
+            const reports = JSON.parse(response.body);
+            onKidReports(reports);
+        });
+    });
+}
 
 function updateViewIcons() {
 
@@ -192,7 +203,13 @@ async function updateMidnightSnapshot() {
     }
 }
 
-async function locateKids() {
+function requestKidReports() {
+    stompClient.send('/user/report');
+}
+
+async function onKidReports(reports) {
+
+    reports = Array.isArray(reports) ? reports : [reports];
 
     if (new Date().toDateString() != midnight.toDateString()) {
         await updateMidnightSnapshot();
@@ -200,25 +217,15 @@ async function locateKids() {
 
     const deviceId = $select.children('option:selected').val();
 
-    const report = await fetchWithRedirect(`/api/user/kids/report`);
-    if (report) {
-        report.positions.forEach(p => {
-            if (!path || p.deviceId != deviceId) {
-                const kid = kids.find(k => k.deviceId == p.deviceId);
-                if (kid) {
-                    const snapshot = report.snapshots.find(s => s.deviceId == p.deviceId);
-                    const alarm = report.alarms.includes(p.deviceId);
-                    const lastMsg = p.deviceId in report.last ? moment(report.last[p.deviceId]).toDate() : null;
-                    updateKidPopup(kid, p, snapshot, kid.snapshot, true, alarm, lastMsg, kid.deviceId == deviceId);
-                    if (!path && kid.deviceId == deviceId) {
-                        setView(kid);
-                    }
-                } else {
-                    // TODO if not found
-                }
+    reports.forEach(report => {
+        if (!path || deviceId != report.deviceId) {
+            const kid = kids.find(k => k.deviceId == report.deviceId);
+            updateKidPopup(kid, report.position, report.snapshot, kid.snapshot, true, report.alarm, report.last ? moment(report.last).toDate() : null, kid.deviceId == deviceId);
+            if (!path && deviceId == report.deviceId) {
+                setView(kid);
             }
-        });
-    }
+        }
+    });
 }
 
 function initMap() {
@@ -301,7 +308,7 @@ async function initNavbar() {
             if (path) {
                 path.move(path.slider.value());
             } else {
-                locateKids();
+                requestKidReports();
             }
         }
     });
@@ -379,7 +386,7 @@ async function initNavbar() {
         } else {
 
             removePath();
-            locateKids();
+            requestKidReports();
         }
     });
 
@@ -400,7 +407,7 @@ async function initNavbar() {
         after: () => {
             view = 'kid';
             updateViewIcons();
-            locateKids();
+            requestKidReports();
         }
     });
     initCommand($bell, 'FIND', null, {device: () => $select.children('option:selected').val()});
@@ -507,7 +514,7 @@ async function showNavbar() {
             if (path && path.deviceId != selected) {
                 removePath();
             }
-            locateKids();
+            requestKidReports();
         });
         kids.forEach(k => {
             const props = popupProps[k.deviceId];
@@ -529,8 +536,6 @@ async function showNavbar() {
 
     // init pedometer to closest midnight
     await updateMidnightSnapshot();
-
-    locateKids();
 }
 
 window.addEventListener('load', async function onload() {
@@ -538,5 +543,5 @@ window.addEventListener('load', async function onload() {
     await initNavbar();
     await showNavbar();
 
-    setInterval(locateKids, KID_POSITION_QUERY_INTERVAL);
+    connectStompClient();
 });

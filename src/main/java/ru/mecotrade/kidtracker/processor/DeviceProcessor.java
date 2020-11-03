@@ -18,10 +18,9 @@ package ru.mecotrade.kidtracker.processor;
 import com.google.common.collect.Streams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.mecotrade.kidtracker.dao.ConfigService;
-import ru.mecotrade.kidtracker.dao.ContactService;
+import ru.mecotrade.kidtracker.dao.service.ConfigService;
+import ru.mecotrade.kidtracker.dao.service.ContactService;
 import ru.mecotrade.kidtracker.dao.model.ConfigRecord;
 import ru.mecotrade.kidtracker.dao.model.ContactRecord;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
@@ -30,17 +29,14 @@ import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Config;
 import ru.mecotrade.kidtracker.model.Contact;
 import ru.mecotrade.kidtracker.model.ContactType;
-import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.model.Position;
-import ru.mecotrade.kidtracker.dao.MessageService;
-import ru.mecotrade.kidtracker.dao.UserService;
+import ru.mecotrade.kidtracker.dao.service.MessageService;
+import ru.mecotrade.kidtracker.dao.service.UserService;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
-import ru.mecotrade.kidtracker.device.Device;
 import ru.mecotrade.kidtracker.device.DeviceManager;
-import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.model.Status;
 import ru.mecotrade.kidtracker.util.MessageUtils;
@@ -96,70 +92,6 @@ public class DeviceProcessor {
 
         Set<String> offlineIds = offline.stream().map(Status::getDeviceId).collect(Collectors.toSet());
         return Streams.concat(status.stream().filter(s -> !offlineIds.contains(s.getDeviceId())), offline.stream()).collect(Collectors.toList());
-    }
-
-    public Report report(UserInfo userInfo) {
-
-        Collection<Device> devices = deviceManager.select(userInfo.getKids().stream()
-                .map(KidInfo::getDevice)
-                .map(DeviceInfo::getId)
-                .collect(Collectors.toList()));
-
-        Collection<Position> positions = devices.stream()
-                .map(Device::position)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        // if there are some devices with unknown last location, try to find it in the database
-        if (positions.size() < devices.size()) {
-            for (Device device : devices.stream().filter(d -> d.getLocation() == null).collect(Collectors.toList())) {
-                synchronized (device) {
-
-                    if (device.getLocation() == null) {
-                        Message message = messageService.last(device.getId(), MessageUtils.LOCATION_TYPES, Message.Source.DEVICE);
-                        log.debug("[{}] Location not found, use historical message {}", device.getId(), message);
-                        if (message != null) {
-                            try {
-                                device.setLocation(MessageUtils.toLocation(message));
-                                positions.add(device.position());
-                            } catch (KidTrackerParseException ex) {
-                                log.warn("Unable to parse historical location message {}", message);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Collection<Snapshot> snapshots = devices.stream()
-                .map(Device::snapshot)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        // if there are some devices with unknown last link, try to find it in the database
-        if (snapshots.size() < devices.size()) {
-            for (Device device : devices.stream().filter(d -> d.getLink() == null).collect(Collectors.toList())) {
-                synchronized (device) {
-                    if (device.getLink() == null) {
-                        Message message = messageService.last(device.getId(), Collections.singleton(MessageUtils.LINK_TYPE), Message.Source.DEVICE);
-                        log.debug("[{}] Link not found, use historical message {}", device.getId(), message);
-                        try {
-                            device.setLink(MessageUtils.toLink(message));
-                            snapshots.add(device.snapshot());
-                        } catch (KidTrackerParseException ex) {
-                            log.warn("Unable to parse historical link message {}", message);
-                        }
-                    }
-                }
-            }
-        }
-
-        return Report.builder()
-                .positions(positions)
-                .snapshots(snapshots)
-                .alarms(devices.stream().filter(d -> d.getAlarm().getValue()).map(Device::getId).collect(Collectors.toList()))
-                .last(devices.stream().collect(Collectors.toMap(Device::getId, Device::getLast)))
-                .build();
     }
 
     public Collection<Snapshot> lastSnapshots(Long userId, Date timestamp) throws KidTrackerUnknownUserException {
