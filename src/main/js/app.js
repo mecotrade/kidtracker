@@ -74,8 +74,7 @@ function connectStompClient() {
     stompClient = Stomp.over(new SockJS('/device'));
     stompClient.connect({}, function(frame) {
         stompClient.subscribe('/user/queue/report', function(response) {
-            const reports = JSON.parse(response.body);
-            onKidReports(reports);
+            onKidReports(JSON.parse(response.body));
         });
     });
 }

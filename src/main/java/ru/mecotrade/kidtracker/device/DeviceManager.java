@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
@@ -130,19 +131,22 @@ public class DeviceManager implements MessageListener, Cleanable {
 
         device.process(message);
 
-        notifyUsers(device, message);
+        process(message, device);
     }
 
-    public void notifyUsers(Device device, Message message) {
+    public void process(Message message, Device device) {
+
         if (isReportable(message)) {
-            sendReportToUsers(device);
+            Report report = report(device);
+            deviceUsers.getOrDefault(device.getId(), Collections.emptySet())
+                    .forEach(user -> {
+                        try {
+                            simpMessagingTemplate.convertAndSendToUser(user, userQueueReport, report);
+                        } catch (MessagingException ex) {
+                            log.warn("[{}] Unable to send {} to user {}", device.getId(), report, user, ex);
+                        }
+                    });
         }
-    }
-
-    public void sendReportToUsers(Device device) {
-        Report report = report(device);
-        deviceUsers.getOrDefault(device.getId(), Collections.emptySet())
-                .forEach(user -> simpMessagingTemplate.convertAndSendToUser(user, userQueueReport, report));
     }
 
     public Collection<Device> select(Collection<String> deviceIds) {
