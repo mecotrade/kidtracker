@@ -22,7 +22,6 @@ const {showInputToken, fetchWithRedirect, initCommand, initConfig, initCheck} = 
 const CHAT_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
 const CHAT_UPDATE_INTERVAL = 10000;
 
-var messages = [];
 var timerId = null;
 
 (function($) {
@@ -31,12 +30,10 @@ var timerId = null;
     }
 })(jQuery);
 
-function addMessage(message, deviceId, $body, prepend) {
+function addMessage(message, deviceId, $body) {
 
-    const id = `message-timestamp-${deviceId}-${message.mediaId}`;
-
-    const $time = $('<div>').addClass('message-timestamp').attr('id', id).text(moment(message.timestamp).format(CHAT_TIME_FORMAT));
-    const $message = $('<div>').addClass(message.source == 'DEVICE' ? 'incoming-message' : 'outgoing-message').append($time)
+    const $time = $('<div>').addClass('message-timestamp').attr('data-fromnow', false).text(moment(message.timestamp).format(CHAT_TIME_FORMAT));
+    const $message = $('<div>').attr('data-media', message.mediaId).addClass(message.source == 'DEVICE' ? 'incoming-message' : 'outgoing-message').append($time)
     if (message.type == 'AUDIO') {
         $message.append($('<audio>').prop('controls', true).attr('src', `/api/device/${deviceId}/media/${message.mediaId}`));
     } else if (message.type == 'IMAGE') {
@@ -45,17 +42,29 @@ function addMessage(message, deviceId, $body, prepend) {
         $message.append($('<div>').addClass('message-text').append($('<span>').text(message.text)));
     }
 
-    if (prepend) {
-        $body.prepend($message);
-    } else {
+    const $messages = $body.children();
+    if ($messages.length == 0 || parseInt($($messages[$messages.length - 1]).data('media')) < message.mediaId) {
         $body.append($message);
+    } else {
+        for (let i = 0; i < $messages.length; i++) {
+            const $msg = $($messages[i]);
+            const mediaId = parseInt($msg.data('media'));
+            if (mediaId === message.mediaId) {
+                $msg.replaceWith($message);
+                break;
+            } else if (mediaId > message.mediaId) {
+                $msg.before($message);
+                break;
+            }
+        }
     }
 
-    message.fromNow = false;
-    $(`#${id}`).off('click');
-    $(`#${id}`).click(() => {
-        message.fromNow = !message.fromNow;
-        $(`#${id}`).text(message.fromNow ? moment(message.timestamp).fromNow() : moment(message.timestamp).format(CHAT_TIME_FORMAT));
+    const $msg = $(`div[data-media="${message.mediaId}"] > div.message-timestamp`, $body);
+    $msg.off('click');
+    $msg.click(() => {
+        const fromNow = $msg.attr('data-fromnow') == 'true';
+        $msg.attr('data-fromnow', !fromNow);
+        $msg.text(!fromNow ? moment(message.timestamp).fromNow() : moment(message.timestamp).format(CHAT_TIME_FORMAT));
     });
 }
 
@@ -73,12 +82,12 @@ async function showChat(deviceId) {
 
     async function updateChat() {
         const onBottom = ($body[0].scrollTop + $body[0].clientHeight)== $body[0].scrollHeight;
-        const msgs = await fetchWithRedirect(messages && messages.length > 0
-            ? `/api/device/${deviceId}/chat/after/${messages[messages.length - 1].mediaId}`
+        const $messages = $body.children();
+        const messages = await fetchWithRedirect($messages.length > 0
+            ? `/api/device/${deviceId}/chat/after/${$($messages[$messages.length - 1]).data('media')}`
             : `/api/device/${deviceId}/chat/last`);
-        msgs.forEach(async message => await addMessage(message, deviceId, $body));
-        messages = messages.concat(msgs);
-        if (msgs.length > 0) {
+        messages.forEach(message => addMessage(message, deviceId, $body));
+        if (messages.length > 0) {
             if (onBottom) {
                 $body[0].scrollTop = $body[0].scrollHeight - $body[0].clientHeight;
             } else {
@@ -106,12 +115,10 @@ async function showChat(deviceId) {
     $body.off('scroll');
     $body.scroll(async () => {
         if ($body.scrollTop() == 0) {
-            if (messages && messages.length > 0) {
-                const msgs = await fetchWithRedirect(`/api/device/${deviceId}/chat/before/${messages[0].mediaId}`);
-                if (msgs.length > 0) {
-                    msgs.reverse().forEach(async message => await addMessage(message, deviceId, $body, true));
-                    messages = msgs.reverse().concat(messages);
-                }
+            const $messages = $body.children();
+            if ($messages.length > 0) {
+                const messages = await fetchWithRedirect(`/api/device/${deviceId}/chat/before/${$($messages[0]).data('media')}`);
+                messages.forEach(message => addMessage(message, deviceId, $body));
             }
         } else if (($body[0].scrollTop + $body[0].clientHeight)== $body[0].scrollHeight) {
             $last.removeClass('btn-info').addClass('btn-outline-info');
@@ -138,19 +145,18 @@ async function showChat(deviceId) {
             $modal.off('shown.bs.modal', onShow);
 
             $body.html('');
-            messages = [];
 
             const start = moment().startOf('day').toDate().getTime();
             const end = moment().endOf('day').toDate().getTime();
 
-            messages = await fetchWithRedirect(`/api/device/${deviceId}/chat/last`);
-            messages.forEach(async message => await addMessage(message, deviceId, $body));
+            const msgs = await fetchWithRedirect(`/api/device/${deviceId}/chat/last`);
+            msgs.forEach(message => addMessage(message, deviceId, $body));
 
-            while (!$body.hasScrollBar() && messages.length > 0) {
-                const msgs = await fetchWithRedirect(`/api/device/${deviceId}/chat/before/${messages[0].mediaId}`);
-                if (msgs.length > 0) {
-                    msgs.reverse().forEach(async message => await addMessage(message, deviceId, $body, true));
-                    messages = msgs.reverse().concat(messages);
+            const $messages = $body.children();
+            while (!$body.hasScrollBar() && $messages.length > 0) {
+                const messages = await fetchWithRedirect(`/api/device/${deviceId}/chat/before/${$($messages[0]).data('media')}`);
+                if (messages.length > 0) {
+                    messages.forEach(message => addMessage(message, deviceId, $body));
                 } else {
                     break;
                 }
