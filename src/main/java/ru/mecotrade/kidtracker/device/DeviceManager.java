@@ -24,6 +24,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
+import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.service.DeviceService;
 import ru.mecotrade.kidtracker.dao.service.MessageService;
 import ru.mecotrade.kidtracker.dao.model.Message;
@@ -33,9 +34,11 @@ import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownDeviceException;
+import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Temporal;
+import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.Job;
 import ru.mecotrade.kidtracker.task.UserToken;
@@ -63,6 +66,9 @@ public class DeviceManager implements MessageListener, Cleanable {
     private DeviceService deviceService;
 
     @Autowired
+    private MediaProcessor mediaProcessor;
+
+    @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @Value("${kidtracker.token.length}")
@@ -76,6 +82,9 @@ public class DeviceManager implements MessageListener, Cleanable {
 
     @Value("${kidtracker.user.queue.report}")
     private String userQueueReport;
+
+    @Value("${kidtracker.user.queue.chat}")
+    private String userQueueChat;
 
     private final Map<String, Device> devices = new ConcurrentHashMap<>();
 
@@ -126,27 +135,33 @@ public class DeviceManager implements MessageListener, Cleanable {
             device.check(messageConnector);
         }
 
-        messageService.save(message);
+        message = messageService.save(message);
         log.debug("[{}] >>> {}", messageConnector.getId(), message);
+
+        processMedia(message);
 
         device.process(message);
 
-        process(message, device);
+        if (isReportable(message)) {
+            sendToUsers(device.getId(), userQueueReport, report(device));
+        }
     }
 
-    public void process(Message message, Device device) {
-
-        if (isReportable(message)) {
-            Report report = report(device);
-            deviceUsers.getOrDefault(device.getId(), Collections.emptySet())
-                    .forEach(user -> {
-                        try {
-                            simpMessagingTemplate.convertAndSendToUser(user, userQueueReport, report);
-                        } catch (MessagingException ex) {
-                            log.warn("[{}] Unable to send {} to user {}", device.getId(), report, user, ex);
-                        }
-                    });
+    public void processMedia(Message message) {
+        Media media = mediaProcessor.process(message);
+        if (media != null) {
+            sendToUsers(message.getDeviceId(), userQueueChat, ChatMessage.of(media));
         }
+    }
+
+    public void sendToUsers(String deviceId, String queue, Object payload) {
+        deviceUsers.getOrDefault(deviceId, Collections.emptySet()).forEach(user -> {
+            try {
+                simpMessagingTemplate.convertAndSendToUser(user, queue, payload);
+            } catch (MessagingException ex) {
+                log.warn("[{}] Unable to send {} to {} for user {}", deviceId, payload, queue, user, ex);
+            }
+        });
     }
 
     public Collection<Device> select(Collection<String> deviceIds) {

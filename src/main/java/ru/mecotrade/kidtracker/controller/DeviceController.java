@@ -102,24 +102,6 @@ public class DeviceController {
         return mediaProcessor.chat(deviceId, start, end);
     }
 
-    @GetMapping("/chat/last")
-    @ResponseBody
-    public Collection<ChatMessage> chatLast(@PathVariable String deviceId) {
-        return mediaProcessor.chatLast(deviceId);
-    }
-
-    @GetMapping("/chat/after/{mediaId}")
-    @ResponseBody
-    public Collection<ChatMessage> chatAfter(@PathVariable String deviceId, @PathVariable Long mediaId) {
-        return mediaProcessor.chatAfter(deviceId, mediaId);
-    }
-
-    @GetMapping("/chat/before/{mediaId}")
-    @ResponseBody
-    public Collection<ChatMessage> chatBefore(@PathVariable String deviceId, @PathVariable Long mediaId) {
-        return mediaProcessor.chatBefore(deviceId, mediaId);
-    }
-
     @GetMapping("/media/{mediaId}")
     @ResponseBody
     public ResponseEntity<byte[]> media(@PathVariable String deviceId, @PathVariable Long mediaId) {

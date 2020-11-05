@@ -145,7 +145,9 @@ public class MediaProcessor {
         this.audioContentType = audioContentType;
     }
 
-    public void process(Message message) {
+    public Media process(Message message) {
+
+        Media media = null;
 
         if (message.getPayload() != null) {
 
@@ -161,7 +163,7 @@ public class MediaProcessor {
                     Encoder encoder = new Encoder();
                     encoder.encode(new MultimediaObject(source), target, encodingAttributes);
 
-                    Media media = mediaService.save(Media.builder()
+                    media = mediaService.save(Media.builder()
                             .message(message)
                             .type(Media.Type.AUDIO)
                             .contentType(audioContentType)
@@ -189,7 +191,7 @@ public class MediaProcessor {
                 String contentType = toContentType(magic);
 
                 if (contentType != null) {
-                    Media media = mediaService.save(Media.builder()
+                    media = mediaService.save(Media.builder()
                             .message(message)
                             .type(Media.Type.IMAGE)
                             .contentType(contentType)
@@ -202,7 +204,7 @@ public class MediaProcessor {
                 }
             } else if (MessageUtils.TEXT_TYPES.contains(message.getType())) {
 
-                Media media = mediaService.save(Media.builder()
+                media = mediaService.save(Media.builder()
                         .message(message)
                         .type(Media.Type.TEXT)
                         .contentType("text/plain;charset=utf-8")
@@ -211,6 +213,8 @@ public class MediaProcessor {
                 log.debug("Text message saved as {}", media);
             }
         }
+
+        return media;
     }
 
     public Optional<Media> media(String deviceId, Long mediaId) {

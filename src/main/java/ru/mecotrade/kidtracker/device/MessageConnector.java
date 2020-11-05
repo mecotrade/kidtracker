@@ -17,6 +17,7 @@ package ru.mecotrade.kidtracker.device;
 
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
+import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.service.MessageService;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
@@ -113,6 +114,8 @@ public class MessageConnector extends DeviceConnector {
                 send(MessageUtils.toBytes(message));
                 messageService.save(message);
                 log.debug("[{}] <<< {}", getId(), message);
+
+                deviceManager.processMedia(message);
             } catch (IOException ex) {
                 throw new KidTrackerConnectionException(getId(), ex);
             }

@@ -294,6 +294,7 @@ public class MessageUtils {
     }
 
     public static boolean isReportable(Message message) {
-        return LINK_TYPE.equals(message.getType()) || LOCATION_TYPES.contains(message.getType());
+        return LINK_TYPE.equals(message.getType())
+                || LOCATION_TYPES.contains(message.getType());
     }
 }

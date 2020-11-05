@@ -27,6 +27,8 @@ import java.util.Date;
 @Builder
 public class ChatMessage {
 
+    private String deviceId;
+
     private Date timestamp;
 
     private Media.Type type;
@@ -39,6 +41,7 @@ public class ChatMessage {
 
     public static ChatMessage of(Media media) {
         return ChatMessage.builder()
+                .deviceId(media.getMessage().getDeviceId())
                 .timestamp(media.getMessage().getTimestamp())
                 .type(media.getType())
                 .source(media.getMessage().getSource())

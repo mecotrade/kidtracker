@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
@@ -39,6 +40,7 @@ import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
+import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.model.Credentials;
 import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.model.Report;
@@ -48,6 +50,7 @@ import ru.mecotrade.kidtracker.model.Status;
 import ru.mecotrade.kidtracker.model.User;
 import ru.mecotrade.kidtracker.exception.KidTrackerUnknownUserException;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
+import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.processor.UserProcessor;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.UserToken;
@@ -68,6 +71,9 @@ public class UserController {
 
     @Autowired
     private UserProcessor userProcessor;
+
+    @Autowired
+    private MediaProcessor mediaProcessor;
 
     @Autowired
     private DeviceManager deviceManager;
@@ -279,7 +285,7 @@ public class UserController {
     }
 
     @SubscribeMapping("/queue/report")
-    public Collection<Report> onSubscribe(Authentication authentication) {
+    public Collection<Report> subscribeReport(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         UserInfo userInfo = userPrincipal.getUserInfo();
         log.debug("User {} subscribed to device report queue", userInfo.getUsername());
@@ -294,5 +300,48 @@ public class UserController {
     public Collection<Report> reports(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return deviceManager.reports(userPrincipal.getUserInfo());
+    }
+
+    @SubscribeMapping("/queue/chat")
+    public void subscribeChat(Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        UserInfo userInfo = userPrincipal.getUserInfo();
+        log.debug("User {} subscribed to device chat queue", userInfo.getUsername());
+    }
+
+    @MessageMapping("/chat/{deviceId}/last")
+    @SendToUser("/queue/chat")
+    public Collection<ChatMessage> chatLast(@DestinationVariable String deviceId, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        UserInfo userInfo = userPrincipal.getUserInfo();
+        if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
+            log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
+            throw new InsufficientAuthenticationException(deviceId);
+        }
+        return mediaProcessor.chatLast(deviceId);
+    }
+
+    @MessageMapping("/chat/{deviceId}/before/{mediaId}")
+    @SendToUser("/queue/chat")
+    public Collection<ChatMessage> chatBefore(@DestinationVariable String deviceId, @DestinationVariable Long mediaId, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        UserInfo userInfo = userPrincipal.getUserInfo();
+        if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
+            log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
+            throw new InsufficientAuthenticationException(deviceId);
+        }
+        return mediaProcessor.chatBefore(deviceId, mediaId);
+    }
+
+    @MessageMapping("/chat/{deviceId}/after/{mediaId}")
+    @SendToUser("/queue/chat")
+    public Collection<ChatMessage> chatAfter(@DestinationVariable String deviceId, @DestinationVariable Long mediaId, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        UserInfo userInfo = userPrincipal.getUserInfo();
+        if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
+            log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
+            throw new InsufficientAuthenticationException(deviceId);
+        }
+        return mediaProcessor.chatAfter(deviceId, mediaId);
     }
 }

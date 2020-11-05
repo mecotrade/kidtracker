@@ -70,15 +70,6 @@ var selected = null;
 
 var stompClient = null;
 
-function connectStompClient() {
-    stompClient = Stomp.over(new SockJS('/device'));
-    stompClient.connect({}, function(frame) {
-        stompClient.subscribe('/user/queue/report', function(response) {
-            onKidReports(JSON.parse(response.body));
-        });
-    });
-}
-
 function updateViewIcons() {
 
     $('.bi-cursor', $cursor).toggle(view != 'user');
@@ -319,7 +310,7 @@ async function initNavbar() {
 
     $chat.off('click');
     $chat.click(async () => {
-        await showChat($select.children('option:selected').val());
+        await showChat($select.children('option:selected').val(), stompClient);
     });
 
     $history.off('click');
@@ -537,10 +528,17 @@ async function showNavbar() {
     await updateMidnightSnapshot();
 }
 
-window.addEventListener('load', async function onload() {
+function connectStompClient() {
+    return new Promise(function(resolve) {
+        const client = Stomp.over(new SockJS('/device'));
+        client.connect({}, frame => resolve(client));
+    });
+}
 
+$(async () => {
     await initNavbar();
     await showNavbar();
 
-    connectStompClient();
+    stompClient = await connectStompClient();
+    stompClient.subscribe('/user/queue/report', response => onKidReports(JSON.parse(response.body)));
 });
