@@ -130,6 +130,14 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm
     const $content = $('<div>').attr('id', `kid-popup-${kid.deviceId}`)
             .append($('<center>').append($thumb).append($name).append($time).append($info).append($alert));
 
+    if (!kid.popup) {
+        kid.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng([position.latitude, position.longitude]).addTo(map);
+    }
+
+    if (!kid.circle) {
+        kid.circle = L.circle([position.latitude, position.longitude], position.accuracy, {weight: 0}).addTo(map);
+    }
+
     kid.popup.setContent($content[0].outerHTML).setLatLng([position.latitude, position.longitude]);
     kid.circle.setLatLng([position.latitude, position.longitude]).setRadius(position.accuracy);
 
@@ -421,12 +429,14 @@ async function initNavbar() {
     $devices.click(async () => {
         await showDevice(stompClient);
         await showNavbar();
+        requestKidReports();
     });
 
     $profile.off('click');
     $profile.click(async () => {
         await showAccount();
         await showNavbar();
+        requestKidReports();
     });
 
     $register.off('click');
@@ -461,65 +471,70 @@ async function showNavbar() {
     let userProps;
     if (user) {
         userProps = {latlng: user.marker.getLatLng(), radius: user.circle.getRadius()};
-        user.marker.removeFrom(map);
-        user.circle.removeFrom(map);
+        if (user.marker) {
+            user.marker.removeFrom(map);
+            delete user.marker;
+        }
+        if (user.circle) {
+            user.circle.removeFrom(map);
+            delete user.circle;
+        }
     }
 
     user = await fetchWithRedirect(`/api/user/info`);
-    if (user) {
-        user.marker = L.marker(userProps ? userProps.latlng : [0,0]).addTo(map);
-        user.circle = L.circle(userProps ? userProps.latlng : [0,0], userProps ? userProps.radius : 0, {weight: 0, color: 'green'}).addTo(map);
-        $username.text(user.name);
-        $register.toggle(user.admin);
-        if (!user.admin) {
-            $register.off('click');
-        }
-        if (!user.phone) {
-            $devices.prop('disabled', true);
-            $devices.off('click');
-        }
+    user.marker = L.marker(userProps ? userProps.latlng : [0,0]).addTo(map);
+    user.circle = L.circle(userProps ? userProps.latlng : [0,0], userProps ? userProps.radius : 0, {weight: 0, color: 'green'}).addTo(map);
+    $username.text(user.name);
+    $register.toggle(user.admin);
+    if (!user.admin) {
+        $register.off('click');
+    }
+    if (!user.phone) {
+        $devices.prop('disabled', true);
+        $devices.off('click');
     }
 
     // kids definition and location
-    const popupProps = {};
+    const fromNow = {};
     if (kids) {
         kids.forEach(k => {
-            popupProps[k.deviceId] = {fromNow: k.popupTimeFromNow, latlng: k.popup.getLatLng(), radius: k.circle.getRadius()};
-            k.popup.removeFrom(map);
-            k.circle.removeFrom(map);
+            fromNow[k.deviceId] = k.popupTimeFromNow;
+            if (k.popup) {
+                k.popup.removeFrom(map);
+                delete k.popup;
+            }
+            if (k.circle) {
+                k.circle.removeFrom(map);
+                delete k.circle;
+            }
         });
     }
 
 	kids = await fetchWithRedirect(`/api/user/kids/info`);
-	if (kids) {
-        $select.html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
-        if (selected) {
-            $select.val(selected);
-        }
+    $select.html(kids.map(k => `<option value="${k.deviceId}">${k.name}</option>`).reduce((html, option) => html + option, ''));
+    if (selected) {
+        $select.val(selected);
+    }
+    selected = $select.children('option:selected').val();
+    $select.off('change');
+    $select.change(() => {
         selected = $select.children('option:selected').val();
-        $select.off('change');
-        $select.change(() => {
-            selected = $select.children('option:selected').val();
-            kids.filter(k => k.deviceId == selected).forEach(k => setView(k));
-            if (path && path.deviceId != selected) {
-                removePath();
-            }
-            requestKidReports();
-        });
-        kids.forEach(k => {
-            const props = popupProps[k.deviceId];
-            k.popup = L.popup({closeOnClick: false, autoClose: false, closeButton: false, autoPan: false}).setLatLng(props ? props.latlng : [0, 0]).addTo(map);
-            k.circle = L.circle(props ? props.latlng : [0, 0], props ? props.radius : 0, {weight: 0}).addTo(map);
-            k.popupTimeFromNow = props ? props.fromNow :  true;
-        });
-
-        $('ul.navbar-left button').each(function(i) {
-            $(this).prop('disabled', kids.length == 0);
-        });
-
-        if (kids.length == 0 && (view == 'kid' || view == 'kid-once')) {
-            view = 'none';
+        kids.filter(k => k.deviceId == selected).forEach(k => setView(k));
+        if (path && path.deviceId != selected) {
+            removePath();
         }
+        requestKidReports();
+    });
+    kids.forEach(k => {
+        k.popupTimeFromNow = k.deviceId in fromNow ? fromNow[k.deviceId] : true;
+    });
+
+    $('ul.navbar-left button').each(function(i) {
+        $(this).prop('disabled', kids.length == 0);
+    });
+
+    if (kids.length == 0 && (view == 'kid' || view == 'kid-once')) {
+        view = 'none';
     }
 
     updateViewIcons();
