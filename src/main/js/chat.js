@@ -112,6 +112,7 @@ async function showChat(deviceId, stompClient) {
     });
 
     function onChatMessages(messages) {
+        messages = Array.isArray(messages) ? messages : [messages];
         const onBottom = ($body[0].scrollTop + $body[0].clientHeight)== $body[0].scrollHeight;
         const anyAppend = messages.reduce((append, message) => {
             const messageAppend = addMessage(message, deviceId, $body);
