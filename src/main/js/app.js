@@ -531,7 +531,7 @@ async function showNavbar() {
 function connectStompClient() {
     return new Promise(function(resolve) {
         const client = Stomp.over(new SockJS('/device'));
-        client.connect({}, frame => resolve(client));
+        client.connect({}, frame => resolve(client), error => window.location.replace('/'));
     });
 }
 
