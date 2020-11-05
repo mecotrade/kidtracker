@@ -293,8 +293,14 @@ public class UserController {
     @MessageMapping("/report")
     @SendToUser("/queue/report")
     public Collection<Report> reports(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        return deviceManager.reports(userPrincipal.getUserInfo());
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            return deviceManager.reports(userPrincipal.getUserInfo());
+        } else {
+            log.warn("Unauthorized request for device report");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @SubscribeMapping("/queue/chat")
@@ -322,25 +328,37 @@ public class UserController {
     @MessageMapping("/chat/{deviceId}/before/{mediaId}")
     @SendToUser("/queue/chat")
     public Collection<ChatMessage> chatBefore(@DestinationVariable String deviceId, @DestinationVariable Long mediaId, Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        UserInfo userInfo = userPrincipal.getUserInfo();
-        if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
-            log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
-            throw new InsufficientAuthenticationException(deviceId);
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserInfo userInfo = userPrincipal.getUserInfo();
+            if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
+                log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
+                throw new InsufficientAuthenticationException(deviceId);
+            }
+            return mediaProcessor.chatBefore(deviceId, mediaId);
+        } else {
+            log.warn("Unauthorized request for device chat");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        return mediaProcessor.chatBefore(deviceId, mediaId);
     }
 
     @MessageMapping("/chat/{deviceId}/after/{mediaId}")
     @SendToUser("/queue/chat")
     public Collection<ChatMessage> chatAfter(@DestinationVariable String deviceId, @DestinationVariable Long mediaId, Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        UserInfo userInfo = userPrincipal.getUserInfo();
-        if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
-            log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
-            throw new InsufficientAuthenticationException(deviceId);
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserInfo userInfo = userPrincipal.getUserInfo();
+            if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
+                log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
+                throw new InsufficientAuthenticationException(deviceId);
+            }
+            return mediaProcessor.chatAfter(deviceId, mediaId);
+        } else {
+            log.warn("Unauthorized request for device chat");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        return mediaProcessor.chatAfter(deviceId, mediaId);
     }
 
     @SubscribeMapping("/queue/status")
