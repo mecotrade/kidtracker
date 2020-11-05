@@ -419,7 +419,7 @@ async function initNavbar() {
 
     $devices.off('click');
     $devices.click(async () => {
-        await showDevice();
+        await showDevice(stompClient);
         await showNavbar();
     });
 

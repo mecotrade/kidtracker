@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
@@ -159,18 +160,6 @@ public class UserController {
         }
     }
 
-    @GetMapping("/kids/status")
-    @ResponseBody
-    public Collection<Status> status(Authentication authentication) {
-        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
-            UserInfo userInfo = ((UserPrincipal) authentication.getPrincipal()).getUserInfo();
-            return deviceProcessor.status(userInfo);
-        } else {
-            log.warn("Unauthorized request for kids status");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-    }
-
     @GetMapping("/kids/snapshot/{timestamp:\\d+}")
     @ResponseBody
     public Collection<Snapshot> snapshot(@PathVariable Long timestamp, Authentication authentication) throws KidTrackerUnknownUserException {
@@ -286,13 +275,19 @@ public class UserController {
 
     @SubscribeMapping("/queue/report")
     public Collection<Report> subscribeReport(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        UserInfo userInfo = userPrincipal.getUserInfo();
-        log.debug("User {} subscribed to device report queue", userInfo.getUsername());
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
 
-        deviceManager.subscribe(userInfo);
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserInfo userInfo = userPrincipal.getUserInfo();
+            log.debug("User {} subscribed to device report queue", userInfo.getUsername());
 
-        return deviceManager.reports(userInfo);
+            deviceManager.subscribe(userInfo);
+
+            return deviceManager.reports(userInfo);
+        } else {
+            log.warn("Unauthorized request for device report subscription");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @MessageMapping("/report")
@@ -303,22 +298,25 @@ public class UserController {
     }
 
     @SubscribeMapping("/queue/chat")
-    public void subscribeChat(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        UserInfo userInfo = userPrincipal.getUserInfo();
-        log.debug("User {} subscribed to device chat queue", userInfo.getUsername());
-    }
+    public Collection<ChatMessage> subscribeChat(Authentication authentication, @Header String deviceId) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
 
-    @MessageMapping("/chat/{deviceId}/last")
-    @SendToUser("/queue/chat")
-    public Collection<ChatMessage> chatLast(@DestinationVariable String deviceId, Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        UserInfo userInfo = userPrincipal.getUserInfo();
-        if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
-            log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
-            throw new InsufficientAuthenticationException(deviceId);
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserInfo userInfo = userPrincipal.getUserInfo();
+            log.debug("User {} subscribed to device chat queue", userInfo.getUsername());
+
+            if (deviceId != null && userInfo.getKids().stream().noneMatch(k -> k.getDevice().getId().equals(deviceId))) {
+                log.warn("User {} attempts to access chat messages of unauthorized device {}", userInfo.getUsername(), deviceId);
+                throw new InsufficientAuthenticationException(deviceId);
+            } else {
+                log.debug("User {} requests last chat messages for device {}", userInfo.getUsername(), deviceId);
+                return mediaProcessor.chatLast(deviceId);
+            }
+
+        } else {
+            log.warn("Unauthorized request for device chat subscription");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        return mediaProcessor.chatLast(deviceId);
     }
 
     @MessageMapping("/chat/{deviceId}/before/{mediaId}")
@@ -343,5 +341,20 @@ public class UserController {
             throw new InsufficientAuthenticationException(deviceId);
         }
         return mediaProcessor.chatAfter(deviceId, mediaId);
+    }
+
+    @SubscribeMapping("/queue/status")
+    public Collection<Status> subscribeStatus(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserInfo userInfo = userPrincipal.getUserInfo();
+            log.debug("User {} subscribed to device status queue", userInfo.getUsername());
+
+            return deviceProcessor.status(userInfo);
+        } else {
+            log.warn("Unauthorized request for device status subscription");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
     }
 }

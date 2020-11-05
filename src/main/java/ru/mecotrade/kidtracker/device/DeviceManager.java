@@ -37,6 +37,7 @@ import ru.mecotrade.kidtracker.exception.KidTrackerUnknownDeviceException;
 import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Report;
+import ru.mecotrade.kidtracker.model.Status;
 import ru.mecotrade.kidtracker.model.Temporal;
 import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.task.Cleanable;
@@ -52,8 +53,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import static ru.mecotrade.kidtracker.util.MessageUtils.isReportable;
 
 @Component
 @Slf4j
@@ -85,6 +84,9 @@ public class DeviceManager implements MessageListener, Cleanable {
 
     @Value("${kidtracker.user.queue.chat}")
     private String userQueueChat;
+
+    @Value("${kidtracker.user.queue.status}")
+    private String userQueueStatus;
 
     private final Map<String, Device> devices = new ConcurrentHashMap<>();
 
@@ -138,30 +140,9 @@ public class DeviceManager implements MessageListener, Cleanable {
         message = messageService.save(message);
         log.debug("[{}] >>> {}", messageConnector.getId(), message);
 
-        processMedia(message);
-
         device.process(message);
 
-        if (isReportable(message)) {
-            sendToUsers(device.getId(), userQueueReport, report(device));
-        }
-    }
-
-    public void processMedia(Message message) {
-        Media media = mediaProcessor.process(message);
-        if (media != null) {
-            sendToUsers(message.getDeviceId(), userQueueChat, ChatMessage.of(media));
-        }
-    }
-
-    public void sendToUsers(String deviceId, String queue, Object payload) {
-        deviceUsers.getOrDefault(deviceId, Collections.emptySet()).forEach(user -> {
-            try {
-                simpMessagingTemplate.convertAndSendToUser(user, queue, payload);
-            } catch (MessagingException ex) {
-                log.warn("[{}] Unable to send {} to {} for user {}", deviceId, payload, queue, user, ex);
-            }
-        });
+        process(message, device);
     }
 
     public Collection<Device> select(Collection<String> deviceIds) {
@@ -281,7 +262,7 @@ public class DeviceManager implements MessageListener, Cleanable {
             String deviceId = k.getDevice().getId();
             Set<String> users = deviceUsers.computeIfAbsent(deviceId, id -> new HashSet<>());
             if (users.contains(username)) {
-                log.warn("User {} tries to subscribe to device {} he/she already subscribed", username, deviceId);
+                log.warn("User {} tries to subscribe to device {} he or she already subscribed", username, deviceId);
             } else {
                 users.add(username);
                 log.info("User {} successfully subscribed to device {}", username, deviceId);
@@ -298,7 +279,7 @@ public class DeviceManager implements MessageListener, Cleanable {
                 if (users.remove(username)) {
                     log.info("User {} successfully unsubscribed from device {}", username, deviceId);
                 } else {
-                    log.warn("User {} tried to unsubscribe from device {}, but he/she was not subscribed", username, deviceId);
+                    log.warn("User {} tried to unsubscribe from device {}, but he or she was not subscribed", username, deviceId);
                 }
                 if (users.isEmpty()) {
                     deviceUsers.remove(deviceId);
@@ -358,5 +339,33 @@ public class DeviceManager implements MessageListener, Cleanable {
                 .collect(Collectors.toList())).stream()
                 .map(this::report)
                 .collect(Collectors.toList());
+    }
+
+    public void processMedia(Message message) {
+        Media media = mediaProcessor.process(message);
+        if (media != null) {
+            sendToUsers(message.getDeviceId(), userQueueChat, ChatMessage.of(media));
+        }
+    }
+
+    private void process(Message message, Device device) throws KidTrackerException {
+
+        processMedia(message);
+
+        if (MessageUtils.LINK_TYPE.equals(message.getType()) || MessageUtils.LOCATION_TYPES.contains(message.getType())) {
+            sendToUsers(device.getId(), userQueueReport, report(device));
+        }
+
+        sendToUsers(device.getId(), userQueueStatus, new Status(device.getId(), true, message.getTimestamp()));
+    }
+
+    private void sendToUsers(String deviceId, String queue, Object payload) {
+        deviceUsers.getOrDefault(deviceId, Collections.emptySet()).forEach(user -> {
+            try {
+                simpMessagingTemplate.convertAndSendToUser(user, queue, payload);
+            } catch (MessagingException ex) {
+                log.warn("[{}] Unable to send {} to {} for user {}", deviceId, payload, queue, user, ex);
+            }
+        });
     }
 }

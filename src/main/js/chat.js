@@ -43,13 +43,13 @@ function addMessage(message, deviceId, $body) {
         }
 
         const $messages = $body.children();
-        if ($messages.length == 0 || parseInt($($messages[$messages.length - 1]).data('media')) < message.mediaId) {
+        if ($messages.length == 0 || parseInt($($messages[$messages.length - 1]).attr('data-media')) < message.mediaId) {
             $body.append($message);
             append = true;
         } else {
             for (let i = 0; i < $messages.length; i++) {
                 const $msg = $($messages[i]);
-                const mediaId = parseInt($msg.data('media'));
+                const mediaId = parseInt($msg.attr('data-media'));
                 if (mediaId === message.mediaId) {
                     $msg.replaceWith($message);
                     break;
@@ -104,7 +104,7 @@ async function showChat(deviceId, stompClient) {
         if ($body.scrollTop() == 0) {
             const $messages = $body.children();
             if ($messages.length > 0) {
-                stompClient.send(`/user/chat/${deviceId}/before/${$($messages[0]).data('media')}`);
+                stompClient.send(`/user/chat/${deviceId}/before/${$($messages[0]).attr('data-media')}`);
             }
         } else if (($body[0].scrollTop + $body[0].clientHeight)== $body[0].scrollHeight) {
             $last.removeClass('btn-info').addClass('btn-outline-info');
@@ -119,7 +119,7 @@ async function showChat(deviceId, stompClient) {
             return append || messageAppend;
         }, false);
         if (messages.length > 0 && !$body.hasScrollBar()) {
-            stompClient.send(`/user/chat/${deviceId}/before/${$($body.children()[0]).data('media')}`);
+            stompClient.send(`/user/chat/${deviceId}/before/${$($body.children()[0]).attr('data-media')}`);
         }
         if (onBottom) {
             $body[0].scrollTop = $body[0].scrollHeight - $body[0].clientHeight;
@@ -150,8 +150,7 @@ async function showChat(deviceId, stompClient) {
 
             $body.html('');
 
-            subscription = stompClient.subscribe('/user/queue/chat', response => onChatMessages(JSON.parse(response.body)));
-            stompClient.send(`/user/chat/${deviceId}/last`);
+            subscription = stompClient.subscribe('/user/queue/chat', response => onChatMessages(JSON.parse(response.body)), {deviceId: deviceId});
 
             $body[0].scrollTop = $body[0].scrollHeight;
 
