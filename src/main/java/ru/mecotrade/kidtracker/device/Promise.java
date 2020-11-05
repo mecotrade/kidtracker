@@ -11,7 +11,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-public class Awaiter {
+public class Promise {
 
     private final String deviceId;
 
@@ -23,7 +23,7 @@ public class Awaiter {
 
     private volatile boolean waiting = false;
 
-    public Awaiter(String deviceId, String type) {
+    public Promise(String deviceId, String type) {
         this.deviceId = deviceId;
         this.type = type;
     }

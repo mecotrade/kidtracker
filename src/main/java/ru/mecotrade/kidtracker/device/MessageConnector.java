@@ -17,7 +17,6 @@ package ru.mecotrade.kidtracker.device;
 
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
-import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.service.MessageService;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;

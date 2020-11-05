@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import ru.mecotrade.kidtracker.exception.KidTrackerConfirmationException;
 import ru.mecotrade.kidtracker.model.Command;
 import ru.mecotrade.kidtracker.model.Position;
-import ru.mecotrade.kidtracker.model.Report;
 import ru.mecotrade.kidtracker.model.Snapshot;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
@@ -63,7 +62,7 @@ public class Device extends JobExecutor implements DeviceSender {
 
     private MessageConnector messageConnector;
 
-    private final Map<String, Awaiter> awaiters = new ConcurrentHashMap<>();
+    private final Map<String, Promise> promises = new ConcurrentHashMap<>();
 
     public Device(String id, String manufacturer, MessageConnector messageConnector) {
         this.id = id;
@@ -91,12 +90,12 @@ public class Device extends JobExecutor implements DeviceSender {
     @Override
     public Message send(String type, String payload, long timeout) throws KidTrackerConnectionException {
 
-        Awaiter awaiter = awaiters.computeIfAbsent(type, t -> new Awaiter(id, t));
-        awaiter.lock();
+        Promise promise = promises.computeIfAbsent(type, t -> new Promise(id, t));
+        promise.lock();
         try {
             send(type, payload);
             try {
-                Message confirmation = awaiter.getConfirmation(timeout);
+                Message confirmation = promise.getConfirmation(timeout);
                 if (confirmation != null) {
                     log.debug("Command with type {} and payload {} is confirmed with message {}", type, payload, confirmation);
                     return confirmation;
@@ -107,7 +106,7 @@ public class Device extends JobExecutor implements DeviceSender {
             log.error("Unable to confirm command with type {} and payload {}", type, payload);
             return null;
         } finally {
-            awaiter.unlock();
+            promise.unlock();
         }
     }
 
@@ -117,13 +116,13 @@ public class Device extends JobExecutor implements DeviceSender {
 
         String type = message.getType();
 
-        awaiters.computeIfPresent(type, (t, a) -> {
+        promises.computeIfPresent(type, (t, p) -> {
             try {
-                a.confirmIfWaiting(message);
+                p.confirmIfWaiting(message);
             } catch (KidTrackerConfirmationException ex) {
                 log.warn("Unable to confirm with message {}: ", message, ex);
             }
-            return a;
+            return p;
         });
 
         if (MessageUtils.LINK_TYPE.equals(type)) {

@@ -15,7 +15,6 @@
  */
 package ru.mecotrade.kidtracker.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;

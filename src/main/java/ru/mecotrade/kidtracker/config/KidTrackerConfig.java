@@ -57,5 +57,4 @@ public class KidTrackerConfig {
     public DeviceServer debugServer() {
         return new DeviceServer(debugServerPort, debugListenerFactory);
     }
-
 }
