@@ -256,6 +256,13 @@ public class DeviceManager implements MessageListener, Cleanable {
         }
     }
 
+    public void notificationOff(String deviceId) {
+        Device device = devices.get(deviceId);
+        if (device != null) {
+            device.notificationOff();
+        }
+    }
+
     public void subscribe(UserInfo userInfo) {
         String username = userInfo.getUsername();
         userInfo.getKids().forEach(k -> {
@@ -328,6 +335,7 @@ public class DeviceManager implements MessageListener, Cleanable {
                 .position(device.position())
                 .snapshot(device.snapshot())
                 .alarm(device.getAlarm().getValue())
+                .notification(device.getNotification().getValue())
                 .last(device.getLast())
                 .build();
     }
@@ -341,18 +349,14 @@ public class DeviceManager implements MessageListener, Cleanable {
                 .collect(Collectors.toList());
     }
 
-    public void processMedia(Message message) {
+    private void process(Message message, Device device) throws KidTrackerException {
+
         Media media = mediaProcessor.process(message);
         if (media != null) {
             sendToUsers(message.getDeviceId(), userQueueChat, ChatMessage.of(media));
         }
-    }
 
-    private void process(Message message, Device device) throws KidTrackerException {
-
-        processMedia(message);
-
-        if (MessageUtils.LINK_TYPE.equals(message.getType()) || MessageUtils.LOCATION_TYPES.contains(message.getType())) {
+        if (MessageUtils.REPORT_TYPES.contains(message.getType()) || MessageUtils.MEDIA_TYPES.contains(message.getType())) {
             sendToUsers(device.getId(), userQueueReport, report(device));
         }
 

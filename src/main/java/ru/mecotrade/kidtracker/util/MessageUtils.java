@@ -36,6 +36,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
@@ -43,12 +44,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Slf4j
 public class MessageUtils {
@@ -59,7 +62,7 @@ public class MessageUtils {
 
     public static final Set<String> TEXT_TYPES = new HashSet<>(Collections.singletonList("MESSAGE"));
 
-    public static final Set<String> BASE64_TYPES = Streams.concat(AUDIO_TYPES.stream(), IMAGE_TYPES.stream()).collect(Collectors.toSet());
+    public static final Set<String> MEDIA_TYPES = Streams.concat(AUDIO_TYPES.stream(), IMAGE_TYPES.stream()).collect(Collectors.toSet());
 
     public static final Set<String> GSM_TYPES = new HashSet<>(Collections.singletonList("SMS"));
 
@@ -71,13 +74,7 @@ public class MessageUtils {
 
     public static final String ALARM_TYPE = "AL";
 
-    public static final Set<String> SNAPSHOT_TYPES;
-
-    static {
-        SNAPSHOT_TYPES = new HashSet<>(Lists
-                .newArrayList(Iterables
-                        .unmodifiableIterable(Iterables.concat(LOCATION_TYPES, Collections.singleton(LINK_TYPE)))));
-    }
+    public static final Set<String> REPORT_TYPES = Streams.concat(Stream.of(LINK_TYPE), LOCATION_TYPES.stream()).collect(Collectors.toSet());
 
     public static final byte[] MESSAGE_LEADING_CHAR = Arrays.copyOfRange(Chars.toByteArray('['), Chars.BYTES - 1, Chars.BYTES);
 
@@ -151,7 +148,7 @@ public class MessageUtils {
         byte[] content = message.getType().getBytes(StandardCharsets.UTF_8);
         if (message.getPayload() != null) {
             byte[] payload = message.getPayload().getBytes(StandardCharsets.UTF_8);
-            if (BASE64_TYPES.contains(message.getType())) {
+            if (MEDIA_TYPES.contains(message.getType())) {
                 payload = Base64.getDecoder().decode(payload);
             } else if (GSM_TYPES.contains(message.getType())) {
                 payload = toGsmBytes(payload);
@@ -191,26 +188,33 @@ public class MessageUtils {
                     .rolls(Integer.parseInt(parts.remove()))
                     .state(new DeviceState(Long.parseLong(parts.remove(), 16)));
 
-            int baseStationNumber = Integer.parseInt(parts.remove());
+            int baseStationsCount = Integer.parseInt(parts.remove());
 
             locationBuilder
                     .gsmDelay(Integer.parseInt(parts.remove()))
                     .mcc(Integer.parseInt(parts.remove()))
                     .mnc(Integer.parseInt(parts.remove()))
-                    .baseStations(IntStream.range(0, baseStationNumber)
+                    .baseStations(IntStream.range(0, baseStationsCount)
                             .mapToObj(i -> new BaseStation(Integer.parseInt(parts.remove()), Integer.parseInt(parts.remove()), Integer.parseInt(parts.remove())))
                             .collect(Collectors.toList()));
 
-            int accessPointNumber = Integer.parseInt(parts.remove());
-            locationBuilder.accessPoints(IntStream.range(0, accessPointNumber)
-                    .mapToObj(i -> new AccessPoint(parts.remove(), parts.remove(), Integer.parseInt(parts.remove())))
+            int accessPointsCount = Integer.parseInt(parts.remove());
+            locationBuilder.accessPoints(IntStream.range(0, accessPointsCount)
+                    .mapToObj(i -> {
+                        // this trick is required to handle cases where Access Point name contains commas
+                        List<String> name = new ArrayList<>();
+                        do {
+                            name.add(parts.remove());
+                        } while (!ValidationUtils.isValidMacAddress(parts.peek()));
+                        return new AccessPoint(String.join(",", name), parts.remove(), Integer.parseInt(parts.remove()));
+                    })
                     .collect(Collectors.toList()));
 
             return new Temporal<>(message.getTimestamp(), locationBuilder
                     .accuracy(Double.parseDouble(parts.remove()))
                     .build());
 
-        } catch (NoSuchElementException ex) {
+        } catch (Exception ex) {
             throw new KidTrackerParseException("Unable to parse location from message \"" + message + "\", not enough data", ex);
         }
     }

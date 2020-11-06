@@ -114,6 +114,10 @@ div.leaflet-popup-content-wrapper.alarm, div.leaflet-popup-tip.alarm {
     background: red;
 }
 
+div.leaflet-popup-content-wrapper.notification, div.leaflet-popup-tip.notification {
+    background: #33a2ff;
+}
+
 div.leaflet-popup.leaflet-zoom-animated.on-top {
     z-index: 1000;
 }

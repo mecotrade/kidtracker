@@ -69,6 +69,7 @@ var path = null;
 var selected = null;
 
 var stompClient = null;
+var chatShown = false;
 
 function updateViewIcons() {
 
@@ -78,7 +79,7 @@ function updateViewIcons() {
     $('.bi-eye-fill', $eye).toggle(view == 'kid');
 }
 
-function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm, lastMsg, onTop) {
+function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm, notification, lastMsg, onTop) {
 
     const now = new Date();
 
@@ -125,6 +126,8 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm
 
     if (alarm) {
         $alert.append($('<audio>').prop('autoplay', true).prop('loop', true).attr('src', '/sound/alarm.wav'));
+    } else if (notification) {
+        $alert.append($('<audio>').prop('autoplay', true).prop('loop', true).attr('src', '/sound/notification.wav'));
     }
 
     const $content = $('<div>').attr('id', `kid-popup-${kid.deviceId}`)
@@ -152,20 +155,24 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm
         $select.val(selected);
         $('div.leaflet-popup.leaflet-zoom-animated').removeClass('on-top');
         if (alarm) {
-            await fetchWithRedirect(`/api/device/${kid.deviceId}/alarmoff`);
+            await fetchWithRedirect(`/api/device/${kid.deviceId}/off/alarm`);
         }
-        updateKidPopup(kid, position, snapshot, midnightSnapshot, online, false, lastMsg, true);
+        if (notification) {
+            await fetchWithRedirect(`/api/device/${kid.deviceId}/off/notification`);
+        }
+        updateKidPopup(kid, position, snapshot, midnightSnapshot, online, false, false, lastMsg, true);
         if (!path) {
             setView(kid);
         }
     });
 
-    $parent.parent().toggleClass('on-top', onTop || alarm)
-    $parent.toggleClass('alarm', alarm);
-    $tip.toggleClass('alarm', alarm);
+    $parent.parent().toggleClass('on-top', onTop || alarm || notification)
+    $parent.toggleClass('alarm', alarm).toggleClass('notification', notification && !alarm);
+    $tip.toggleClass('alarm', alarm).toggleClass('notification', notification && !alarm);
+
     $(`span.${batteryClass}`, $popup).toggleClass('alarm', alarm);
     $('div.kid-popup-alert', $popup).children().each(function(i) {
-        $(this).toggleClass('alarm', alarm);
+        $(this).toggleClass('alarm', alarm)
     });
 
     $divTime.click(() => {
@@ -202,7 +209,9 @@ async function updateMidnightSnapshot() {
 }
 
 function requestKidReports() {
-    stompClient.send('/user/report');
+    if (stompClient) {
+        stompClient.send('/user/report');
+    }
 }
 
 async function onKidReports(reports) {
@@ -218,7 +227,15 @@ async function onKidReports(reports) {
     reports.forEach(report => {
         if (!path || deviceId != report.deviceId) {
             const kid = kids.find(k => k.deviceId == report.deviceId);
-            updateKidPopup(kid, report.position, report.snapshot, kid.snapshot, true, report.alarm, report.last ? moment(report.last).toDate() : null, kid.deviceId == deviceId);
+            updateKidPopup(kid,
+                    report.position,
+                    report.snapshot,
+                    kid.snapshot,
+                    true,
+                    report.alarm,
+                    report.notification && !(chatShown && deviceId == report.deviceId),
+                    report.last ? moment(report.last).toDate() : null,
+                    kid.deviceId == deviceId);
             if (!path && deviceId == report.deviceId) {
                 setView(kid);
             }
@@ -318,7 +335,12 @@ async function initNavbar() {
 
     $chat.off('click');
     $chat.click(async () => {
-        await showChat($select.children('option:selected').val(), stompClient);
+        const deviceId = $select.children('option:selected').val()
+        await fetchWithRedirect(`/api/device/${deviceId}/off/notification`);
+        requestKidReports();
+        chatShown = true;
+        await showChat(deviceId, stompClient);
+        chatShown = false;
     });
 
     $history.off('click');
@@ -357,7 +379,7 @@ async function initNavbar() {
                     }
 
                     function move(i) {
-                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, false, null, true);
+                        updateKidPopup(kid, kidPath[i], null, pathMidnightSnapshot, false, false, false, null, true);
                         setView(kid);
                         return moment(new Date(kidPath[i].timestamp)).format(KID_POPUP_TIME_FORMAT);
                     }

@@ -18,6 +18,7 @@ package ru.mecotrade.kidtracker.device;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.mecotrade.kidtracker.dao.service.MessageService;
+import ru.mecotrade.kidtracker.processor.MediaProcessor;
 
 import java.net.Socket;
 
@@ -30,8 +31,11 @@ public class MessageConnectorFactory implements DeviceConnectorFactory {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private MediaProcessor mediaProcessor;
+
     @Override
     public MessageConnector getConnector(Socket socket) {
-        return new MessageConnector(socket, deviceManager, messageService);
+        return new MessageConnector(socket, deviceManager, messageService, mediaProcessor);
     }
 }

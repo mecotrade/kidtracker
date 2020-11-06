@@ -26,6 +26,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.mecotrade.kidtracker.dao.service.MessageService;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.dao.model.Message;
+import ru.mecotrade.kidtracker.processor.MediaProcessor;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +45,9 @@ public class MessageListenerTest {
     @Mock
     private MessageService messageService;
 
+    @Mock
+    private MediaProcessor mediaProcessor;
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
@@ -52,7 +56,7 @@ public class MessageListenerTest {
     @Test
     public void testInit() throws KidTrackerException {
 
-        MessageConnector messageConnector = spy(new MessageConnector(null, deviceManager, messageService));
+        MessageConnector messageConnector = spy(new MessageConnector(null, deviceManager, messageService, mediaProcessor));
         doNothing().when(messageConnector).send(any(Message.class));
 
         messageConnector.process("[3G*1234567890*000E*LK,865649,0,61]".getBytes());
@@ -66,7 +70,7 @@ public class MessageListenerTest {
     @Test
     public void testParser() throws KidTrackerException {
 
-        MessageConnector messageConnector = spy(new MessageConnector(null, deviceManager, messageService));
+        MessageConnector messageConnector = spy(new MessageConnector(null, deviceManager, messageService, mediaProcessor));
         doNothing().when(messageConnector).send(any(Message.class));
 
         messageConnector.process("[3G*1234567890*000E*LK,865649,0,61][3G*1234567890*0002*LK]".getBytes());
@@ -87,7 +91,7 @@ public class MessageListenerTest {
     @Test
     public void testParserMultipart() throws KidTrackerException {
 
-        MessageConnector messageConnector = spy(new MessageConnector(null, deviceManager, messageService));
+        MessageConnector messageConnector = spy(new MessageConnector(null, deviceManager, messageService, mediaProcessor));
         doNothing().when(messageConnector).send(any(Message.class));
 
         messageConnector.process("[3G*1234567890*000E*LK,8".getBytes());

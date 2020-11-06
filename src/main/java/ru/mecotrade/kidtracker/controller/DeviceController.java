@@ -258,11 +258,18 @@ public class DeviceController {
         }
     }
 
-    @GetMapping("/alarmoff")
+    @GetMapping("/off/alarm")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void alarmOff(@PathVariable String deviceId) {
         log.info("[{}] Received alarm off request", deviceId);
         deviceManager.alarmOff(deviceId);
+    }
+
+    @GetMapping("/off/notification")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void notificationOff(@PathVariable String deviceId) {
+        log.info("[{}] Received notification off request", deviceId);
+        deviceManager.notificationOff(deviceId);
     }
 
     @RolesAllowed("ROLE_ADMIN")

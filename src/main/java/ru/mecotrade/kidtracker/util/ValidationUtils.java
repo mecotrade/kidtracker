@@ -51,6 +51,9 @@ public class ValidationUtils {
 
     private final static String IP_ADDRESS_REGEX = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
 
+    // this is not standard regex for mac address, however, some devices reduce 0x part to simply x
+    private final static String MAC_ADDRESS_REGEX = "^([0-9A-Fa-f]{1,2}[:-]){5}([0-9A-Fa-f]{1,2})$";
+
     private final static String HOSTNAME_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
 
     private final static String PORT_REGEX = "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$";
@@ -103,8 +106,12 @@ public class ValidationUtils {
         return isValid(password, PASSWORD_REGEX);
     }
 
-    public static boolean isValidIp(String ipAddress) {
+    public static boolean isValidIpAddress(String ipAddress) {
         return isValid(ipAddress, IP_ADDRESS_REGEX);
+    }
+
+    public static boolean isValidMacAddress(String macAddress) {
+        return isValid(macAddress, MAC_ADDRESS_REGEX);
     }
 
     public static boolean isValidHostname(String hostName) {
@@ -112,7 +119,7 @@ public class ValidationUtils {
     }
 
     public static boolean isValidHost(String host) {
-        return isValidIp(host) || isValidHostname(host);
+        return isValidIpAddress(host) || isValidHostname(host);
     }
 
     public static boolean isValidPort(String port) {

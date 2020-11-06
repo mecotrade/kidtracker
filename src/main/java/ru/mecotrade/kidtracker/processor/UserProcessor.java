@@ -59,7 +59,7 @@ import static ru.mecotrade.kidtracker.util.ValidationUtils.isValidPhone;
 public class UserProcessor extends JobExecutor implements Cleanable {
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
     private KidService kidService;

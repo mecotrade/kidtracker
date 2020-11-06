@@ -32,5 +32,7 @@ public class Report {
 
     private boolean alarm;
 
+    private boolean notification;
+
     private Date last;
 }

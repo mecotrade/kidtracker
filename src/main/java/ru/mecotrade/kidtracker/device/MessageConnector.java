@@ -22,6 +22,7 @@ import ru.mecotrade.kidtracker.exception.KidTrackerConnectionException;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
 import ru.mecotrade.kidtracker.exception.KidTrackerParseException;
 import ru.mecotrade.kidtracker.dao.model.Message;
+import ru.mecotrade.kidtracker.processor.MediaProcessor;
 import ru.mecotrade.kidtracker.util.MessageUtils;
 
 import java.io.IOException;
@@ -36,12 +37,15 @@ public class MessageConnector extends DeviceConnector {
 
     private final MessageService messageService;
 
+    private final MediaProcessor mediaProcessor;
+
     private byte[] messageBuffer = new byte[0];
 
-    public MessageConnector(Socket socket, DeviceManager deviceManager, MessageService messageService) {
+    public MessageConnector(Socket socket, DeviceManager deviceManager, MessageService messageService, MediaProcessor mediaProcessor) {
         super(socket);
         this.deviceManager = deviceManager;
         this.messageService = messageService;
+        this.mediaProcessor = mediaProcessor;
     }
 
     @Override
@@ -93,7 +97,7 @@ public class MessageConnector extends DeviceConnector {
 
                 String payload = null;
                 if (payloadBytes != null) {
-                    payload = MessageUtils.BASE64_TYPES.contains(type) ? Base64.getEncoder().encodeToString(payloadBytes) : new String(payloadBytes);
+                    payload = MessageUtils.MEDIA_TYPES.contains(type) ? Base64.getEncoder().encodeToString(payloadBytes) : new String(payloadBytes);
                 }
 
                 if (messageBuffer[offset] != MessageUtils.MESSAGE_TRAILING_CHAR[0]) {
@@ -114,7 +118,7 @@ public class MessageConnector extends DeviceConnector {
                 messageService.save(message);
                 log.debug("[{}] <<< {}", getId(), message);
 
-                deviceManager.processMedia(message);
+                mediaProcessor.process(message);
             } catch (IOException ex) {
                 throw new KidTrackerConnectionException(getId(), ex);
             }

@@ -118,7 +118,7 @@ public class DeviceProcessor {
     }
 
     public Collection<Snapshot> snapshots(String deviceId, Long start, Long end) {
-        return messageService.slice(deviceId, MessageUtils.SNAPSHOT_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
+        return messageService.slice(deviceId, MessageUtils.REPORT_TYPES, Message.Source.DEVICE, new Date(start), new Date(end)).stream()
                 .map(MessageUtils::toSnapshot)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

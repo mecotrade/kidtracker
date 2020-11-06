@@ -54,8 +54,10 @@ public class Device extends JobExecutor implements DeviceSender {
     private Temporal<Link> link;
 
     @Getter
-    @Setter
     private Temporal<Boolean> alarm = Temporal.of(false);
+
+    @Getter
+    private Temporal<Boolean> notification = Temporal.of(false);
 
     @Getter
     private Date last;
@@ -134,7 +136,8 @@ public class Device extends JobExecutor implements DeviceSender {
                 alarm = Temporal.of(true);
             }
             send(type);
-        } else if (MessageUtils.BASE64_TYPES.contains(type)) {
+        } else if (MessageUtils.MEDIA_TYPES.contains(type)) {
+            notification = Temporal.of(true);
             send(type);
         }
     }
@@ -161,6 +164,10 @@ public class Device extends JobExecutor implements DeviceSender {
 
     public void alarmOff() {
         alarm = Temporal.of(false);
+    }
+
+    public void notificationOff() {
+        notification = Temporal.of(false);
     }
 
     public boolean isClosed() {
