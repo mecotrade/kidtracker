@@ -10,23 +10,23 @@ GW1000S, EW100, EW100S, EW200, K911, W8, W9, W10, Y3, G36 SAFE KEEPER, DS18, T58
 G10, G100, D99, D100, D100S, and many others . Roughly speaking, it does the same as
 such applications as [SeTracker](https://setracker.org/), [FindMyKids](https://findmykids.org/), 
 and so on. The main difference is that all personal data, like contacts, positions, 
-communication history, and so on, becomes truly private, since it is stored at the machine 
+communication history, and so on, becomes truly private, since it is stored on hardware 
 controlled by user.
 
 Another issue which was addressed is the security model of kids smartwatch communication and tracking applications.
 By default, any person could take control over the device provided the device identifier
 is known, with no further confirmation of being a device owner. The identifier, in its turn, 
 can be easily obtained by sending a text message to the device if the device cellphone number 
-is known. There is a password, of course, but all devices has the very same factory password
+is known. There is a password, of course, but all devices have the very same factory password
 and there is no annoying notifications asking to change it, therefore no one does that.
 
 In this application the following security scenarios have been implemented: 
 1. Device assignment is protected by two-factor authentication: both the device identifier, and a 
-four-digit token sent to the device is required to assign a device to a user.
+four-digit token sent to the device are required to assign the device to a user.
 2. There is a set of "protected" operations, such as turn the device off, reset to factory settings, 
 unassign the device, and settings the device password, which are protected by token sent 
 in a text message to user cellphone.
-3. Users are not allowed to modify their cellphone number once it is entered on creation time
+3. Users are not allowed to modify their cellphone number once it is set on creation time
 to protect devices from unwilling commands even if user account is compromised.
 4. Any user having access to a device can list all other user having access to this device.
 
@@ -57,11 +57,12 @@ To assign a device to a user registered to the application, the application shou
 from public networks, that is, it should have a public ip address, and, probably,
 an associated domain name. By default, the application listens devices on port `8001`,
 suppose the very same port is mapped to public network. Then the following text message
-sent to device makes it start connecting to the application:
+sent to the device makes it start connecting to the application:
 ```
 pw,123456,ip,<public IP address or domain>,8001#
 ```
-Here `123456` is the default password, which is most probably set on the device. If, however, 
+Here `123456` is the default password, which is most probably set on the device. 
+Other popular default passwords are `523681`, `54321`, and `654321`. If, however, 
 the password was changed, the new password should be used instead of the default one. 
 
 **It is highly recommended changing the default password!**
@@ -71,7 +72,7 @@ bar and then click ![person-plus](icons/person-plus.svg) button on the footer. T
 identifier is required for device to be assigned. Once the device is connected to 
 the application, four-digit confirmation token is sent to the device. To confirm user owns 
 the device, this token should be entered to the pop-up form during next 5 minutes, 
-after that time token becomes invalid. 
+after that time token expires. 
 
 ## Usage notices
 
@@ -100,14 +101,14 @@ charge and pedometer value.
 Some messages can also be sent by the application to a device to make
 it perform several actions or modify its settings. To assure the device has received the message, 
 it sends a confirmation message back to the application. While waiting the confirmation
-message, the UI gets blocked. If no confirmation is received
+message, the UI remains blocked. If no confirmation is received
 in 10 seconds (can be configured), the initial message is considered to be not confirmed. 
 
 ### User interface
 
 #### Device markers
 Position markers of all assigned devices together with user position marker share the same
-map. Device marker contains information about time of last known location, 
+map. Device markers contain information about time of last known location, 
 battery charge, pedometer value, and eventually the device take off alert 
 ![smartwatch](icons/smartwatch.svg), low battery alert ![battery](icons/battery.svg), 
 connection lost alert ![x-circle](icons/x-circle.svg), and obsolete location alert ![eye-slash](icons/eye-slash.svg). 
@@ -117,13 +118,13 @@ more than 15 minutes ago.
 Device could provide its actual location, based on direct GPS data, when it is available,
 as well as last detected position, when direct GPS observation is not available, 
 mostly within building or in the presents of electromagnetic noise. In the second case data 
-is considered as obsolete. When received location data is 
+is considered obsolete. When received location data is 
 obsolete, the obsolete data alert ![eye-slash](icons/eye-slash.svg) is shown.
 
 Notice that the low battery alert ![battery](icons/battery.svg), and actual charge value
 come in different types of messages. Messages with actual charge come more frequently 
 (each 5 minutes) than messages with locations and alerts, which can be not sent for hours.
-Therefore, it is not uncommon a marker shows 100% of battery charge together with
+Therefore, it is not uncommon for a marker to show 100% of battery charge together with
 low battery alert. In this case the priority is for numerical value of the battery charge and 
 low battery alert can be ignored.
 
@@ -131,6 +132,11 @@ Device sends alarm messages when the SOS button is pressed. The device marker
 becomes red in this case, and a siren sound is played until the marker is clicked. 
 Marker clicking results moving it on top and switching kid select. When kid select is switched,
 the selected device marker goes on top.
+
+Device can send audio messages and (if equipped with camera) snapshots to the application. 
+When new message of this kind arrives, the device marker becomes blue, and the vintage phone ring sound 
+is played until the marker is clicked. As in the alarm case, marker clicking results 
+moving it on top and switching kid select. 
 
 #### Timestamps
 Anywhere in UI timestamps are clickable, and by a click can be switched between absolute date 
