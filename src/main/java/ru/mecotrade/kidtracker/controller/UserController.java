@@ -375,4 +375,19 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @MessageMapping("/status")
+    @SendToUser("/queue/status")
+    public Collection<Status> status(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserInfo userInfo = userPrincipal.getUserInfo();
+
+            return deviceProcessor.status(userInfo);
+        } else {
+            log.warn("Unauthorized request for device status");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+    }
 }

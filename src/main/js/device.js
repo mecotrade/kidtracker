@@ -26,67 +26,71 @@ const $editModal = $('#edit-device');
 
 const LAST_MESSAGE_TIME_FORMAT = 'D MMMM YYYY HH:mm ddd';
 
+function onStatus(status) {
+    status = Array.isArray(status) ? status : [status];
+    status.forEach(s => {
+        const $tr = $(`#kid-device-${s.deviceId}`).parent();
+        $('div.user-device-name-deviceid', $tr).toggleClass('online', s.online).toggleClass('offline', !s.online);
+        if (s.date) {
+            $time = $('div.user-device-name-time', $tr);
+            $time.attr('data-timestamp', s.date);
+            const fromNow = $time.attr('data-fromnow') == 'true';
+            $time.text(fromNow ? moment(s.date).fromNow() : moment(s.date).format(LAST_MESSAGE_TIME_FORMAT));
+        }
+    });
+}
+
 async function showDevice(stompClient) {
 
     const $modal = $('#show-user-devices');
     const $add = $('#user-devices-add');
     const $close = $('#user-devices-close');
 
-    function onStatus(status) {
-        status = Array.isArray(status) ? status : [status];
-        status.forEach(s => {
-            const $tr = $(`#kid-device-${s.deviceId}`).parent();
-            $('div.user-device-name-deviceid', $tr).toggleClass('online', s.online).toggleClass('offline', !s.online);
-            if (s.date) {
-                $time = $('div.user-device-name-time', $tr);
-                $time.attr('data-timestamp', s.date);
-                const fromNow = $time.attr('data-fromnow') == 'true';
-                $time.text(fromNow ? moment(s.date).fromNow() : moment(s.date).format(LAST_MESSAGE_TIME_FORMAT));
-            }
+    async function render() {
+
+        const $tbody = $('<tbody>');
+        const kids = await fetchWithRedirect(`/api/user/kids/info`);
+        kids.forEach(k => {
+            const $tr = $('<tr>');
+            const $thThumb = $('<th>').addClass('user-device-thumb');
+            const $thName = $('<th>').addClass('user-device-name');
+            const $td = $('<td>').addClass('user-device-others');
+            const $thumb = k.thumb ? $('<img>').attr('src', k.thumb).addClass('thumb-img') : $('<div>').addClass('thumb-placeholder');
+            $thThumb.append($thumb).attr('id', `kid-device-${k.deviceId}`);
+            const $name = $('<div>').text(k.name);
+            const $deviceId = $('<div>').text(k.deviceId).addClass('user-device-name-deviceid');
+            const $time = $('<div>').addClass('user-device-name-time').attr('data-fromnow', false);
+            $thName.append($name).append($deviceId).append($time);
+            const $spanName = $('<span>').addClass('user-device-other-user-name').text();
+            k.users.forEach(u => {
+                $td.append($('<div>').append($('<span>').addClass('user-device-other-user').append($('<b>').text(u.name)).append(` ${u.phone}`)));
+            })
+            $tr.append($thThumb).append($thName).append($td);
+            $tbody.append($tr);
+        });
+
+        $('table.table', $modal).empty().append($tbody);
+
+        kids.forEach(k => {
+            const $thThumb = $(`#kid-device-${k.deviceId}`);
+            $thThumb.off('click');
+            $thThumb.on('click', async () => {
+                await editDevice(k);
+                render();
+                stompClient.send('/user/status');
+            });
+            const $time = $('div.user-device-name-time', $thThumb.parent());
+            $time.off('click');
+            $time.click(() => {
+                if ($time[0].hasAttribute('data-timestamp')) {
+                    const fromNow = $time.attr('data-fromnow') == 'true';
+                    const timestamp = $time.attr('data-timestamp');
+                    $time.attr('data-fromnow', !fromNow);
+                    $time.text(!fromNow ? moment(timestamp).fromNow() : moment(timestamp).format(LAST_MESSAGE_TIME_FORMAT));
+                }
+            });
         });
     }
-
-    const $tbody = $('<tbody>');
-    const kids = await fetchWithRedirect(`/api/user/kids/info`);
-    kids.forEach(k => {
-        const $tr = $('<tr>');
-        const $thThumb = $('<th>').addClass('user-device-thumb');
-        const $thName = $('<th>').addClass('user-device-name');
-        const $td = $('<td>').addClass('user-device-others');
-        const $thumb = k.thumb ? $('<img>').attr('src', k.thumb).addClass('thumb-img') : $('<div>').addClass('thumb-placeholder');
-        $thThumb.append($thumb).attr('id', `kid-device-${k.deviceId}`);
-        const $name = $('<div>').text(k.name);
-        const $deviceId = $('<div>').text(k.deviceId).addClass('user-device-name-deviceid');
-        const $time = $('<div>').addClass('user-device-name-time').attr('data-fromnow', false);
-        $thName.append($name).append($deviceId).append($time);
-        const $spanName = $('<span>').addClass('user-device-other-user-name').text();
-        k.users.forEach(u => {
-            $td.append($('<div>').append($('<span>').addClass('user-device-other-user').append($('<b>').text(u.name)).append(` ${u.phone}`)));
-        })
-        $tr.append($thThumb).append($thName).append($td);
-        $tbody.append($tr);
-    });
-
-    $('table.table', $modal).empty().append($tbody);
-
-    kids.forEach(k => {
-        const $thThumb = $(`#kid-device-${k.deviceId}`);
-        $thThumb.off('click');
-        $thThumb.on('click', async () => {
-            await editDevice(k);
-            await showDevice();
-        });
-        const $time = $('div.user-device-name-time', $thThumb.parent());
-        $time.off('click');
-        $time.click(() => {
-            if ($time[0].hasAttribute('data-timestamp')) {
-                const fromNow = $time.attr('data-fromnow') == 'true';
-                const timestamp = $time.attr('data-timestamp');
-                $time.attr('data-fromnow', !fromNow);
-                $time.text(!fromNow ? moment(timestamp).fromNow() : moment(timestamp).format(LAST_MESSAGE_TIME_FORMAT));
-            }
-        });
-    });
 
     var subscription = null;
 
@@ -105,12 +109,12 @@ async function showDevice(stompClient) {
 
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
-
+            render();
             subscription = stompClient.subscribe('/user/queue/status', response => onStatus(JSON.parse(response.body)));
-
             $add.click(async () => {
                 await editDevice();
-                await showDevice();
+                render();
+                stompClient.send('/user/status');
             });
             $close.click(() => {
                 hide();
