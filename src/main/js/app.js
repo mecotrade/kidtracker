@@ -225,6 +225,9 @@ async function onKidReports(reports) {
     const deviceId = $select.children('option:selected').val();
 
     reports.forEach(report => {
+        if (path && report.notification) {
+            removePath();
+        }
         if (!path || deviceId != report.deviceId) {
             const kid = kids.find(k => k.deviceId == report.deviceId);
             updateKidPopup(kid,
@@ -404,7 +407,6 @@ async function initNavbar() {
                 }
             }
         } else {
-
             removePath();
             requestKidReports();
         }
