@@ -283,7 +283,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
     private String resizeThumb(UserInfo userInfo, Kid kid) {
         try {
-            return ThumbUtils.resize(kid.getThumb(), thumbSize);
+            return kid.getThumb() != null ? ThumbUtils.resize(kid.getThumb(), thumbSize) : null;
         } catch (Exception ex) {
             log.warn("Unable to resize thumb for {} assigned to {}, add without resize", kid, userInfo, ex);
             return kid.getThumb();

@@ -104,7 +104,7 @@ async function showChat(deviceId, stompClient) {
         if ($body.scrollTop() == 0) {
             const $messages = $body.children();
             if ($messages.length > 0) {
-                stompClient.send(`/user/chat/${deviceId}/before/${$($messages[0]).attr('data-media')}`);
+                stompClient.send(`/user/${stompClient.userId}/chat/${deviceId}/before/${$($messages[0]).attr('data-media')}`);
             }
         } else if (($body[0].scrollTop + $body[0].clientHeight)== $body[0].scrollHeight) {
             $last.removeClass('btn-info').addClass('btn-outline-info');
@@ -119,7 +119,7 @@ async function showChat(deviceId, stompClient) {
             return append || messageAppend;
         }, false);
         if (messages.length > 0 && !$body.hasScrollBar()) {
-            stompClient.send(`/user/chat/${deviceId}/before/${$($body.children()[0]).attr('data-media')}`);
+            stompClient.send(`/user/${stompClient.userId}/chat/${deviceId}/before/${$($body.children()[0]).attr('data-media')}`);
         }
         if (onBottom) {
             $body[0].scrollTop = $body[0].scrollHeight - $body[0].clientHeight;

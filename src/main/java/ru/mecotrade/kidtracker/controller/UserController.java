@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 import ru.mecotrade.kidtracker.dao.model.KidInfo;
 import ru.mecotrade.kidtracker.dao.model.UserInfo;
+import ru.mecotrade.kidtracker.dao.service.KidService;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
 import ru.mecotrade.kidtracker.model.ChatMessage;
@@ -58,6 +59,7 @@ import ru.mecotrade.kidtracker.task.UserToken;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static ru.mecotrade.kidtracker.util.ValidationUtils.isValidPhone;
@@ -78,6 +80,9 @@ public class UserController {
 
     @Autowired
     private DeviceManager deviceManager;
+
+    @Autowired
+    private KidService kidService;
 
     @GetMapping("/info")
     @ResponseBody
@@ -290,7 +295,7 @@ public class UserController {
         }
     }
 
-    @MessageMapping("/report")
+    @MessageMapping("/{userId}/report")
     @SendToUser("/queue/report")
     public Collection<Report> reports(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
@@ -325,7 +330,7 @@ public class UserController {
         }
     }
 
-    @MessageMapping("/chat/{deviceId}/before/{mediaId}")
+    @MessageMapping("/{userId}/chat/{deviceId}/before/{mediaId}")
     @SendToUser("/queue/chat")
     public Collection<ChatMessage> chatBefore(@DestinationVariable String deviceId, @DestinationVariable Long mediaId, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
@@ -343,7 +348,7 @@ public class UserController {
         }
     }
 
-    @MessageMapping("/chat/{deviceId}/after/{mediaId}")
+    @MessageMapping("/{userId}/chat/{deviceId}/after/{mediaId}")
     @SendToUser("/queue/chat")
     public Collection<ChatMessage> chatAfter(@DestinationVariable String deviceId, @DestinationVariable Long mediaId, Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {
@@ -376,7 +381,7 @@ public class UserController {
         }
     }
 
-    @MessageMapping("/status")
+    @MessageMapping("/{userId}/status")
     @SendToUser("/queue/status")
     public Collection<Status> status(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal) {

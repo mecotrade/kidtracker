@@ -46,7 +46,7 @@ async function showDevice(stompClient) {
     const $add = $('#user-devices-add');
     const $close = $('#user-devices-close');
 
-    async function render() {
+    async function renderDevice() {
 
         const $tbody = $('<tbody>');
         const kids = await fetchWithRedirect(`/api/user/kids/info`);
@@ -72,14 +72,14 @@ async function showDevice(stompClient) {
         $('table.table', $modal).empty().append($tbody);
 
         kids.forEach(k => {
-            const $thThumb = $(`#kid-device-${k.deviceId}`);
-            $thThumb.off('click');
-            $thThumb.on('click', async () => {
+            const $thumb = $(`#kid-device-${k.deviceId}`);
+            $thumb.off('click');
+            $thumb.on('click', async () => {
                 await editDevice(k);
-                render();
-                stompClient.send('/user/status');
+                renderDevice();
+                setTimeout(() => stompClient.send(`/user/${stompClient.userId}/status`), 100);
             });
-            const $time = $('div.user-device-name-time', $thThumb.parent());
+            const $time = $('div.user-device-name-time', $thumb.parent());
             $time.off('click');
             $time.click(() => {
                 if ($time[0].hasAttribute('data-timestamp')) {
@@ -91,6 +91,8 @@ async function showDevice(stompClient) {
             });
         });
     }
+
+    renderDevice();
 
     var subscription = null;
 
@@ -109,12 +111,11 @@ async function showDevice(stompClient) {
 
         $modal.on('shown.bs.modal', function onShow() {
             $modal.off('shown.bs.modal', onShow);
-            render();
             subscription = stompClient.subscribe('/user/queue/status', response => onStatus(JSON.parse(response.body)));
             $add.click(async () => {
                 await editDevice();
-                render();
-                stompClient.send('/user/status');
+                renderDevice();
+                setTimeout(() => stompClient.send(`/user/${stompClient.userId}/status`), 100);
             });
             $close.click(() => {
                 hide();

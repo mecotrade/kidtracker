@@ -1,10 +1,22 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## v1.3.1 - 18 Dec 2020
+- Fixed few reports and status update bugs.
+
+## v1.3.0 - 6 Nov 2020
+- Device chat messages, location reports and status updates are now 
+  communicated with WebSockets, so any device events 
+  are delivered to the application as fast as possible,
+- When new chat message arrives, corresponding device marker becomes blue, 
+  and vintage phone ring sound is played, no message will be missed anymore,
+- Access Points names containing commas are handled properly while parsing 
+  location messages, Various bugs are fixed.
+
 ## v1.2.0 - 15 Oct 2020
 - Message receiving confirmed by device
 - Remember me in login page
-- Non clickable timestamp bug fixed
+- Non-clickable timestamp bug fixed
 - On/Off Wi-Fi config added
 
 ## v1.1.0 - 28 Jul 2020

@@ -210,7 +210,7 @@ async function updateMidnightSnapshot() {
 
 function requestKidReports() {
     if (stompClient) {
-        stompClient.send('/user/report');
+        stompClient.send(`/user/${stompClient.userId}/report`);
     }
 }
 
@@ -570,6 +570,8 @@ async function showNavbar() {
 function connectStompClient() {
     return new Promise(function(resolve) {
         const client = Stomp.over(new SockJS('/device'));
+        console.log(user.credentials.username);
+        client.userId = user.credentials.username;
         client.connect({}, frame => resolve(client), error => window.location.replace('/'));
     });
 }

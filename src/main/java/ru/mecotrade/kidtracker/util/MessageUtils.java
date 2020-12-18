@@ -15,8 +15,6 @@
  */
 package ru.mecotrade.kidtracker.util;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
@@ -75,6 +73,8 @@ public class MessageUtils {
     public static final String ALARM_TYPE = "AL";
 
     public static final Set<String> REPORT_TYPES = Streams.concat(Stream.of(LINK_TYPE), LOCATION_TYPES.stream()).collect(Collectors.toSet());
+
+    public static final String PAYLOAD_SEPARATOR = ",";
 
     public static final byte[] MESSAGE_LEADING_CHAR = Arrays.copyOfRange(Chars.toByteArray('['), Chars.BYTES - 1, Chars.BYTES);
 
@@ -206,7 +206,7 @@ public class MessageUtils {
                         do {
                             name.add(parts.remove());
                         } while (!ValidationUtils.isValidMacAddress(parts.peek()));
-                        return new AccessPoint(String.join(",", name), parts.remove(), Integer.parseInt(parts.remove()));
+                        return new AccessPoint(String.join(PAYLOAD_SEPARATOR, name), parts.remove(), Integer.parseInt(parts.remove()));
                     })
                     .collect(Collectors.toList()));
 

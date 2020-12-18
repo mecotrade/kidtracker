@@ -49,14 +49,14 @@ The application can be started with command
 docker-compose up -d
 ```
 
-Web UI is available on `https:\\<hostname>:8003`. To log in, use default credentials `admin`/`password`.
+Web UI is available on `https://<hostname>:8003`. To log in, use default credentials `admin`/`password`.
 
 ## Device assignment
 
 To assign a device to a user registered to the application, the application should be available 
 from public networks, that is, it should have a public ip address, and, probably,
 an associated domain name. By default, the application listens devices on port `8001`,
-suppose the very same port is mapped to public network. Then the following text message
+suppose the very same port is mapped to the public network. Then the following text message
 sent to the device makes it start connecting to the application:
 ```
 pw,123456,ip,<public IP address or domain>,8001#
