@@ -1,6 +1,11 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## v2.0.0 - TBD
+- Migration to PostgreSQL, which increases stability, however, the 
+  back compatibility is not maintained, so all users and all device 
+  assignments have to be created anew.
+
 ## v1.3.1 - 18 Dec 2020
 - Fixed few reports and status update bugs.
 

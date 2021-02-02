@@ -4,8 +4,7 @@
 target/
 docs/
 logs/
-data/
-media/
+pgdata/
 src/main/resources/static/js/index.js
 *.p12
 package-lock.json
