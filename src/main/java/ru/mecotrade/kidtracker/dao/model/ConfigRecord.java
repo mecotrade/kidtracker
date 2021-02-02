@@ -28,7 +28,7 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name="config",
+@Table(name="configs",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"deviceId", "parameter"})})
 public class ConfigRecord {
 

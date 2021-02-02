@@ -29,7 +29,7 @@ import java.util.Date;
 @Data
 @ToString(exclude = {"kids"})
 @Entity
-@Table(name="device")
+@Table(name="devices")
 public class DeviceInfo {
 
     @Id

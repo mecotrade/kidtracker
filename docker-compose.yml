@@ -5,12 +5,25 @@ services:
       context: target
       dockerfile: ../Dockerfile
     restart: always
+    links:
+      - postgres
     ports:
       - 8001:8001
       - 8002:8002
       - 8003:8003
     volumes:
-      - ./data:/app/data
       - ./logs:/app/logs
     environment:
       - TZ=Europe/Moscow
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=kidtracker
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - 5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata

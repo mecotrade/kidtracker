@@ -29,7 +29,7 @@ import java.util.Date;
 
 @Data
 @Entity
-@Table(name="contact",
+@Table(name="contacts",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"deviceId", "type", "index"})})
 public class ContactRecord {
 

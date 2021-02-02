@@ -17,6 +17,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <lombok.version>1.18.8</lombok.version>
         <jave.version>2.7.3</jave.version>
         <thumbnailator.version>0.4.11</thumbnailator.version>
+        <postgres.driver.version>42.2.18</postgres.driver.version>
     </properties>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -42,9 +43,9 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgres.driver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
