@@ -7,7 +7,7 @@ devices equipped with GPS tracker of different models and known under various br
 it can work with Q50, Q60, Q80, Q90, Q100, Q360, Q523, Q730, Q750, Q8, GW100, GW100S, GW200, 
 GW200S, GW300, GW300S, GW400S, GW400X, GW500S, GW600S, GW700, GW800, GW900, GW900S, GW1000, 
 GW1000S, EW100, EW100S, EW200, K911, W8, W9, W10, Y3, G36 SAFE KEEPER, DS18, T58, T100, I8, 
-G10, G100, D99, D100, D100S, and many others . Roughly speaking, it does the same as
+G10, G100, D99, D100, D100S, and many others. Roughly speaking, it does the same as
 such applications as [SeTracker](https://setracker.org/), [FindMyKids](https://findmykids.org/), 
 and so on. The main difference is that all personal data, like contacts, positions, 
 communication history, and so on, becomes truly private, since it is stored on hardware 
@@ -30,7 +30,7 @@ in a text message to user cellphone.
 to protect devices from unwilling commands even if user account is compromised.
 4. Any user having access to a device can list all other user having access to this device.
 
-And last, but not least, it is free of change and ads :).
+And last, but not least, it is free of charge and ads :).
 
 ## Getting started
 
@@ -62,7 +62,7 @@ sent to the device makes it start connecting to the application:
 pw,123456,ip,<public IP address or domain>,8001#
 ```
 Here `123456` is the default password, which is most probably set on the device. 
-Other popular default passwords are `523681`, `54321`, and `654321`. If, however, 
+Other known default passwords are `523681`, `54321`, and `654321`. If, however, 
 the password was changed, the new password should be used instead of the default one. 
 
 **It is highly recommended changing the default password!**

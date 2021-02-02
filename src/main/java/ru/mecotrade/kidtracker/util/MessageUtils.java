@@ -170,7 +170,7 @@ public class MessageUtils {
             throw new KidTrackerParseException("Unable to parse location from message of type " + message.getType());
         }
 
-        final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(",")));
+        final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(PAYLOAD_SEPARATOR)));
 
         try {
             Location.LocationBuilder locationBuilder = Location.builder()
@@ -224,7 +224,7 @@ public class MessageUtils {
             throw new KidTrackerParseException("Unable to parse link data from message of type " + message.getType());
         }
 
-        final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(",")));
+        final Queue<String> parts = new LinkedList<>(Arrays.asList(message.getPayload().split(PAYLOAD_SEPARATOR)));
 
         try {
             return new Temporal<>(message.getTimestamp(), Link.builder()

@@ -66,9 +66,9 @@ public class DeviceServer implements Runnable {
             }
 
         } catch (IOException ex) {
-            log.error("Device Server error", ex);
+            log.error("Device Server error on port: {} for {}", port, deviceConnectorFactory.getClass(), ex);
         }
 
-        log.info("Device Server shut down");
+        log.info("Device Server shut down on port: {} for {}", port, deviceConnectorFactory.getClass());
     }
 }
