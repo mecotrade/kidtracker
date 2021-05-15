@@ -34,6 +34,8 @@ And last, but not least, it is free of charge and ads :).
 
 ## Getting started
 
+### Build application
+
 Building the project is as simple as
 ```bash
 docker-compose -f docker-builder.yml run --rm builder
@@ -44,14 +46,42 @@ to specify a domain and/or an ip address using environment variables `DOMAIN` an
 docker-compose -f docker-builder.yml run --rm -e DOMAIN=example.com -e IP=123.45.67.89 builder
 ```
 
-The application can be started with command
+### Choose the database and start the application
+
+The application can be backed by different databases, on your choice. The most lightweight 
+scenario is to use embedded H2 database. In this case application can be started with command
+
 ```bash
-docker-compose up -d
+docker-compose --profile h2 up -d
 ```
+
+It is also possible to use PostreSQL, either containerized, or standalone. In the former case 
+you can start application with command
+
+```bash
+docker-compose --profile pg up -d
+```
+
+In the latter case you have to complete file `db.env` with database URL and credentials and then
+run the command
+
+```bash
+docker-compose --profile pg_ext up -d
+```
+
+If your version of compose doesn't support profiles, you can use dedicated compose files for each scenario
+
+```bash
+docker-compose -f h2.yml up -d
+docker-compose -f pg.yml up -d
+docker-compose -f pg_ext.yml up -d
+```
+
+In the last case you still need to complete `db.env` file with database URL and credentials.
 
 Web UI is available on `https://<hostname>:8003`. To log in, use default credentials `admin`/`password`.
 
-## Device assignment
+### Assign a device
 
 To assign a device to a user registered to the application, the application should be available 
 from public networks, that is, it should have a public ip address, and, probably,

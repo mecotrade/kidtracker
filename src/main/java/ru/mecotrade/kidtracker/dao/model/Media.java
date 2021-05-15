@@ -37,7 +37,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name="medias")
+@Table(name="media")
 public class Media {
 
     public enum Type {

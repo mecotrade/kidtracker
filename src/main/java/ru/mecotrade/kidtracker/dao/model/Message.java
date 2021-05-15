@@ -32,7 +32,7 @@ import java.util.Date;
 @Data
 @ToString
 @Entity
-@Table(name="messages",
+@Table(name="message",
         indexes = {
         @Index(columnList = "deviceId"),
         @Index(columnList = "type"),

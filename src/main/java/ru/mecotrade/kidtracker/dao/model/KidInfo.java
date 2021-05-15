@@ -36,7 +36,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="kids")
+@Table(name="kid")
 public class KidInfo {
 
     public static final int MAX_THUMB_SIZE = 1048575;

@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: target
+      dockerfile: ../Dockerfile
+    restart: always
+    ports:
+      - 8001:8001
+      - 8002:8002
+      - 8003:8003
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - TZ=Europe/Moscow
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.H2Dialect
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:./data/data
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_H2_CONSOLE_ENABLED=true
+      - SPRING_H2_CONSOLE_PATH=/h2-console
+      - SPRING_H2_CONSOLE_SETTINGS_TRACE=false
+      - SPRING_H2_CONSOLE_SETTINGS_WEB_ALLOW_OTHERS=true

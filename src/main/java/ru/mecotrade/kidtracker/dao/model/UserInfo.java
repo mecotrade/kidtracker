@@ -40,7 +40,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="users",
+@Table(name="user",
         indexes = {@Index(columnList = "admin")},
         uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
 public class UserInfo {

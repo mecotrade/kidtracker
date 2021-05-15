@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: target
+      dockerfile: ../Dockerfile
+    restart: always
+    links:
+      - postgres
+    ports:
+      - 8001:8001
+      - 8002:8002
+      - 8003:8003
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - TZ=Europe/Moscow
+      - SPRING_JPA_DATABASE=POSTGRESQL
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQL10Dialect
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres/kidtracker
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=kidtracker
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - 5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata

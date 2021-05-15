@@ -1,9 +1,37 @@
 version: "3.8"
 services:
-  app:
+  app_h2:
     build:
       context: target
       dockerfile: ../Dockerfile
+    profiles:
+      - h2
+    restart: always
+    ports:
+      - 8001:8001
+      - 8002:8002
+      - 8003:8003
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - TZ=Europe/Moscow
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.H2Dialect
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:./data/data
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_H2_CONSOLE_ENABLED=true
+      - SPRING_H2_CONSOLE_PATH=/h2-console
+      - SPRING_H2_CONSOLE_SETTINGS_TRACE=false
+      - SPRING_H2_CONSOLE_SETTINGS_WEB_ALLOW_OTHERS=true
+
+  app_pg:
+    build:
+      context: target
+      dockerfile: ../Dockerfile
+    profiles:
+      - pg
     restart: always
     links:
       - postgres
@@ -15,9 +43,38 @@ services:
       - ./logs:/app/logs
     environment:
       - TZ=Europe/Moscow
+      - SPRING_JPA_DATABASE=POSTGRESQL
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQL10Dialect
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres/kidtracker
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+
+  app_pg_ext:
+    build:
+      context: target
+      dockerfile: ../Dockerfile
+    profiles:
+      - pg_ext
+    restart: always
+    ports:
+      - 8001:8001
+      - 8002:8002
+      - 8003:8003
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - TZ=Europe/Moscow
+      - SPRING_JPA_DATABASE=POSTGRESQL
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQL10Dialect
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+    env_file:
+      - db.env
 
   postgres:
     image: postgres
+    profiles:
+      - pg
     restart: always
     environment:
       - POSTGRES_PASSWORD=postgres
