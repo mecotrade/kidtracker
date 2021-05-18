@@ -132,7 +132,9 @@ async function showChat(deviceId, stompClient) {
 
     return new Promise(resolve => {
 
-        function hide() {
+        async function hide() {
+
+            await fetchWithRedirect(`/api/device/${deviceId}/off/notification`);
 
             subscription.unsubscribe();
 
