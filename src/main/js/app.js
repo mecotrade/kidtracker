@@ -154,15 +154,16 @@ function updateKidPopup(kid, position, snapshot, midnightSnapshot, online, alarm
         selected = kid.deviceId;
         $select.val(selected);
         $('div.leaflet-popup.leaflet-zoom-animated').removeClass('on-top');
+        updateKidPopup(kid, position, snapshot, midnightSnapshot, online, false, false, lastMsg, true);
+        if (!path) {
+            setView(kid);
+        }
         if (alarm) {
             await fetchWithRedirect(`/api/device/${kid.deviceId}/off/alarm`);
         }
         if (notification) {
             await fetchWithRedirect(`/api/device/${kid.deviceId}/off/notification`);
-        }
-        updateKidPopup(kid, position, snapshot, midnightSnapshot, online, false, false, lastMsg, true);
-        if (!path) {
-            setView(kid);
+            await showChat(kid.deviceId, stompClient);
         }
     });
 
