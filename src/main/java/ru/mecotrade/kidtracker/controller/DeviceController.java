@@ -16,7 +16,6 @@
 package ru.mecotrade.kidtracker.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -45,7 +44,6 @@ import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.processor.DeviceProcessor;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,14 +61,6 @@ import static ru.mecotrade.kidtracker.util.ValidationUtils.*;
 @Slf4j
 @RequestMapping("/api/device/{deviceId}")
 public class DeviceController {
-
-    private final static int MAX_MESSAGE_LENGTH = 95;
-
-    @Value("${kidtracker.device.controller.min.upload.interval}")
-    private int minUploadInterval;
-
-    @Value("${kidtracker.device.controller.min.worktime}")
-    private int minWorktime;
 
     @Value("${kidtracker.device.confirmation.timeout.millis}")
     private long confirmationTimeout;
@@ -290,88 +280,6 @@ public class DeviceController {
         }
     }
 
-    private boolean isValid(Contact contact) {
-        if (contact.getType() != null) {
-            switch (contact.getType()) {
-                case PHONEBOOK:
-                    return !StringUtils.isBlank(contact.getName())
-                            && isValidPhone(contact.getPhone());
-                case ADMIN:
-                case SOS:
-                case WHITELIST:
-                case BUTTON:
-                    return isValidPhone(contact.getPhone());
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isValid(Config config) {
-        if (config.getParameter() != null) {
-            switch (config.getParameter()) {
-                case "UPLOAD":
-                    return isValidNumber(config.getValue())
-                            && Integer.parseInt(config.getValue()) >= minUploadInterval;
-                case "WORKTIME":
-                    return isValidNumber(config.getValue())
-                            && Integer.parseInt(config.getValue()) >= minWorktime;
-                case "LZ":
-                    if (StringUtils.isNoneBlank(config.getValue())) {
-                        String[] payload = config.getValue().split(",");
-                        return payload.length == 2
-                                && isValidLanguageCode(payload[0])
-                                && isValidTimezone(payload[1]);
-                    } else {
-                        return false;
-                    }
-                case "REMIND":
-                    if (StringUtils.isNoneBlank(config.getValue())) {
-                        String[] payload = config.getValue().split(",");
-                        if (payload.length == 3) {
-                            for (String p : payload) {
-                                String[] reminder = p.split("-");
-                                if (reminder.length != 3
-                                        || !isValidTime(reminder[0])
-                                        || !isValidSwitch(reminder[1])
-                                        || !isValidReminderType(reminder[2])) {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }
-                        return false;
-                    } else {
-                        // remove all reminders
-                        return true;
-                    }
-                case "BTNAME":
-                    return StringUtils.isNoneBlank(config.getValue());
-                case "FLOWER":
-                    return isValidNumber(config.getValue())
-                            && Integer.parseInt(config.getValue()) >= 0
-                            && Integer.parseInt(config.getValue()) < 100;
-                case "PROFILE":
-                    return isValidProfile(config.getValue());
-                case "SOSSMS":
-                case "REMOVESMS":
-                case "LOWBAT":
-                case "TKONOFF":
-                case "REMOVE":
-                case "SMSONOFF":
-                case "PEDO":
-                case "MAKEFRIEND":
-                case "BT":
-                case "BIGTIME":
-                case "PHBONOFF":
-                case "WIFI":
-                    return isValidSwitch(config.getValue());
-            }
-        }
-
-        return false;
-    }
-
     private boolean isProtected(Command command) {
 
         if (command.getType() != null) {
@@ -381,50 +289,6 @@ public class DeviceController {
                 case "PW":
                 case "IP":
                     return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isValid(Command command) {
-
-        if (command.getType() != null) {
-            List<String> payload = command.getPayload();
-            switch (command.getType()) {
-                case "CR":
-                case "FIND":
-                case "TIMECALI":
-                case "RESET":
-                case "POWEROFF":
-                case "FACTORY":
-                case "RCAPTURE":
-                case "RECORD":
-                case "DEBUGCLOSE":
-                    return payload == null || payload.isEmpty();
-                case "MONITOR":
-                case "CALL":
-                    return payload != null && payload.size() == 1
-                            && isValidPhone(payload.get(0));
-                case "SMS":
-                    return payload != null && payload.size() == 2
-                            && isValidPhone(payload.get(0));
-                case "MESSAGE":
-                    return payload != null && payload.size() == 1
-                            && payload.get(0).length() < MAX_MESSAGE_LENGTH;
-                case "TIME":
-                    return payload != null && payload.size() == 3
-                            && isValidDotTime(payload.get(0))
-                            && "DATE".equals(payload.get(1))
-                            && isValidDate(payload.get(2));
-                case "PW":
-                    return payload != null && payload.size() == 1
-                            && isValidPassword(payload.get(0));
-                case "IP":
-                case "DEBUG":
-                    return payload != null && payload.size() == 2
-                            && isValidHost(payload.get(0))
-                            && isValidPort(payload.get(1));
             }
         }
 

@@ -49,6 +49,11 @@ public class KidTrackerConfig {
     }
 
     @Bean
+    public Executor notificationExecutor() {
+        return Executors.newCachedThreadPool();
+    }
+
+    @Bean
     public DeviceServer messageServer() {
         return new DeviceServer(messageServerPort, messageListenerFactory);
     }

@@ -161,14 +161,18 @@ public class DeviceManager implements MessageListener, Cleanable {
         return devices.containsKey(deviceId);
     }
 
-    public void sendOrApply(String deviceId, Command command) throws KidTrackerException {
+    public void executeOrApply(String deviceId, DeviceJob deviceJob) throws KidTrackerException  {
         Device device = devices.get(deviceId);
         if (device != null) {
-            device.send(command);
+            deviceJob.execute(device);
         } else {
-            deviceJobs.put(deviceId, Temporal.of(d -> d.send(command)));
-            log.info("Device {} is offline, created welcome job for {}", deviceId, command);
+            deviceJobs.put(deviceId, Temporal.of(deviceJob));
+            log.info("Device {} is offline, created welcome job", deviceId);
         }
+    }
+
+    public void sendOrApply(String deviceId, Command command) throws KidTrackerException {
+        executeOrApply(deviceId, d -> d.send(command));
     }
 
     public void apply(UserInfo userInfo, String deviceId, Command command) throws KidTrackerException {

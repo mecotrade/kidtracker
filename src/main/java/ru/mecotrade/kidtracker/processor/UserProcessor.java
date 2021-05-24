@@ -23,25 +23,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import ru.mecotrade.kidtracker.dao.service.DeviceService;
-import ru.mecotrade.kidtracker.dao.service.KidService;
-import ru.mecotrade.kidtracker.dao.service.MessageService;
-import ru.mecotrade.kidtracker.dao.service.UserService;
-import ru.mecotrade.kidtracker.dao.model.Assignment;
-import ru.mecotrade.kidtracker.dao.model.DeviceInfo;
-import ru.mecotrade.kidtracker.dao.model.KidInfo;
-import ru.mecotrade.kidtracker.dao.model.Message;
-import ru.mecotrade.kidtracker.dao.model.UserInfo;
+import ru.mecotrade.kidtracker.dao.model.*;
+import ru.mecotrade.kidtracker.dao.service.*;
 import ru.mecotrade.kidtracker.device.DeviceManager;
 import ru.mecotrade.kidtracker.exception.KidTrackerInvalidOperationException;
-import ru.mecotrade.kidtracker.model.Credentials;
-import ru.mecotrade.kidtracker.model.ServerConfig;
-import ru.mecotrade.kidtracker.model.User;
+import ru.mecotrade.kidtracker.model.*;
 import ru.mecotrade.kidtracker.task.Cleanable;
 import ru.mecotrade.kidtracker.task.UserToken;
 import ru.mecotrade.kidtracker.exception.KidTrackerException;
-import ru.mecotrade.kidtracker.model.Command;
-import ru.mecotrade.kidtracker.model.Kid;
 import ru.mecotrade.kidtracker.security.UserPrincipal;
 import ru.mecotrade.kidtracker.task.JobExecutor;
 import ru.mecotrade.kidtracker.util.ThumbUtils;
@@ -50,7 +39,10 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 import static ru.mecotrade.kidtracker.util.ValidationUtils.isValidPhone;
 
@@ -74,7 +66,16 @@ public class UserProcessor extends JobExecutor implements Cleanable {
     private DeviceManager deviceManager;
 
     @Autowired
+    private DeviceProcessor deviceProcessor;
+
+    @Autowired
+    private ConfigService configService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private Executor notificationExecutor;
 
     @Value("${kidtracker.token.length}")
     private int tokenLength;
@@ -96,6 +97,12 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
     @Value("${kidtracker.server.debug.start}")
     private boolean debugStart;
+
+    @Value("${kidtracker.device.confirmation.timeout.millis}")
+    private long confirmationTimeout;
+
+    @Value("${kidtracker.text.notification.template}")
+    private String notificationTemplate;
 
     public void updateKid(UserPrincipal userPrincipal, Kid kid) throws IOException {
 
@@ -231,7 +238,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
                 UserToken userToken = UserToken.of(userPrincipal.getUserInfo().getId(), RandomStringUtils.randomNumeric(tokenLength));
                 apply(userToken, () -> doRemoveKid(userPrincipal, deviceId));
                 log.info("{} created for remove kid with device {} by user {}", userToken, deviceId, userPrincipal.getUsername());
-                deviceManager.sendOrApply(deviceId, Command.of("SMS", userPrincipal.getUserInfo().getPhone(), userToken.getToken()));
+                notifyOrApplyAsync(deviceId, Collections.singletonMap(userPrincipal.getUserInfo().getPhone(), userToken.getToken()));
             } else {
                 throw new KidTrackerInvalidOperationException(String.format("%s has incorrect phone number", userPrincipal.getUserInfo()));
             }
@@ -263,6 +270,7 @@ public class UserProcessor extends JobExecutor implements Cleanable {
 
         DeviceInfo deviceInfo = deviceService.get(kid.getDeviceId())
                 .orElseGet(() -> deviceService.save(DeviceInfo.of(kid.getDeviceId())));
+
         kidService.save(KidInfo.builder()
                 .id(new Assignment())
                 .device(deviceInfo)
@@ -271,6 +279,14 @@ public class UserProcessor extends JobExecutor implements Cleanable {
                 .thumb(resizeThumb(userPrincipal.getUserInfo(), kid))
                 .build());
         update(userPrincipal);
+
+        // send notification to all users having access to given device
+        String text = String.format(notificationTemplate,
+                userPrincipal.getUserInfo().getName(), userPrincipal.getUserInfo().getPhone());
+        notifyOrApplyAsync(deviceInfo.getId(), deviceInfo.getKids().stream()
+                .map(KidInfo::getUser)
+                .filter(user -> !user.getId().equals(userPrincipal.getUserInfo().getId()))
+                .collect(Collectors.toMap(UserInfo::getPhone, user -> text)));
 
         log.info("{} successfully added to {}", kid, userPrincipal.getUserInfo());
     }
@@ -288,5 +304,49 @@ public class UserProcessor extends JobExecutor implements Cleanable {
             log.warn("Unable to resize thumb for {} assigned to {}, add without resize", kid, userInfo, ex);
             return kid.getThumb();
         }
+    }
+
+    private void notifyOrApplyAsync(String deviceId, Map<String, String> messages) {
+        notificationExecutor.execute(() -> {
+            try {
+                deviceManager.executeOrApply(deviceId, device -> {
+
+                    Optional<ConfigRecord> smsOnOff = configService.get(deviceId, "SMSONOFF");
+
+                    // allow send sms from device
+                    if (!smsOnOff.isPresent() || !"1".equals(smsOnOff.get().getValue())) {
+                        if (device.send(Command.from(new Config("SMSONOFF", "1")), confirmationTimeout) != null) {
+                            log.info("[{}] sending SMS from device is temporarily ON", deviceId);
+                        } else {
+                            log.warn("[{}] sending SMS from device ON is not confirmed", deviceId);
+                        }
+                    }
+
+                    // send notifications
+                    messages.forEach((phone, text) -> {
+                        try {
+                            if (device.send(Command.of("SMS", phone, text), confirmationTimeout) != null) {
+                                log.info("[{}] notification '{}' is sent to {}", deviceId, text, phone);
+                            } else {
+                                log.warn("[{}] sending notification '{}' to {} is not confirmed", deviceId, text, phone);
+                            }
+                        } catch (Exception ex) {
+                            log.warn("[{}] notification '{}' is not sent to {}", deviceId, text, phone);
+                        }
+                    });
+
+                    // restore SMSONOFF status, forbid sending SMS from the device if status was undefined
+                    if (!smsOnOff.isPresent() || !"1".equals(smsOnOff.get().getValue())) {
+                        if (device.send(Command.from(new Config("SMSONOFF", "0")), confirmationTimeout) != null) {
+                            log.info("[{}] sending SMS from device is OFF", deviceId);
+                        } else {
+                            log.warn("[{}] sending SMS from device OFF is not confirmed", deviceId);
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                log.error("[{}] unable to send notifications {}", deviceId, messages, ex);
+            }
+        });
     }
 }
