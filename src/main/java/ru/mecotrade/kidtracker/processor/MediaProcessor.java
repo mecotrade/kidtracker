@@ -25,9 +25,9 @@ import ru.mecotrade.kidtracker.dao.model.Media;
 import ru.mecotrade.kidtracker.dao.model.Message;
 import ru.mecotrade.kidtracker.model.ChatMessage;
 import ru.mecotrade.kidtracker.util.MessageUtils;
-import ws.schild.jave.AudioAttributes;
+import ws.schild.jave.encode.AudioAttributes;
 import ws.schild.jave.Encoder;
-import ws.schild.jave.EncodingAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
 import ws.schild.jave.MultimediaObject;
 
 import javax.xml.bind.DatatypeConverter;
@@ -139,7 +139,7 @@ public class MediaProcessor {
         audio.setSamplingRate(samplingRate);
 
         encodingAttributes = new EncodingAttributes();
-        encodingAttributes.setFormat(format);
+        encodingAttributes.setOutputFormat(format);
         encodingAttributes.setAudioAttributes(audio);
 
         this.audioContentType = audioContentType;

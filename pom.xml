@@ -5,24 +5,21 @@
 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>mecotrade</groupId>
+    <groupId>ru.mecotrade.kidtracker</groupId>
     <artifactId>kidtracker</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <packaging>jar</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <commons-lang3.version>3.10</commons-lang3.version>
-        <guava.version>29.0-jre</guava.version>
-        <lombok.version>1.18.8</lombok.version>
-        <jave.version>2.7.3</jave.version>
-        <thumbnailator.version>0.4.11</thumbnailator.version>
-        <postgres.driver.version>42.2.18</postgres.driver.version>
+        <guava.version>30.1.1-jre</guava.version>
+        <jave.version>3.1.1</jave.version>
+        <thumbnailator.version>0.4.14</thumbnailator.version>
     </properties>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.0.RELEASE</version>
+        <version>2.5.2</version>
     </parent>
 
     <dependencies>
@@ -50,12 +47,10 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${postgres.driver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -80,7 +75,6 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

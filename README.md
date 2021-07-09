@@ -38,12 +38,12 @@ And last, but not least, it is free of charge and ads :).
 
 Building the project is as simple as
 ```bash
-docker-compose -f docker-builder.yml run --rm builder
+docker compose -f docker-builder.yml run --rm builder
 ```
 While building, an SSL certificate required for `https` connections is created. It is possible 
 to specify a domain and/or an ip address using environment variables `DOMAIN` and `IP`
 ```bash
-docker-compose -f docker-builder.yml run --rm -e DOMAIN=example.com -e IP=123.45.67.89 builder
+docker compose -f docker-builder.yml run --rm -e DOMAIN=example.com -e IP=123.45.67.89 builder
 ```
 
 ### Choose the database and start the application
@@ -52,32 +52,49 @@ The application can be backed by different databases, on your choice. The most l
 scenario is to use embedded H2 database. In this case application can be started with command
 
 ```bash
-docker-compose --profile h2 up -d
+docker compose --profile h2 up -d
 ```
 
 It is also possible to use PostreSQL, either containerized, or standalone. In the former case 
 you can start application with command
 
 ```bash
-docker-compose --profile pg up -d
+docker compose --profile pg up -d
 ```
 
 In the latter case you have to complete file `db.env` with database URL and credentials and then
 run the command
 
 ```bash
-docker-compose --profile pg_ext up -d
+docker compose --profile pg_ext up -d
 ```
 
 If your version of compose doesn't support profiles, you can use dedicated compose files for each scenario
 
 ```bash
-docker-compose -f h2.yml up -d
-docker-compose -f pg.yml up -d
-docker-compose -f pg_ext.yml up -d
+docker compose -f h2.yml up -d
+docker compose -f pg.yml up -d
+docker compose -f pg_ext.yml up -d
 ```
 
 In the last case you still need to complete `db.env` file with database URL and credentials.
+
+### Run from binary
+
+It is also possible to skip the boring building phase and run the binary
+attached to release (java 8 or higher is supposed to be installed)
+```bash
+java -jar kidtracker.jar
+```
+
+The binary is configured to use embedded H2 database. Three folders are created on frist startup in the working directory:
+* `data` contains database records for device locations, phone numbers, etc, 
+  this date is confidential, so keep it safe!
+* `logs` self-descriptive enough, contains logs, both for the application itself, and
+  for devices when device debugging is active,
+* `media` this folder is used to convert incoming audio in amr format into mp3
+
+### Logging in
 
 Web UI is available on `https://<hostname>:8003`. To log in, use default credentials `admin`/`password`.
 
@@ -147,7 +164,7 @@ more than 15 minutes ago.
 
 Device could provide its actual location, based on direct GPS data, when it is available,
 as well as last detected position, when direct GPS observation is not available, 
-mostly within building or in the presents of electromagnetic noise. In the second case data 
+mostly inside buildings or in the presence of electromagnetic noise, in such cases the GPS data  
 is considered obsolete. When received location data is 
 obsolete, the obsolete data alert ![eye-slash](icons/eye-slash.svg) is shown.
 
@@ -191,7 +208,6 @@ sent to device with button ![chat-text](icons/chat-text.svg), whereas the device
 short audio messages and, if device is equipped with camera, snapshots.
 Device can also be forced to take a snapshot with button ![camera](icons/camera.svg)
 or make a 15 seconds audio record with button ![voicemail](icons/voicemail.svg).
-
 
 #### History dialog
 History dialog ![calendar-week](icons/calendar-week.svg) allows choosing time interval in two
