@@ -1,6 +1,11 @@
 # Changelog
 All changes to the project will be documented in this file.
 
+## v2.1.0 - 10 Jul 2021
+
+- Migration to SpringBoot 2.5, dependency versions update
+- Builder script improved
+
 ## v2.0.0 - 24 May 2021
 - PostgreSQL can be used as backed database as well as H2 (embedded),
   however, migration on the fly is not supported: if switched to
